@@ -2,7 +2,10 @@
 
 Materiály k přípravě na státní závěrečnou magisterskou zkoušku na Fakultě informatiky Masarykovy univerzity (FI MUNI).
 
+Otázky viz https://www.fi.muni.cz/studies/fe-mgr/uizd2018.html
+
 ## Okruhy ke státní zkoušce
+### Společný základ programu
 
 | Okruh | Předmět | Poznámka |
 |---|---|---|
@@ -15,6 +18,11 @@ Materiály k přípravě na státní závěrečnou magisterskou zkoušku na Faku
 | [Strojové učení](./Strojove_uceni.md) | PV056 | Pro absolventy předmětu od jara 2025 včetně |
 | [Dobývání znalostí](./Dobyvani_znalosti_PA212_PV056.md) | PA212, PV056 | Pro absolventy předmětu PV056 od jara 2025 včetně |
 | [Vizualizace](./Vizualizace.md) | PV251 | |
+
+### Zpracování a analýza rozsáhlých dat
+
+| Okruh | Předmět | Poznámka |
+|---|---|---|
 | [Analýza dat](./Analyza_dat.md) | PA220 | |
 | [Pokročilé techniky vyhledávání](./Pokrocile_techniky_vyhledavani.md) | PA212 | Povinné pro šablonu 2022/2023 nebo novější |
 | [Podobnostní hledání](./Podobnostni_hledani.md) | PA128 | Povinné pro šablonu 2022/2023 nebo novější |
