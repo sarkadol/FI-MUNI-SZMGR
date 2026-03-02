@@ -32,11 +32,12 @@ ANOVA (ANalysis Of VAriance – analýza rozptylu) je statistická metoda pro po
 
 _Například mám 4 různé odrůdy brambor sesbírané po trsech s různou hmotností. Zajímá mě, jestli je některá odrůda výnosnější než jiná (průměrná hmotnost trsu se liší na základě odrůdy)_
 
-obrázek grafy dle skupin
 
-$H_0$: Předpokládá, že všechny průměry skupin jsou stejné. $$\mu_i = \mu \quad \text{pro všechna } i = 1, \dots, k$$
+$H_0$: Předpokládá, že všechny průměry skupin jsou stejné. $$\mu_i = \dots = \mu_a \quad \text{pro všechna } i = 1, \dots, k$$
 
 $H_1$: Alespoň jeden průměr skupiny je odlišný. $$\exists\, i,j \in \{1,\dots,k\},\ i \neq j:\ \mu_i \neq \mu_j$$
+
+<img width="434" height="289" alt="image" src="img/anova.png"  />
 
 Jednofaktorová ANOVA zkoumá vliv jedné nezávislé proměnné (faktoru). Vícefaktorová ANOVA (dvou- či více-) analyzuje vliv dvou a více faktorů současně, včetně jejich vzájemných interakcí na závislou proměnnou.
 
@@ -45,6 +46,8 @@ _Například mám 3 různé druhy hnojiva a 2 různé typy půdy, a výnos polí
  U dvoufaktorové ANOVA rozlišujeme model **bez interakce** a model **s interakcí** mezi faktory.
  - bez interakce předpokládáme, že vliv jednoho faktoru je stejný bez ohledu na úroveň druhého faktoru  _Například hnojivo A zvyšuje výnos vždy o +2 kg bez ohledu na typ půdy_
  - s interakcí připouštíme, že efekt jednoho faktoru závisí na úrovni druhého faktoru. _Hnojivo A je nejlepší na jílovité půdě, ale na písčité půdě je lepší hnojivo B._
+
+<img width="1000"  alt="image" src="img/anova2faktory.png"  />
 
 Předpoklady ANOVA
 1) **Nezávislost výběrů**  Jednotlivá pozorování musí být na sobě nezávislá. Pokud nejsou, mění se rozdělení testové statistiky i p-hodnota → výsledky nejsou spolehlivé.
