@@ -101,6 +101,12 @@ Rozšíření: Jednotlivé hypotézy a testové statistiky
 ---
 
 ## 5. Analýza hlavních komponent (PCA)
+PCA (Principal Component Analysis – analýza hlavních komponent) je metoda redukce dimenze, která převádí původní (často korelované) proměnné na menší počet nových proměnných – hlavních komponent. Tyto komponenty jsou:
+- lineární kombinace původních proměnných,
+- navzájem nekorelované (ortogonální),
+- seřazené tak, že 1. komponenta vysvětluje největší možnou část variability, 2. komponenta další největší část atd.
+
+
 - Motivace redukce dimenze  
 - Kovarianční a korelační matice  
 - Vlastní čísla a vlastní vektory  
