@@ -54,16 +54,26 @@ Předpoklady ANOVA
 2) **Normalita dat**  Ověřuje se pomocí Q-Q grafu nebo testů (např. Shapiro–Wilk). ANOVA je poměrně odolná – pokud má každá skupina alespoň ~20 pozorování a data nejsou silně vychýlená, malé porušení nevadí, při silném porušení použijeme neparametrický test (např. Kruskal–Wallis).
 3) **Shoda rozptylů (homogenita variancí)**  Ověřuje se např. Leveneho nebo Bartlettovým testem, mírné porušení většinou nevadí, pokud mají skupiny podobnou velikost.
 
-Ronzšíření: sums of squares, F test mezi nimi, anova model, co jsou post hoc testy
+Rozšíření: sums of squares, F test mezi nimi, anova model, co jsou post hoc testy
 
 ---
 
 ## 3. Neparametrické testy hypotéz
-- Wilcoxonův test  
-- Mann-Whitneyův test  
-- Kruskal-Wallisův test  
-- Test dobré shody (χ² test)  
-- Výhody a nevýhody neparametrických metod  
+Nevyžadují konkrétní tvar **rozdělení** (typicky normalitu) a často pracují s pořadím (ranks) místo s původními hodnotami. Používají se hlavně tehdy, když:
+- data nejsou normální (silná šikmost, outliery),
+- máme malé výběry a normalitu nelze rozumně předpokládat,
+- závislá proměnná je ordinální (pořadová škála: „souhlasím–nesouhlasím“, škály bolesti, známky…),
+- porušujeme předpoklad homogenity rozptylů (u některých situací),
+- chceme robustnější postup vůči extrémům.
+
+Neparametrické testy bývají „konzervativnější“ (méně citlivé) než parametrické testy, pokud jsou předpoklady parametrických testů splněny. Naopak při silném porušení normality nebo při outlierech mohou být neparametrické testy spolehlivější.
+
+### Wilcoxonův párový test (= Wilcoxon signed-rank)
+Neparametrická alternativa k párovému t-testu. Hodí se, když máme stejné subjekty měřené dvakrát (před/po), nebo páry, a rozdíly nejsou normální. _Typicky před a po: např. krevní tlak před a po podání léku._
+### Mann-Whitneyův test  (= Wilcoxon rank-sum)
+Porovnává dvě nezávislé skupiny bez předpokladu normality. Intuitivně ověřuje, zda hodnoty v jedné skupině mají tendenci být větší než ve druhé. _Například mám dva typy hnojiva A a B a měřím výnos (kg) na nezávislých polích. Data jsou silně šikmá kvůli pár extrémně výnosným polím. Chci zjistit, jestli se výnosy mezi hnojivy liší._
+### Kruskal-Wallisův test
+Kruskal–Wallisův test je neparametrická alternativa k jednofaktorové ANOVA pro tři a více nezávislých skupin. _Například mám 4 odrůdy brambor, ale hmotnosti trsů jsou výrazně nenormální a s outliery. Chci zjistit, zda se odrůdy liší._
 
 ---
 
