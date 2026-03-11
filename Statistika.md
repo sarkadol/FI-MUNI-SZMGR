@@ -82,6 +82,49 @@ Rozšíření: Jednotlivé hypotézy a testové statistiky
 ---
 
 ## 4. Mnohonásobná lineární regrese
+Zkoumá vztah mezi jednou spojitou závislou proměnnou a více nezávislými proměnnými. Cílem je popsat, jak se mění hodnota závislé proměnné při změně několika vysvětlujících proměnných současně, a odhadnout jejich samostatný vliv při kontrole ostatních proměnných.
+
+_např. cena bytu ~ výměra a počet pokojů, nebo hmotnost člověka ~ výška a pohlaví_
+
+$$
+Y_i = \beta_0 + \beta_1 X_{i1} + \beta_2 X_{i2} + \dots + \beta_p X_{ip} + \varepsilon_i
+$$
+
+- $Y_i$ je hodnota závislé proměnné u $i$-tého pozorování,
+
+- $\beta_0$ je absolutní člen,
+
+- $\beta_1, \beta_2, \dots, \beta_p$ jsou regresní koeficienty,
+
+- $X_{i1}, X_{i2}, \dots, X_{ip}$ jsou hodnoty vysvětlujících proměnných,
+
+- $\varepsilon_i$ je náhodná chyba.
+
+<img width="600" alt="image" src="img/mnoho-regrese.jpg"  />
+
+
+Pozor, neplést s jednoduchou regresí s více parametry! Záleží na tom, kolik je prediktorů (u mnohonásobné musí být aspoň 2), ne parametrů ($\beta$). Každý koeficient $\beta_j$ vyjadřuje, o kolik se v průměru změní závislá proměnná $Y$, když se proměnná $X_j$ zvýší o 1 jednotku a ostatní proměnné zůstanou stejné.
+
+Parametry $\beta spočítám metodou nejmenších čtverců, ale pak ještě testuji jejich celkovou významnost. 
+
+$$
+H_0: \beta_1 = \beta_2 = \dots = \beta_p = 0
+$$
+
+$$
+H_1: \text{alespoň jedno } \beta_j \neq 0
+$$
+
+Taky se testují jednotlivé významnosti
+
+$$
+H_0: \beta_1 = \beta_2 = \dots = \beta_p = 0
+$$
+
+$$
+H_1: \text{alespoň jedno } \beta_j \neq 0
+$$
+
 
 ### 4.1 Model
 - Tvar modelu  
