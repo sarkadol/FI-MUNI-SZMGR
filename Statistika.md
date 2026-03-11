@@ -100,7 +100,7 @@ $$
 
 - $\varepsilon_i$ je náhodná chyba.
 
-<img width="600" alt="image" src="img/mnoho-regrese.jpg"  />
+<img width="600" alt="image" src="img/mnoho-regrese.png"  />
 
 
 Pozor, neplést s jednoduchou regresí s více parametry! Záleží na tom, kolik je prediktorů (u mnohonásobné musí být aspoň 2), ne parametrů ($\beta$). Každý koeficient $\beta_j$ vyjadřuje, o kolik se v průměru změní závislá proměnná $Y$, když se proměnná $X_j$ zvýší o 1 jednotku a ostatní proměnné zůstanou stejné.
