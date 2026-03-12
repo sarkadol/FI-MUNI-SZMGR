@@ -10,7 +10,7 @@
 - Odhad parametrů rozdělení  
 - Metoda momentů  
 - Metoda maximální věrohodnosti  
-
+  
 ### 1.2 Intervaly spolehlivosti
 - Interval spolehlivosti pro střední hodnotu (známý / neznámý rozptyl)  
 - Interval spolehlivosti pro rozptyl  
@@ -82,7 +82,8 @@ Rozšíření: Jednotlivé hypotézy a testové statistiky
 ---
 
 ## 4. Mnohonásobná lineární regrese
-Zkoumá vztah mezi jednou spojitou závislou proměnnou a více nezávislými proměnnými. Cílem je popsat, jak se mění hodnota závislé proměnné při změně několika vysvětlujících proměnných současně, a odhadnout jejich samostatný vliv při kontrole ostatních proměnných.
+
+Zkoumá vztah mezi **jednou spojitou závislou proměnnou a více nezávislými proměnnými**. Cílem je popsat, jak se mění hodnota závislé proměnné při změně několika vysvětlujících proměnných současně, a odhadnout jejich samostatný vliv při kontrole ostatních proměnných.
 
 _např. cena bytu ~ výměra a počet pokojů, nebo hmotnost člověka ~ výška a pohlaví_
 
@@ -91,40 +92,61 @@ Y_i = \beta_0 + \beta_1 X_{i1} + \beta_2 X_{i2} + \dots + \beta_p X_{ip} + \vare
 $$
 
 - $Y_i$ je hodnota závislé proměnné u $i$-tého pozorování,
-
 - $\beta_0$ je absolutní člen,
-
 - $\beta_1, \beta_2, \dots, \beta_p$ jsou regresní koeficienty,
-
 - $X_{i1}, X_{i2}, \dots, X_{ip}$ jsou hodnoty vysvětlujících proměnných,
-
 - $\varepsilon_i$ je náhodná chyba.
 
-<img width="600" alt="image" src="img/mnoho-regrese.png"  />
+<img width="600" alt="image" src="img/mnoho-regrese.png" />
 
+Pozor, neplést s jednoduchou regresí s více parametry! Záleží na tom, kolik je prediktorů ($X_j$ - u mnohonásobné musí být aspoň 2), ne parametrů ($\beta$). Každý koeficient $\beta_j$ vyjadřuje, o kolik se v průměru změní závislá proměnná $Y$, když se proměnná $X_j$ zvýší o 1 jednotku a ostatní proměnné zůstanou stejné.
 
-Pozor, neplést s jednoduchou regresí s více parametry! Záleží na tom, kolik je prediktorů (u mnohonásobné musí být aspoň 2), ne parametrů ($\beta$). Každý koeficient $\beta_j$ vyjadřuje, o kolik se v průměru změní závislá proměnná $Y$, když se proměnná $X_j$ zvýší o 1 jednotku a ostatní proměnné zůstanou stejné.
-
-Parametry $\beta spočítám metodou nejmenších čtverců, ale pak ještě testuji jejich celkovou významnost. 
-
-$$
-H_0: \beta_1 = \beta_2 = \dots = \beta_p = 0
-$$
+Parametry $\beta$ spočítám metodou nejmenších čtverců, ale pak ještě testuji jejich celkovou významnost pomocí F-testu.
 
 $$
-H_1: \text{alespoň jedno } \beta_j \neq 0
-$$
-
-Taky se testují jednotlivé významnosti
-
-$$
-H_0: \beta_1 = \beta_2 = \dots = \beta_p = 0
+H_0:\ \beta_1 = \beta_2 = \dots = \beta_p = 0
 $$
 
 $$
-H_1: \text{alespoň jedno } \beta_j \neq 0
+H_1:\ \text{alespoň jedno } \beta_j \neq 0
 $$
 
+Tj.:
+- $H_0$: žádná vysvětlující proměnná nemá vliv na $Y$,
+- $H_1$: alespoň jedna proměnná vliv má.
+
+Taky se testují jednotlivé významnosti pomocí t-testu.
+
+$$
+H_0:\ \beta_j = 0
+$$
+
+$$
+H_1:\ \beta_j \neq 0
+$$
+
+Tj.:
+- $H_0$: daná proměnná nemá při zohlednění ostatních proměnných vliv na $Y$,
+- $H_1$: vliv dané proměnné je nenulový.
+
+Kvalitu modelu často popisujeme pomocí **koeficientu determinace**:
+
+$$
+R^2 = \frac{SSR}{SST} = 1 - \frac{SSE}{SST}
+$$
+
+- $SST$ je celkový součet čtverců,
+- $SSE$ je reziduální součet čtverců.
+
+$R^2$ udává, jaká část variability závislé proměnné je vysvětlena modelem. Např. $R^2 = 0.8$ znamená, že model vysvětluje 80 % variability závislé proměnné.
+
+Protože při přidávání dalších proměnných $R^2$ skoro vždy roste, používá se i adjustované $R^2$, které zohledňuje počet proměnných v modelu a penalizuje zbytečně složitý model.
+
+$$
+R^2_{adj} = 1 - \frac{SSE/(n-p-1)}{SST/(n-1)}
+$$
+
+I když model na první pohled vychází dobře, mohou se v něm objevit problémy, které zkreslují závěry. Typicky jde o **multikolinearitu** a **autokorelaci**.
 
 ### 4.1 Model
 - Tvar modelu  
