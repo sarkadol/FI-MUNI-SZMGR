@@ -85,7 +85,7 @@ Rozšíření: Jednotlivé hypotézy a testové statistiky
 
 Zkoumá vztah mezi **jednou spojitou závislou proměnnou a více nezávislými proměnnými**. Cílem je popsat, jak se mění hodnota závislé proměnné při změně několika vysvětlujících proměnných současně, a odhadnout jejich samostatný vliv při kontrole ostatních proměnných.
 
-_např. cena bytu ~ výměra a počet pokojů, nebo hmotnost člověka ~ výška a pohlaví_
+_např. cena bytu ~ výměra a počet pokojů _
 
 $$
 Y_i = \beta_0 + \beta_1 X_{i1} + \beta_2 X_{i2} + \dots + \beta_p X_{ip} + \varepsilon_i
@@ -99,69 +99,41 @@ $$
 
 <img width="600" alt="image" src="img/mnoho-regrese.png" />
 
+_Graf: hmotnost člověka ~ výška a pohlaví_
+
 Pozor, neplést s jednoduchou regresí s více parametry! Záleží na tom, kolik je prediktorů ($X_j$ - u mnohonásobné musí být aspoň 2), ne parametrů ($\beta$). Každý koeficient $\beta_j$ vyjadřuje, o kolik se v průměru změní závislá proměnná $Y$, když se proměnná $X_j$ zvýší o 1 jednotku a ostatní proměnné zůstanou stejné.
 
 Parametry $\beta$ spočítám metodou nejmenších čtverců, ale pak ještě testuji jejich celkovou významnost pomocí F-testu.
 
-$$
-H_0:\ \beta_1 = \beta_2 = \dots = \beta_p = 0
-$$
-
-$$
-H_1:\ \text{alespoň jedno } \beta_j \neq 0
-$$
-
-Tj.:
-- $H_0$: žádná vysvětlující proměnná nemá vliv na $Y$,
-- $H_1$: alespoň jedna proměnná vliv má.
+- $H_0$: žádná vysvětlující proměnná nemá vliv na $Y$, $\text{alespoň jedno } \beta_j \neq 0$
+- $H_1$: alespoň jedna proměnná vliv má.$\beta_1 = \beta_2 = \dots = \beta_p = 0$
 
 Taky se testují jednotlivé významnosti pomocí t-testu.
 
-$$
-H_0:\ \beta_j = 0
-$$
+- $H_0$: daná proměnná nemá při zohlednění ostatních proměnných vliv na $Y$, $\beta_j = 0$
+
+- $H_1$: vliv dané proměnné je nenulový. $\beta_j \neq 0$
+
+### Koeficient determinace R²
+Kvalitu modelu často popisujeme pomocí **koeficientu determinace**, který udává, jaká část variability závislé proměnné je vysvětlena modelem.
 
 $$
-H_1:\ \beta_j \neq 0
+R^2 = \frac{S_R}{S_T} = 1 - \frac{S_e}{S_T}
 $$
 
-Tj.:
-- $H_0$: daná proměnná nemá při zohlednění ostatních proměnných vliv na $Y$,
-- $H_1$: vliv dané proměnné je nenulový.
+- $S_T$ je celkový součet čtverců,
+- $S_e$ je reziduální součet čtverců.
+- $S_R$ je regresní součet čtverců. $S_R = S_T − S_e ≥ 0$
 
-Kvalitu modelu často popisujeme pomocí **koeficientu determinace**:
+_Např. $R^2 = 0.8$ znamená, že model vysvětluje 80 % variability závislé proměnné._
 
-$$
-R^2 = \frac{SSR}{SST} = 1 - \frac{SSE}{SST}
-$$
-
-- $SST$ je celkový součet čtverců,
-- $SSE$ je reziduální součet čtverců.
-
-$R^2$ udává, jaká část variability závislé proměnné je vysvětlena modelem. Např. $R^2 = 0.8$ znamená, že model vysvětluje 80 % variability závislé proměnné.
-
-Protože při přidávání dalších proměnných $R^2$ skoro vždy roste, používá se i adjustované $R^2$, které zohledňuje počet proměnných v modelu a penalizuje zbytečně složitý model.
+Protože při přidávání dalších proměnných $R^2$ skoro vždy roste, používá se i **adjustované $R^2$**, které zohledňuje počet proměnných v modelu a penalizuje zbytečně složitý model (penalizuje overfitting).
 
 $$
-R^2_{adj} = 1 - \frac{SSE/(n-p-1)}{SST/(n-1)}
+R^2_{adj} = 1 - \frac{\frac{S_e}{(n-p-1)}}{\frac{S_T}{(n-1)}}
 $$
 
 I když model na první pohled vychází dobře, mohou se v něm objevit problémy, které zkreslují závěry. Typicky jde o **multikolinearitu** a **autokorelaci**.
-
-### 4.1 Model
-- Tvar modelu  
-- Odhad parametrů (metoda nejmenších čtverců)  
-- Interpretace regresních koeficientů  
-
-### 4.2 Diagnostika modelu
-- Koeficient determinace (R², Adjusted R²)  
-- Test významnosti modelu  
-- Test významnosti jednotlivých koeficientů  
-
-### 4.3 Problémy regrese
-- Autokorelace  
-- Multikolinearita  
-- Heteroskedasticita  
 
 ## Multikolinearita
 Multikolinearita znamená, že některé vysvětlující proměnné jsou mezi sebou silně lineárně závislé. Model pak obtížně rozlišuje jejich samostatný vliv na závislou proměnnou.
@@ -178,6 +150,10 @@ $$
 VIF_j = \frac{1}{1 - R_j^2}
 $$
 
+- $R_j^2 \approx 0 => VIF_j \approx 1$ znamená bez problému,
+- $R_j^2 > 0 => VIF_j > 1$ vysoká korelace mazi vysvětlujícími proměnnými vede k vyššímu $VIF$,
+- $VIF_j > 10$ ukazuje na výraznou multikolinearitu.
+
 Nalezení vhodného modelu při velkém počtu prediktorů může být obtížné kvůli korelacím a vztahům mezi nimi. Neexistuje žádný algoritmus, který by obecně našel nejlepší model. Existuje mnoho různých kritérií, některá jsou citlivá na specifický datový typ, některá jsou relativní. Často používaným algoritmem je **metoda postupné regrese** (stepwise regression method), kritérium může být třeba Akaike information criterion (**AIC** → min).
 
 ## Autokorelace
@@ -190,6 +166,15 @@ PCA (Principal Component Analysis – analýza hlavních komponent) je metoda re
 - navzájem nekorelované (ortogonální),
 - seřazené tak, že 1. komponenta vysvětluje největší možnou část variability, 2. komponenta další největší část atd.
 
+Nevýhodou PCA je nemožnost interpretace PC (např. kvůli nekompatibilitě použitých fyzikálních jednotek), protože každá PC je nějakou lineární kombinací původních proměnných.
+
+<img width="600" alt="image" src="img/pca.png" />
+
+_Optimální a neoptimální báze_
+
+<img width="600" alt="image" src="img/pca-priklad.png" />
+
+_Redukce dimenzí ze 3D na 2D_
 
 - Motivace redukce dimenze  
 - Kovarianční a korelační matice  
