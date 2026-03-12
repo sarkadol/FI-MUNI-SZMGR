@@ -163,6 +163,25 @@ I když model na první pohled vychází dobře, mohou se v něm objevit problé
 - Multikolinearita  
 - Heteroskedasticita  
 
+## Multikolinearita
+Multikolinearita znamená, že některé vysvětlující proměnné jsou mezi sebou silně lineárně závislé. Model pak obtížně rozlišuje jejich samostatný vliv na závislou proměnnou.
+
+_např. v modelu mzdy použiju současně věk, délku praxe a počet let od ukončení školy – tyto proměnné spolu úzce souvisejí_
+
+Důsledkem multikolinearity je, že odhady regresních koeficientů mohou být nestabilní, mají větší směrodatné chyby a jednotlivé proměnné pak mohou vycházet jako statisticky nevýznamné, i když ve skutečnosti se závislou proměnnou souvisejí. Model tedy může dobře predikovat, ale hůře se interpretuje.
+
+obrázek
+
+Často se sleduje pomocí ukazatele VIF (Variance Inflation Factor)
+
+$$
+VIF_j = \frac{1}{1 - R_j^2}
+$$
+
+Nalezení vhodného modelu při velkém počtu prediktorů může být obtížné kvůli korelacím a vztahům mezi nimi. Neexistuje žádný algoritmus, který by obecně našel nejlepší model. Existuje mnoho různých kritérií, některá jsou citlivá na specifický datový typ, některá jsou relativní. Často používaným algoritmem je **metoda postupné regrese** (stepwise regression method), kritérium může být třeba Akaike information criterion (**AIC** → min).
+
+## Autokorelace
+
 ---
 
 ## 5. Analýza hlavních komponent (PCA)
