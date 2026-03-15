@@ -39,6 +39,11 @@ $H_1$: Alespoň jeden průměr skupiny je odlišný. $$\exists\, i,j \in \{1,\do
 
 <img width="434" height="289" alt="image" src="img/anova.png"  />
 
+Předpoklady ANOVA
+1) **Nezávislost výběrů**  Jednotlivá pozorování musí být na sobě nezávislá. Pokud nejsou, mění se rozdělení testové statistiky i p-hodnota → výsledky nejsou spolehlivé.
+2) **Normalita dat**  Ověřuje se pomocí Q-Q grafu nebo testů (např. Shapiro–Wilk). ANOVA je poměrně odolná – pokud má každá skupina alespoň ~20 pozorování a data nejsou silně vychýlená, malé porušení nevadí, při silném porušení použijeme neparametrický test (např. Kruskal–Wallis).
+3) **Shoda rozptylů (homogenita variancí)**  Ověřuje se např. Leveneho nebo Bartlettovým testem, mírné porušení většinou nevadí, pokud mají skupiny podobnou velikost.
+
 Jednofaktorová ANOVA zkoumá vliv jedné nezávislé proměnné (faktoru). Vícefaktorová ANOVA (dvou- či více-) analyzuje vliv dvou a více faktorů současně, včetně jejich vzájemných interakcí na závislou proměnnou.
 
 _Například mám 3 různé druhy hnojiva a 2 různé typy půdy, a výnos polí. Zajímá mě, jestli je některá kombinace hnojiva a typu půdy výnosnější než jiná. Mám faktory hnojivo a typ půdy._
@@ -48,11 +53,6 @@ _Například mám 3 různé druhy hnojiva a 2 různé typy půdy, a výnos polí
  - s interakcí připouštíme, že efekt jednoho faktoru závisí na úrovni druhého faktoru. _Hnojivo A je nejlepší na jílovité půdě, ale na písčité půdě je lepší hnojivo B._
 
 <img width="1000"  alt="image" src="img/anova2faktory.png"  />
-
-Předpoklady ANOVA
-1) **Nezávislost výběrů**  Jednotlivá pozorování musí být na sobě nezávislá. Pokud nejsou, mění se rozdělení testové statistiky i p-hodnota → výsledky nejsou spolehlivé.
-2) **Normalita dat**  Ověřuje se pomocí Q-Q grafu nebo testů (např. Shapiro–Wilk). ANOVA je poměrně odolná – pokud má každá skupina alespoň ~20 pozorování a data nejsou silně vychýlená, malé porušení nevadí, při silném porušení použijeme neparametrický test (např. Kruskal–Wallis).
-3) **Shoda rozptylů (homogenita variancí)**  Ověřuje se např. Leveneho nebo Bartlettovým testem, mírné porušení většinou nevadí, pokud mají skupiny podobnou velikost.
 
 Rozšíření: sums of squares, F test mezi nimi, anova model, co jsou post hoc testy
 
@@ -85,8 +85,9 @@ Rozšíření: Jednotlivé hypotézy a testové statistiky
 
 Zkoumá vztah mezi **jednou spojitou závislou proměnnou a více nezávislými proměnnými**. Cílem je popsat, jak se mění hodnota závislé proměnné při změně několika vysvětlujících proměnných současně, a odhadnout jejich samostatný vliv při kontrole ostatních proměnných.
 
-_např. cena bytu ~ výměra a počet pokojů _
+_např. cena bytu = $\beta_0 + \beta_1*$výměra $+ \beta_2 *$počet pokojů_
 
+Model:
 $$
 Y_i = \beta_0 + \beta_1 X_{i1} + \beta_2 X_{i2} + \dots + \beta_p X_{ip} + \varepsilon_i
 $$
@@ -105,8 +106,8 @@ Pozor, neplést s jednoduchou regresí s více parametry! Záleží na tom, koli
 
 Parametry $\beta$ spočítám metodou nejmenších čtverců, ale pak ještě testuji jejich celkovou významnost pomocí F-testu.
 
-- $H_0$: žádná vysvětlující proměnná nemá vliv na $Y$, $\text{alespoň jedno } \beta_j \neq 0$
-- $H_1$: alespoň jedna proměnná vliv má.$\beta_1 = \beta_2 = \dots = \beta_p = 0$
+- $H_0$: žádná vysvětlující proměnná nemá vliv na $Y$, $\beta_1 = \beta_2 = \dots = \beta_p = 0$
+- $H_1$: alespoň jedna proměnná vliv má, $\text{alespoň jedno } \beta_j \neq 0$
 
 Taky se testují jednotlivé významnosti pomocí t-testu.
 
