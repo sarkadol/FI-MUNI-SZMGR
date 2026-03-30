@@ -19,14 +19,24 @@ Bodový odhad je jediné číslo, které slouží jako nejlepší aproximace nez
 * **Konzistence:** S rostoucím rozsahem výběru ($n$) se odhad přibližuje skutečné hodnotě.
 * **Efektivita:** Odhad má co nejmenší rozptyl (je "přesný").
 
+### Centrální limitní věta (CLV):**
+Je klíčový pilíř statistiky. Říká, že rozdělení výběrového průměru se s rostoucím rozsahem výběru ($n \to \infty$) blíží **normálnímu rozdělení**, a to i v případě, že původní data (populace) normální rozdělení nemají. 
+* **V praxi:** Díky CLV můžeme u velkých výběrů (obvykle $n > 30$) používat parametrické testy a intervaly spolehlivosti založené na normálním rozdělení, i když data nejsou dokonale symetrická.
+
+### Metoda maximální věrohodnosti (MLE - Maximum Likelihood Estimation)
+
+Dalším přístupem k odhadu parametrů je **metoda maximální věrohodnosti**.
+
+- Volí takové parametry, které maximalizují pravděpodobnost pozorovaných dat.
+- Často vede ke stejným odhadům jako nestranné odhady (např. průměr), ale ne vždy.
 ---
 
 ### 1.2 Intervaly spolehlivosti (CI)
-Protože bodový odhad se téměř nikdy netrefí přesně do skutečné hodnoty, používáme **interval spolehlivosti**. Je to rozmezí, ve kterém s danou pravděpodobností $1-\alpha$ (typicky 95 %) leží skutečný parametr populace.
-Je to interval sestrojený z výběrových dat tak, že při opakovaném výběru by obsahoval skutečný parametr v 100(1−α)% případů.
+Protože bodový odhad se téměř nikdy netrefí přesně do skutečné hodnoty, používáme **interval spolehlivosti**. Je to rozmezí sestrojené z výběrových dat tak, že při opakovaném výběru by 100(1−α) % těchto intervalů obsahovalo skutečný parametr populace.
+Parametr populace je fixní (ne náhodný), náhodný je samotný interval.
 
 * **Hladina významnosti ($\alpha$):** Pravděpodobnost, že parametr v intervalu **nebude** (např. 0,05).
-* **Spolehlivost ($1-\alpha$):** Pravděpodobnost, že interval parametr **obsahuje** (např. 0,95).
+* **Spolehlivost ($1-\alpha$):** Při opakovaném výběru by 95 % takto sestrojených intervalů **obsahovalo** skutečný parametr.
 
 **Šířka intervalu závisí na:**
 1.  **Variabilitě dat ($s$):** Čím větší rozptyl, tím širší (méně přesný) interval.
@@ -56,6 +66,11 @@ Při rozhodování se můžeme dopustit dvou typů chyb:
 | :--- | :--- |:-----------------------------------------------|
 | **$H_0$ ve skutečnosti platí** | Správné rozhodnutí | **Chyba I. typu ($\alpha$)** (Falešný poplach) |
 | **$H_1$ ve skutečnosti platí** | **Chyba II. typu ($\beta$)** (Nepoznaný efekt) | Správné rozhodnutí (Síla testu $1-\beta$)      |
+
+**Příklady testů:**
+- **t-test** – testování průměru (malé výběry, neznámý rozptyl),
+- **z-test** – testování průměru (velké výběry nebo známý rozptyl),
+- **chí-kvadrát test** – testování rozdělení nebo nezávislosti.
 ---
 
 ## 2. ANOVA
@@ -64,7 +79,7 @@ ANOVA (ANalysis Of VAriance – analýza rozptylu) je statistická metoda pro po
 _Například mám 4 různé odrůdy brambor sesbírané po trsech s různou hmotností. Zajímá mě, jestli je některá odrůda výnosnější než jiná (průměrná hmotnost trsu se liší na základě odrůdy)_
 
 
-$H_0$: Předpokládá, že všechny průměry skupin jsou stejné. $$\mu_i = \dots = \mu_a \quad \text{pro všechna } i = 1, \dots, k$$
+$H_0$: Předpokládá, že všechny průměry skupin jsou stejné. $$\mu_i = \dots = \mu_k \quad \text{pro všechna } i = 1, \dots, k$$
 
 $H_1$: Alespoň jeden průměr skupiny je odlišný. $$\exists\, i,j \in \{1,\dots,k\},\ i \neq j:\ \mu_i \neq \mu_j$$
 
@@ -85,6 +100,37 @@ _Například mám 3 různé druhy hnojiva a 2 různé typy půdy, a výnos polí
 
 <img width="1000"  alt="image" src="img/anova2faktory.png"  />
 
+### Rozklad variability a F-test
+
+ANOVA rozkládá celkovou variabilitu na dvě složky:
+- **variabilita mezi skupinami (SS_between)** – rozdíly mezi průměry skupin,
+- **variabilita uvnitř skupin (SS_within)** – variabilita uvnitř jednotlivých skupin.
+
+Celkový součet čtverců:
+$$
+SS_{total} = SS_{between} + SS_{within}
+$$
+
+Z těchto veličin se počítají střední čtverce:
+$$
+MS_{between} = \frac{SS_{between}}{k - 1}, \quad
+MS_{within} = \frac{SS_{within}}{n - k}
+$$
+
+Testová statistika:
+$$
+F = \frac{MS_{between}}{MS_{within}}
+$$
+
+- Pokud jsou průměry skupin stejné, očekáváme $F \approx 1$.
+- Velká hodnota $F$ vede k zamítnutí $H_0$.
+
+### Post-hoc testy
+Pokud ANOVA zamítne $H_0$, víme, že existuje rozdíl, ale nevíme, mezi kterými konkrétními skupinami. K tomu slouží post-hoc testy:
+- **Tukey HSD:** Porovnává všechny dvojice a koriguje hladinu významnosti.
+- **Bonferroniho korekce:** Velmi přísná metoda, dělí $\alpha$ počtem prováděných testů.
+Bez těchto korekcí by při mnoha testech hrozilo, že najdeme "náhodný" rozdíl, který ve skutečnosti neexistuje.
+
 Rozšíření: sums of squares, F test mezi nimi, anova model, co jsou post hoc testy
 
 ---
@@ -102,7 +148,7 @@ Neparametrické testy bývají „konzervativnější“ (méně citlivé) než 
 ### Wilcoxonův párový test (= Wilcoxon signed-rank)
 Neparametrická alternativa k párovému t-testu. Hodí se, když máme stejné subjekty měřené dvakrát (před/po), nebo páry, a rozdíly nejsou normální. _Typicky před a po: např. krevní tlak před a po podání léku._
 ### Mann-Whitneyův test  (= Wilcoxon rank-sum)
-Porovnává dvě nezávislé skupiny bez předpokladu normality. Intuitivně ověřuje, zda hodnoty v jedné skupině mají tendenci být větší než ve druhé. _Například mám dva typy hnojiva A a B a měřím výnos (kg) na nezávislých polích. Data jsou silně šikmá kvůli pár extrémně výnosným polím. Chci zjistit, jestli se výnosy mezi hnojivy liší._
+Porovnává dvě nezávislé skupiny bez předpokladu normality. Intuitivně ověřuje, zda hodnoty v jedné skupině mají tendenci být větší než ve druhé. Testuje rozdíl rozdělení (často interpretováno jako mediány, ale není to přesně totéž) _Například mám dva typy hnojiva A a B a měřím výnos (kg) na nezávislých polích. Data jsou silně šikmá kvůli pár extrémně výnosným polím. Chci zjistit, jestli se výnosy mezi hnojivy liší._
 ### Kruskal-Wallisův test
 Kruskal–Wallisův test je neparametrická alternativa k jednofaktorové ANOVA pro tři a více nezávislých skupin. _Například mám 4 odrůdy brambor, ale hmotnosti trsů jsou výrazně nenormální a s outliery. Chci zjistit, zda se odrůdy liší._
 
@@ -118,7 +164,16 @@ Zkoumá vztah mezi **jednou spojitou závislou proměnnou a více nezávislými 
 
 _např. cena bytu = $\beta_0 + \beta_1*$výměra $+ \beta_2 *$počet pokojů_
 
-Model:
+### Předpoklady lineární regrese
+
+Aby byly odhady a testy spolehlivé, musí platit:
+
+1. **Linearita** – vztah mezi $Y$ a $X_j$ je lineární.
+2. **Nezávislost chyb** – rezidua $\varepsilon_i$ jsou nezávislá.
+3. **Homoskedasticita** – konstantní rozptyl chyb.
+4. **Normalita chyb** – důležitá pro testování hypotéz (t-testy, intervaly).
+
+### Model
 $$
 Y_i = \beta_0 + \beta_1 X_{i1} + \beta_2 X_{i2} + \dots + \beta_p X_{ip} + \varepsilon_i
 $$
@@ -182,18 +237,28 @@ $$
 VIF_j = \frac{1}{1 - R_j^2}
 $$
 
-- $R_j^2 \approx 0 => VIF_j \approx 1$ znamená bez problému,
 - $R_j^2 > 0 => VIF_j > 1$ vysoká korelace mazi vysvětlujícími proměnnými vede k vyššímu $VIF$,
-- $VIF_j > 10$ ukazuje na výraznou multikolinearitu.
+- $VIF_j \approx 1$ – bez problému,
+- $VIF_j > 5$ – možný problém,
+- $VIF_j > 10$ – silná multikolinearita.
 
-Nalezení vhodného modelu při velkém počtu prediktorů může být obtížné kvůli korelacím a vztahům mezi nimi. Neexistuje žádný algoritmus, který by obecně našel nejlepší model. Existuje mnoho různých kritérií, některá jsou citlivá na specifický datový typ, některá jsou relativní. Často používaným algoritmem je **metoda postupné regrese** (stepwise regression method), kritérium může být třeba Akaike information criterion (**AIC** → min).
+Nalezení vhodného modelu při velkém počtu prediktorů může být obtížné kvůli korelacím a vztahům mezi nimi. Neexistuje žádný algoritmus, který by obecně našel nejlepší model. Existuje mnoho různých kritérií, některá jsou citlivá na specifický datový typ, některá jsou relativní. 
+Jednou z metod je **postupná regrese (stepwise regression method)**, která vybírá proměnné podle kritérií (např. Akaike information criterion AIC→ min).
+Tato metoda má omezení – může vést k overfittingu, nestabilním modelům a ignoruje teoretický kontext.
 
 ## Autokorelace
-
----
+Autokorelace nastává v situaci, kdy jsou náhodné chyby (rezidua) $\varepsilon_i$ v modelu na sobě závislé. Nejčastěji se vyskytuje u **časových řad**, kde hodnota v čase $t$ přímo souvisí s hodnotou v čase $t-1$.
+ 
+* **Důsledek:** Odhady koeficientů $\beta$ zůstávají nestranné (za splnění ostatních předpokladů), ale nejsou efektivní – mají větší rozptyl. To vede k **neplatnosti t-testů a p-hodnot** (model se tváří jako významný, i když nemusí být).
+* **Detekce:** **Durbin-Watsonův test** (nabývá hodnot 0 až 4):
+    * $DW \approx 2$: Rezidua jsou nezávislá (v pořádku).
+    * $DW \approx 0$: Silná kladná autokorelace.
+    * $DW \approx 4$: Silná záporná autokorelace.
+* **Řešení:** Použití metod pro časové řady (např. zobecněné nejmenší čtverce – GLS).
 
 ## 5. Analýza hlavních komponent (PCA)
 PCA (Principal Component Analysis – analýza hlavních komponent) je metoda redukce dimenze, která převádí původní (často korelované) proměnné na menší počet nových proměnných – hlavních komponent.
+PCA lze chápat jako projekci dat do nového podprostoru nižší dimenze tak, aby byla minimalizována rekonstrukční chyba (ztráta informace).
 Nevýhodou PCA je nemožnost interpretace PC (např. kvůli nekompatibilitě použitých fyzikálních jednotek), protože každá PC je nějakou lineární kombinací původních proměnných.
 
 PCA se používá hlavně tehdy, když máme mnoho proměnných a chceme:
@@ -312,7 +377,7 @@ Například pokud první komponenta silně souvisí s výškou, délkou končeti
 ### Vlastnosti PCA
 
 - komponenty jsou navzájem nekorelované,
-- celková variabilita se zachovává,
+- celková variabilita se zachovává pouze při použití všech komponent; při redukci dimenze se část variability ztrácí,
 - první komponenty nesou nejvíce informace,
 - poslední komponenty často obsahují jen malou část variability a někdy hlavně šum.
 
