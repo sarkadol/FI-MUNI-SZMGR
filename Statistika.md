@@ -4,27 +4,58 @@
 
 ## 1. Základní statistické metody
 
+Slouží k tomu, abychom z dat **výběru** (vzorku) vyvodili závěry o celém **základním souboru** (populaci) pomocí pravděpodobnostních modelů.
+
 ### 1.1 Bodové odhady
-- Výběrový průměr  
-- Výběrový rozptyl a směrodatná odchylka  
-- Odhad parametrů rozdělení  
-- Metoda momentů  
-- Metoda maximální věrohodnosti  
-  
-### 1.2 Intervaly spolehlivosti
-- Interval spolehlivosti pro střední hodnotu (známý / neznámý rozptyl)  
-- Interval spolehlivosti pro rozptyl  
-- Interval spolehlivosti pro podíl  
-- Interpretace hladiny spolehlivosti  
+Bodový odhad je jediné číslo, které slouží jako nejlepší aproximace neznámého parametru populace (např. střední hodnoty $\mu$ nebo rozptylu $\sigma^2$).
+
+* **Výběrový průměr ($\bar{x}$):** Odhad střední hodnoty $\mu$.
+    $$\bar{x} = \frac{1}{n} \sum_{i=1}^{n} x_i$$
+* **Výběrový rozptyl ($s^2$):** Odhad populačního rozptylu $\sigma^2$. Používáme dělení $(n-1)$, aby byl odhad **nestranný** (nezkreslený).
+    $$s^2 = \frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})^2$$
+
+**Vlastnosti dobrého odhadu:**
+* **Nestrannost (Unbiasedness):** Střední hodnota odhadu se rovná skutečné hodnotě parametru.
+* **Konzistence:** S rostoucím rozsahem výběru ($n$) se odhad přibližuje skutečné hodnotě.
+* **Efektivita:** Odhad má co nejmenší rozptyl (je "přesný").
+
+---
+
+### 1.2 Intervaly spolehlivosti (CI)
+Protože bodový odhad se téměř nikdy netrefí přesně do skutečné hodnoty, používáme **interval spolehlivosti**. Je to rozmezí, ve kterém s danou pravděpodobností $1-\alpha$ (typicky 95 %) leží skutečný parametr populace.
+Je to interval sestrojený z výběrových dat tak, že při opakovaném výběru by obsahoval skutečný parametr v 100(1−α)% případů.
+
+* **Hladina významnosti ($\alpha$):** Pravděpodobnost, že parametr v intervalu **nebude** (např. 0,05).
+* **Spolehlivost ($1-\alpha$):** Pravděpodobnost, že interval parametr **obsahuje** (např. 0,95).
+
+**Šířka intervalu závisí na:**
+1.  **Variabilitě dat ($s$):** Čím větší rozptyl, tím širší (méně přesný) interval.
+2.  **Velikosti výběru ($n$):** Čím více dat, tím užší (přesnější) interval.
+3.  **Hladině spolehlivosti:** Pokud chceme 99% jistotu, interval musí být širší než pro 95% jistotu.
+
+![img.png](img/conf-interval.png)---
 
 ### 1.3 Testování statistických hypotéz
-- Nulová a alternativní hypotéza  
-- Testová statistika  
-- Kritický obor  
-- p-hodnota  
-- Chyba I. a II. druhu  
-- Síla testu  
+Proces rozhodování o platnosti určitého předpokladu (hypotézy) o populaci na základě dat z výběru.
 
+**Základní postup:**
+1.  **Formulace hypotéz:**
+    * $H_0$ (Nulová): "Stav beze změny" – např. lék nefunguje, rozdíl mezi skupinami je nulový.
+    * $H_1$ (Alternativní): Konkurenční hypotéza vůči $H_0$, která reprezentuje efekt / rozdíl / odchylku
+2.  **Volba hladiny významnosti ($\alpha$):** Standardně 0,05 (5 %).
+3.  **Výpočet testové statistiky:** Číslo vyjadřující, jak moc se data liší od $H_0$ (např. t-statistika, Z-statistika).
+4.  **Rozhodnutí pomocí p-hodnoty:**
+    * **p-hodnota** je pravděpodobnost, že bychom získali stejná nebo extrémnější data, pokud by skutečně platila $H_0$.
+    * **$p \le \alpha \implies$ Zamítáme $H_0$** (Výsledek je statisticky významný).
+    * **$p > \alpha \implies$ Nezamítáme $H_0$** (Nemáme dost důkazů pro změnu názoru).
+
+**Chyby v testování:**
+Při rozhodování se můžeme dopustit dvou typů chyb:
+
+| Skutečnost \ Rozhodnutí | Nezamítáme $H_0$ | Zamítáme $H_0$                                 |
+| :--- | :--- |:-----------------------------------------------|
+| **$H_0$ ve skutečnosti platí** | Správné rozhodnutí | **Chyba I. typu ($\alpha$)** (Falešný poplach) |
+| **$H_1$ ve skutečnosti platí** | **Chyba II. typu ($\beta$)** (Nepoznaný efekt) | Správné rozhodnutí (Síla testu $1-\beta$)      |
 ---
 
 ## 2. ANOVA
