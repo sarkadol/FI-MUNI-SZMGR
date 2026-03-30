@@ -19,7 +19,7 @@ Bodový odhad je jediné číslo, které slouží jako nejlepší aproximace nez
 * **Konzistence:** S rostoucím rozsahem výběru ($n$) se odhad přibližuje skutečné hodnotě.
 * **Efektivita:** Odhad má co nejmenší rozptyl (je "přesný").
 
-### Centrální limitní věta (CLV):**
+### Centrální limitní věta (CLV):
 Je klíčový pilíř statistiky. Říká, že rozdělení výběrového průměru se s rostoucím rozsahem výběru ($n \to \infty$) blíží **normálnímu rozdělení**, a to i v případě, že původní data (populace) normální rozdělení nemají. 
 * **V praxi:** Díky CLV můžeme u velkých výběrů (obvykle $n > 30$) používat parametrické testy a intervaly spolehlivosti založené na normálním rozdělení, i když data nejsou dokonale symetrická.
 
