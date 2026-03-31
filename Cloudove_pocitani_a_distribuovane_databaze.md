@@ -29,18 +29,115 @@ Cloud computing je model umožňující všudypřítomný a pohodlný síťový 
 * **SaaS (Software as a Service):** Poskytování hotových aplikací běžících v cloudové infrastruktuře.
 
 <img alt="img.png" src="img/iaas-paas.png" width="600"/>
+
 ---
 ## Infrastruktura jako služba (IaaS)
-* Definice a model sdílené odpovědnosti
-* Virtuální výpočetní zdroje (CPU, RAM, Storage, Networking)
-* Příklady: AWS EC2, Azure VMs, Google Compute Engine
+
+IaaS představuje nejnižší a nejvíce flexibilní úroveň cloudových služeb. Poskytovatel v tomto modelu nabízí základní výpočetní zdroje, které jsou plně virtualizované. Uživatel má kontrolu nad operačním systémem, úložištěm a nasazenými aplikacemi, zatímco poskytovatel se stará o fyzickou vrstvu (servery, sítě, datová centra).
+
+### Klíčové komponenty IaaS
+* **Compute (Výpočet):** Virtuální stroje (VM) s definovaným počtem CPU jader a kapacitou RAM. *např.: Vývojář si během minuty spustí instanci Amazon EC2 s operačním systémem Ubuntu, aby na ní otestoval nový skript v Pythonu.*
+* **Storage (Úložiště):** Virtuální pevné disky (blokové úložiště) nebo objektová úložiště pro nestrukturovaná data. *např.: Připojení dodatečného 500 GB SSD disku k běžícímu virtuálnímu serveru pro potřeby rostoucí databáze.*
+* **Networking (Sítě):** Virtuální sítě (VPC), firewally, směrovače a přidělování IP adres. *např.: Nastavení bezpečnostních pravidel (Security Groups), která zakážou veškerý přístup k serveru z internetu kromě specifického portu 443 pro HTTPS provoz.*
+
+### Model sdílené odpovědnosti (Shared Responsibility Model)
+V modelu IaaS je hranice odpovědnosti jasně dělena mezi poskytovatele a zákazníka. Obecné pravidlo zní: poskytovatel odpovídá za bezpečnost **cloudu**, zákazník za bezpečnost **v cloudu**.
+
+* **Odpovědnost zákazníka:** Správa a aktualizace operačního systému (patchování), konfigurace firewallů na úrovni OS, správa identity a přístupů (IAM), šifrování dat a samotné aplikace.
+* **Odpovědnost poskytovatele:** Fyzická bezpečnost datových center, funkčnost hardwaru, chlazení, konektivita a správa virtualizační vrstvy (hypervisoru).
+
+### Výhody a nevýhody
+| Výhody | Nevýhody |
+| :--- | :--- |
+| **Škálovatelnost:** Možnost okamžitě navýšit výkon. | **Náročná správa:** Vyžaduje experty na správu OS a sítí. |
+| **Nákladová efektivita:** Platba za skutečné využití (Pay-as-you-go). | **Bezpečnostní rizika:** Špatná konfigurace OS je plně na uživateli. |
+| **Kontrola:** Možnost instalovat libovolný software a knihovny. | **Režie:** Nutnost řešit zálohování a aktualizace systému. |
+
+*Příklad využití: Start-up využívá IaaS, aby nemusel kupovat drahé fyzické servery. Když se jejich aplikace stane populární, během pár kliknutí navýší počet virtuálních strojů z 2 na 20, aby zvládli nápor uživatelů.*
+
+### Hlavní poskytovatelé a jejich služby
+1.  **Amazon Web Services (AWS):** Služba **Amazon EC2** (Elastic Compute Cloud).
+2.  **Microsoft Azure:** Služba **Azure Virtual Machines**.
+3.  **Google Cloud Platform (GCP):** Služba **Compute Engine**.
 
 ---
 ## Virtualizace a kontejnery
-* Hypervizory a virtuální stroje (VM)
-* Kontejnerizace (Docker, podpora v jádře OS)
-* Rozdíly v izolaci, výkonu a přenositelnosti
-* Orchestrace kontejnerů (Kubernetes)
+Virtualizace a kontejnerizace jsou dvě klíčové technologie umožňující izolaci aplikací a efektivní využití fyzického hardwaru. 
+Zatímco virtualizace simuluje celý hardware (včetně OS), kontejnerizace sdílí jádro operačního systému a izoluje pouze aplikaci a její závislosti.
+
+### Virtualizace
+Virtualizace vytváří abstraktní vrstvu nad fyzickým hardwarem pomocí softwaru zvaného **Hypervisor**. 
+Ten umožňuje rozdělit jeden fyzický server na více nezávislých **virtuálních strojů (Virtual Machines)**.
+
+* **Virtuální stroj (VM):** Obsahuje úplnou kopii operačního systému, aplikaci a všechny nezbytné knihovny. Každý stroj je plně izolovaný od ostatních.
+* **Hypervisor:** Software, který spravuje a přiděluje fyzické zdroje (CPU, RAM, disk) jednotlivým VM.  *např: Na jednom fyzickém serveru v datovém centru běží současně virtuální Windows Server pro vnitropodnikové účetnictví a virtuální Linux pro veřejný webový server, aniž by se navzájem ovlivňovaly.*
+
+#### Typy hypervisorů:
+1.  **Typ 1 (Bare-metal):** Běží přímo na hardwaru (např. *VMware ESXi, Microsoft Hyper-V, KVM*). Používá se v profi datových centrech.
+2.  **Typ 2 (Hosted):** Běží jako aplikace na hostitelském operačním systému (např. *Oracle VirtualBox, VMware Workstation*). Vhodné pro testování na lokálním PC.
+
+
+### Kontejnerizace
+Kontejnery jsou lehkou alternativou k virtuálním strojům. Neobsahují vlastní operační systém, ale využívají jádro (kernel) hostitelského systému. Jsou izolované na úrovni procesů.
+
+* **Kontejner:** Balíček, který obsahuje kód aplikace a všechny její závislosti (runtime, knihovny).
+* **Container Engine:** Software (např. *Docker*), který spouští a spravuje kontejnery.
+    * *Příklad: Vývojář zabalí aplikaci v Pythonu do Docker kontejneru na svém notebooku (macOS). Ten samý kontejner pak spustí na produkčním serveru (Linux) a má 100% jistotu, že aplikace poběží identicky, protože si nese své prostředí s sebou.*
+
+### Srovnání: Virtualizace vs. Kontejnerizace
+
+| Vlastnost | Virtuální stroje (VM) | Kontejnery |
+| :--- | :--- | :--- |
+| **Izolace** | Úplná (vlastní jádro OS) | Na úrovni procesů (sdílené jádro) |
+| **Rychlost startu** | Minuty (bootování celého OS) | Sekundy (spuštění procesu) |
+| **Velikost** | Gigabyty (GB) | Megabyty (MB) |
+| **Režie (Overhead)** | Vysoká (každý VM má svůj OS) | Minimální |
+| **Typické užití** | IaaS, izolace různých OS | Mikroslužby, CI/CD, DevOps |
+
+### Orchestrace kontejnerů
+V produkčním prostředí, kde běží stovky kontejnerů, je nutná automatizace jejich správy (nasazování, škálování, restartování). K tomu slouží **orchestrační nástroje**.
+
+* **Kubernetes (K8s):** Průmyslový standard pro orchestraci. Zajišťuje, aby kontejnery běžely na správných uzlech a měly dostatek zdrojů. *Příklad: E-shop zaznamená náhlý příval zákazníků. Kubernetes automaticky alokuje počet kontejnerů s webovým rozhraním ze 3 na 10, aby web zůstal rychlý.*
+* **Docker Swarm:** Jednodušší nástroj pro orchestraci, integrovaný přímo v Dockeru.
+
+<img alt="img.png" src="img/bytebytego-kontejnery.png" width="700"/>
+
+### Srovnání mechanismů nasazení aplikací
+
+Na základě architektury vrstvení rozlišujeme čtyři základní přístupy k provozu aplikací. Hlavním rozdílem je míra izolace a efektivita využití systémových zdrojů.
+
+<img alt="img.png" src="img/nasazeni.png" width="900"/>
+
+#### 1. Bare Metal (Tradiční model)
+Aplikace běží přímo na operačním systému, který je nainstalován na fyzickém serveru.
+* **Charakteristika:** Žádná virtualizace. Aplikace sdílejí knihovny a zdroje jednoho OS.
+* **Nevýhoda:** Pokud jedna aplikace vyžaduje jinou verzi knihovny než druhá, dochází ke konfliktům. Špatně se škáluje a nevyužívá plný potenciál hardwaru.
+* *Příklad: Účetní software nainstalovaný přímo na firemním Windows serveru v kanceláři.*
+
+#### 2. Virtualized (Virtualizace)
+Mezi hardware a aplikace se vkládá **Hypervisor**, který umožňuje běh více izolovaných **virtuálních strojů (VM)**.
+* **Charakteristika:** Každý VM má svůj vlastní "Guest OS". Je to kompletní simulace počítače.
+* **Výhoda:** Vysoká bezpečnost a úplná izolace (na jednom serveru může běžet Linux i Windows zároveň).
+* **Nevýhoda:** Vysoká režie (overhead) – každý VM spotřebovává RAM a CPU jen pro běh svého vlastního operačního systému.
+
+#### 3. Containerized (Kontejnerizace)
+Místo celých operačních systémů se využívá **Container Engine**, který izoluje pouze aplikace a jejich závislosti.
+* **Charakteristika:** Všechny kontejnery sdílejí jedno společné jádro hostitelského OS.
+* **Výhoda:** Extrémní rychlost startu a nízké nároky na zdroje (žádný Guest OS).
+* *Příklad: Na jednom serveru běží 50 mikroservis v Docker kontejnerech, které se spustí během milisekund.*
+
+#### 4. Containerized on Virtualized (Kombinovaný model)
+V cloudu (AWS, Azure) se nejčastěji setkáte s touto variantou: Kontejnery běží uvnitř virtuálních strojů.
+* **Charakteristika:** Poskytovatel vám pronajme virtuální stroj (IaaS), do kterého si vy nainstalujete Container Engine a v něm spouštíte kontejnery.
+* **Důvod:** Spojuje výhody obou světů – silnou izolaci na úrovni IaaS (bezpečnost v cloudu) a flexibilitu kontejnerů pro vývojáře.
+* *Příklad: V rámci jedné instance Azure VM provozujete 10 Docker kontejnerů s různými částmi vašeho e-shopu.*
+
+| Prvek | Bare Metal | Virtualized | Containerized |
+| :--- | :--- | :--- | :--- |
+| **Izolační vrstva** | Žádná (jen OS) | Hypervisor | Container Engine |
+| **Jednotka nasazení** | Aplikace (.exe, .bin) | Virtuální stroj (image OS) | Kontejner (image s lib) |
+| **Rychlost** | Maximální | Pomalejší (boot OS) | Téměř nativní |
+
 
 ---
 ## Migrace na cloud
@@ -99,8 +196,9 @@ Propojování **více běžných strojů** do jednoho logického celku (**cluste
 ## Současné technologie a poskytovatelé cloudových služeb
 * Dominantní poskytovatelé (AWS, Azure, GCP)
 * Serverless computing (FaaS)
-* Cloud-native technologie a mikro-služby
-
+* Cloud-native technologie a mikro-služby 
+  
+<img alt="img.png" src="img/bytebytego-cloud-services.png" width="600"/>
 ---
 ## Distribuované databáze
 
@@ -135,7 +233,7 @@ NoSQL (Not Only SQL) systémy vznikly jako odpověď na omezení tradičních re
 ### Základní principy NoSQL
 * **Non-relational:** Data nejsou uložena v tabulkách s pevnými vztahy (cizí klíče), což eliminuje drahé operace typu `JOIN`.
 * **Schema-less (Flexibilní schéma):** Záznamy v jedné kolekci mohou mít různé struktury. 
-  _např.: V databázi uživatelů může mít jeden profil pole "Twitter", zatímco druhý ne, aniž by se musela měnit celá struktura databáze._
+  _např.: E-shop s variabilními produkty - jiné vlastnosti má tričko a powerbanka._
 * **Horizontální škálovatelnost:** Od počátku navrženo pro běh na stovkách levných serverů (clusteru), nikoliv na jednom silném stroji.
 * **BASE místo ACID:** Upřednostňuje dostupnost a rychlost před okamžitou konzistencí.
 * **Agregace dat:** Související data se často ukládají k sobě do jednoho objektu, místo aby byla rozprostřena v mnoha tabulkách.
@@ -150,6 +248,9 @@ NoSQL (Not Only SQL) systémy vznikly jako odpověď na omezení tradičních re
 ### Kdy NoSQL nepoužít
 * Pokud aplikace vyžaduje komplexní transakce nad mnoha různými entitami (např. účetnictví).
 * Pokud jsou data silně relační a vyžadují časté a složité spojování (JOIN) napříč celou databází.
+
+
+
 ---
 ## Konzistence
 V distribuovaných systémech určuje model konzistence pravidla pro to, jak a kdy uvidí různí uživatelé změny v datech provedené někým jiným.
@@ -181,7 +282,6 @@ Klasický protokol pro zajištění atomicity v distribuovaném prostředí.
 ---
 ## Distribuce dat
 Způsob, jakým jsou data fyzicky rozmístěna napříč infrastrukturou, aby se dosáhlo škálovatelnosti a odolnosti.
-* Latence a geodistribuce
 
 ### Replikace (Replication)
 Ukládání stejných dat na více fyzických uzlů.
@@ -202,24 +302,95 @@ Rozmístění uzlů databáze do různých geografických lokalit (regionů).
 * **Data Sovereignty:** Nutnost uchovávat data v určitém regionu kvůli legislativě. _např. GDPR vyžaduje uložení dat občanů EU v rámci Unie._
 
 ---
-## Úložiště párů klíč-hodnota
-* Princip (Key-Value pairs)
-* Příklady: Redis, Riak, DynamoDB
+## Úložiště párů klíč-hodnota (Key-Value)
+
+Nejjednodušší NoSQL model, kde jsou data organizována jako kolekce unikátních klíčů a k nim přiřazených hodnot. Databáze k hodnotě přistupuje jako k neprůhlednému celku (blobu).
+Tento model je optimalizován pro situace, kdy je prioritou rychlost čtení a zápisu nad komplexností dotazování.
+
+### Principy a charakteristika
+* **Struktura:** Funguje jako obří distribuovaná hashovací tabulka.
+* **Vysoký výkon:** Extrémně nízká latence a vysoká propustnost díky absenci schématu a složitých relací.
+* **Škálovatelnost:** Ideální pro horizontální škálování (sharding), protože záznamy jsou na sobě nezávislé.
+* **Využití:** Správa uživatelských relací (sessions), nákupní košíky, ukládání konfiguračních předvoleb nebo mezipaměť (caching).
+
+### Služby poskytovatelů
+* **Azure:** Azure Cache for Redis, Azure Storage (Table storage).
+* **AWS:** Amazon DynamoDB, Amazon ElastiCache.
+* **Google Cloud:** Google Memorystore, částečně Google Cloud Firestore.
+
+_Příklady využití Key-Value úložišť_
+* _**Session Management:** Ukládání stavu přihlášení uživatele v distribuovaném prostředí, kde každý požadavek může obsloužit jiný server. např. ID relace jako klíč a data o uživateli jako hodnota._
+* _**Caching:** Mezipaměť pro výsledky drahých databázových dotazů nebo často zobrazovaných částí webu pro snížení latence._
+* _**Nákupní košíky:** Rychlé ukládání a načítání seznamu položek, které má uživatel rozpracované, bez nutnosti složitých relací._
+* _**Konfigurační data:** Ukládání nastavení aplikací nebo příznaků (feature flags), které se načítají při startu služby._
 
 ---
 ## Dokumentové databáze
-* Formáty (JSON, BSON, XML)
-* Indexování vnořených polí
-* Příklady: MongoDB, CouchDB
+Dokumentové databáze jsou typem NoSQL systému, který ukládá data ve formě polostrukturovaných dokumentů, nejčastěji ve formátu JSON, BSON nebo XML. Na rozdíl od relačních databází nevyžadují pevné schéma, což umožňuje ukládat různorodé datové struktury v rámci jedné kolekce.
+
+### Charakteristika a principy
+* **Hierarchická struktura:** Dokumenty mohou obsahovat vnořené objekty a pole, což umožňuje ukládat související data pohromadě v jednom celku.
+* **Flexibilní schéma (Schema-less):** Každý dokument může mít odlišný počet polí a různé datové typy, což usnadňuje agilní vývoj.
+* **Indexování:** Databáze umožňují indexovat libovolná pole uvnitř dokumentu, což zajišťuje vysoký výkon při vyhledávání.
+* **Identifikace:** Každý dokument má unikátní klíč (ID), který slouží k jeho jednoznačnému určení v rámci kolekce.
+
+_Praktické příklady využití dokumentových databází_
+* _**Katalogy produktů:** E-shopy, kde má mobilní telefon parametry jako "kapacita baterie", zatímco tričko má "materiál" a "velikost"._
+* _**Uživatelské profily:** Sociální sítě, kde si uživatelé vyplňují různé nepovinné údaje (vzdělání, koníčky, pracovní historie)._
+* _**Content Management Systems (CMS):** Ukládání článků nebo blogů, které mohou obsahovat různé typy médií a metadat._
+* _**Logování aplikací:** Sběr systémových logů, kde se struktura chybové zprávy liší podle modulu, který ji vygeneroval._
+
+### Konkrétní cloudové služby
+* **Microsoft Azure:** _Azure Cosmos DB (s podporou MongoDB API)._
+* **Amazon Web Services (AWS):** _Amazon DocumentDB._
+* **Google Cloud:** _Google Cloud Firestore._
+* **Open-source:** _MongoDB, CouchDB._
 
 ---
 ## Grafové databáze
-* Uzly, hrany a vlastnosti (Property Graphs)
-* Algoritmy pro procházení grafů
-* Příklady: Neo4j, Amazon Neptune
+Grafové databáze jsou NoSQL systémy navržené pro ukládání a dotazování dat, kde jsou vztahy mezi entitami stejně důležité jako entity samotné. Data jsou reprezentována jako uzly (entity) a hrany (vztahy), které mohou mít definované vlastnosti.
+
+### Charakteristika a principy
+* **Model uzel-hrana:** Uzly reprezentují objekty a hrany definují typy propojení mezi nimi.
+* **Efektivní procházení (Traversing):** Optimalizováno pro bleskové procházení složitých sítí vztahů bez nutnosti náročných JOIN operací.
+* **Flexibilita:** Umožňují snadno přidávat nové typy vztahů a entit bez narušení stávajícího schématu.
+* **Vlastnosti (Properties):** Jak uzly, tak hrany mohou nést další metadata (např. uzel "Osoba" má vlastnost "Jméno", hrana "Přítel" má vlastnost "Od roku").
+
+_Praktické příklady využití grafových databází_
+* _**Sociální sítě:** Mapování vztahů mezi uživateli, sledování přátelství a doporučování nových kontaktů._
+* _**Detekce podvodů:** Identifikace podezřelých vzorců v bankovních transakcích (např. více účtů spojených stejným telefonním číslem)._
+* _**Doporučovací systémy:** Analýza nákupního chování pro návrhy typu „zákazníci, kteří koupili toto, koupili také...“._
+* _**Znalostní grafy:** Propojování různorodých informací pro vyhledávače nebo systémy umělé inteligence._
+
+### Konkrétní cloudové služby
+* **Microsoft Azure:** _Azure Cosmos DB (využívající API Gremlin)._
+* **Amazon Web Services (AWS):** _Amazon Neptune._
+* **Google Cloud:** _Podpora skrze partnery nebo specializované nástroje (např. Neo4j na GCP Marketplace)._
+* **Open-source:** _Neo4j, ArangoDB._
 
 ---
-## Sloupcově orientované databáze
-* Column families a sparse storage
-* Optimalizace pro analytické dotazy
-* Příklady: Apache Cassandra, HBase, Google Bigtable
+## Sloupcově orientované databáze (Wide-column)
+Sloupcově orientované databáze (nebo column-family) ukládají data po sloupcích místo po řádcích. Tento přístup je extrémně efektivní pro čtení velkých objemů specifických dat v rámci analytických úloh a Big Data operací.
+
+### Charakteristika a principy
+* **Column Families:** Související sloupce jsou seskupeny dohromady a uloženy fyzicky blízko sebe na disku.
+* **Komprese:** Díky tomu, že jeden sloupec obsahuje data stejného typu, lze dosáhnout velmi vysoké komprese a úspory místa.
+* **Vysoký výkon pro analytiku:** Systém čte z disku pouze ty sloupce, které jsou pro daný dotaz potřeba, což dramaticky zrychluje agregace (např. SUM, AVG).
+* **Sparse data:** Efektivně nakládají s řádky, které mají mnoho prázdných (null) hodnot.
+
+_Praktické příklady využití sloupcových databází_
+* _**Analýza časových řad:** Ukládání a rychlé vyhodnocování miliard záznamů z IoT senzorů (např. průměrná teplota za měsíc)._
+* _**Big Data Analytics:** Zpracování rozsáhlých logů webových serverů pro statistiky návštěvnosti._
+* _**Personalizace obsahu:** Sledování historie prohlížení milionů uživatelů pro okamžité přizpůsobení obsahu webu._
+* _**Datové sklady (Data Lakes):** Slouží jako základ pro analytické platformy zpracovávající CSV nebo Parquet soubory._
+
+### Konkrétní cloudové služby
+* **Microsoft Azure:** _Azure Cosmos DB (Cassandra API), Azure Synapse Analytics._
+* **Amazon Web Services (AWS):** _Amazon Managed Apache Cassandra Service, Amazon Redshift._
+* **Google Cloud:** _Google Cloud Bigtable, Google BigQuery._
+* **Open-source:** _Apache Cassandra, Apache HBase._
+
+<img alt="img.png" src="img/bytebytego-nosql.png" width="700"/>
+
+
+
