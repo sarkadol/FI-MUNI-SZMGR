@@ -141,16 +141,63 @@ V cloudu (AWS, Azure) se nejčastěji setkáte s touto variantou: Kontejnery bě
 
 ---
 ## Migrace na cloud
-* Strategie migrace (6 R's: Rehost, Replatform, Refactor atd.)
-* Analýza nákladů (TCO) a rizik
-* Hybridní a multi-cloud scénáře
+
+Migrace na cloud je proces přesunu digitálních aktiv (dat, aplikací, IT infrastruktury) z lokálního prostředí (on-premise) nebo jiného cloudu do cloudového prostředí. Cílem je obvykle snížení nákladů, zvýšení dostupnosti a lepší škálovatelnost.
+
+### Strategie migrace (Model 6 R)
+Gartner definoval šest základních přístupů k migraci, které se liší složitostí a mírou úprav aplikací:
+
+1.  **Rehosting (Lift-and-Shift):** Přesun aplikace do cloudu bez jakýchkoliv změn.
+    * *Příklad: Vezmete celý virtuální stroj se starším účetním systémem a prostě ho spustíte jako instanci v AWS EC2.*
+2.  **Replatforming (Lift-and-Reshape):** Provedení drobných optimalizací pro využití cloudových výhod, ale bez změny architektury.
+    * *Příklad: Místo správy vlastní SQL databáze na virtuálním stroji převedete data do spravované služby typu Azure SQL Database.*
+3.  **Refactoring / Re-architecting:** Kompletní přepsání aplikace tak, aby byla "cloud-native" (využívala mikroslužby, kontejnery).
+    * *Příklad: Rozbití monolitické aplikace na malé samostatné kontejnery spravované v Kubernetes.*
+4.  **Repurchasing (Drop-and-Shop):** Ukončení používání stávajícího řešení a přechod na hotovou SaaS službu.
+    * *Příklad: Firma přestane spravovat vlastní e-mailový server (Exchange) a přejde na Microsoft 365.*
+5.  **Retiring:** Identifikace a vypnutí aplikací, které už nejsou potřeba.
+6.  **Retaining:** Ponechání aplikace v současném stavu (on-premise), obvykle z důvodu bezpečnosti nebo regulací.
+
+### Fáze migračního procesu
+1.  **Objevování a hodnocení (Discovery):** Analýza stávající infrastruktury, závislostí mezi aplikacemi a nákladů.
+2.  **Plánování a design:** Výběr migrační strategie (viz 6 R) a návrh cílové architektury v cloudu.
+3.  **Samotná migrace:** Postupný přesun dat a aplikací (často nejdříve testovací prostředí).
+4.  **Optimalizace:** Sledování provozu v cloudu a ladění výkonu/nákladů po migraci.
+
+### Výzvy a rizika migrace
+* **Vendor Lock-in:** Riziko přílišné závislosti na nástrojích jednoho konkrétního poskytovatele, což ztěžuje budoucí odchod.
+* **Bezpečnost a compliance:** Nutnost zajistit, aby data v cloudu splňovala zákonné požadavky (např. GDPR).
+* **Náklady na přenos dat (Egress fees):** Někteří poskytovatelé si účtují poplatky za stahování velkého množství dat z cloudu ven.
+* **Latence:** Pokud část systému zůstane on-premise a část v cloudu, může komunikace mezi nimi zpomalit celou aplikaci.
+    * *Příklad: Máte webový server v cloudu v Irsku, ale databázi v Praze – uživatel bude pociťovat pomalé načítání stránek kvůli síťovému zpoždění.*
 
 ---
-## Bezpečnost služeb
-* Identity and Access Management (IAM)
-* Šifrování dat (at-rest, in-transit)
-* Governance, compliance a auditování
-* Síťová bezpečnost (VPC, Security Groups)
+## Bezpečnost služeb v cloudu
+
+Bezpečnost v cloudu se transformuje z ochrany „fyzického perimetru“ (zdí datacentra) na ochranu **identit, dat a konfigurací**. Klíčovým konceptem je, že bezpečnost je **sdílenou odpovědností**.
+
+### 1. Model sdílené odpovědnosti (Shared Responsibility)
+Dělí úkoly mezi poskytovatele a zákazníka. Pravidlo: Poskytovatel ručí za **bezpečnost cloudu**, zákazník za **bezpečnost v cloudu**.
+* **Poskytovatel (AWS/Azure/GCP):** Fyzický hardware, hypervisor, globální síť, budovy.
+* **Zákazník:** Operační systém (záplaty), data, aplikace, nastavení firewallů a šifrování.
+* *Příklad: Pokud v cloudu necháte otevřenou databázi bez hesla, je to vaše chyba (špatná konfigurace), nikoliv chyba Microsoftu.*
+
+### 2. Identity and Access Management (IAM)
+Identita je v cloudu novou „stěnou“. Cílem je řídit, kdo (User) může dělat co (Action) se kterým zdrojem (Resource).
+* **Least Privilege (Princip nejnižších privilegií):** Uživatel má jen ta práva, která nezbytně potřebuje (např. *stážista nemůže smazat celou databázi*).
+* **MFA (Vícefaktorové ověřování):** Nutnost druhého faktoru (aplikace, SMS) pro přihlášení.
+* **Zero Trust Architecture:** Přístup „nikdy nedůvěřuj, vždy prověřuj“. Každý požadavek na přístup je ověřován, i když přichází z vnitřní sítě.
+
+### 3. Ochrana dat a šifrování
+Data musí být chráněna ve všech stavech:
+* **At Rest (Uložená):** Šifrování disků a databází. *Příklad: Pokud by někdo fyzicky ukradl disk z datacentra, data z něj bez klíče nepřečte.*
+* **In Transit (V pohybu):** Šifrování komunikace po síti (HTTPS, TLS, VPN).
+* **In Use (Při zpracování):** Moderní technologie jako důvěrné výpočty (Confidential Computing).
+
+### 4. Síťová izolace a Compliance
+* **VPC / VNet:** Virtuální privátní sítě, které izolují vaše zdroje od ostatních zákazníků.
+* **Security Groups:** Virtuální firewally na úrovni jednotlivých serverů (povolování portů).
+* **Compliance:** Soulad s předpisy (GDPR, ISO 27001). Cloudoví poskytovatelé mají hotové audity, které zákazník „dědí“.
 
 ---
 ## Horizontální a vertikální škálovatelnost
@@ -199,6 +246,25 @@ Propojování **více běžných strojů** do jednoho logického celku (**cluste
 * Cloud-native technologie a mikro-služby 
   
 <img alt="img.png" src="img/bytebytego-cloud-services.png" width="600"/>
+
+## Současné technologie a poskytovatelé cloudových služeb
+
+Trhu s veřejným cloudem dominují tři hlavní poskytovatelé (tzv. "The Big Three"), které doplňují specializovaní hráči jako Oracle. Každý z nich nabízí ekvivalentní služby pro výpočet, úložiště, sítě a databáze.
+
+<img alt="img.png" src="img/cloud-providers.png" width="600"/>
+
+### Hlavní poskytovatelé na trhu
+1.  **Amazon Web Services (AWS):** Průkopník a aktuální leader trhu. Nabízí nejširší portfolio služeb a největší komunitu.
+2.  **Microsoft Azure:** Silná integrace s podnikovým softwarem (Active Directory, Windows Server, Office 365). Často volba pro hybridní cloudy.
+3.  **Google Cloud Platform (GCP):** Silný v oblasti analýzy velkých dat (Big Data), umělé inteligence (AI/ML) a kontejnerizace (původce Kubernetes).
+4.  **Oracle Cloud (OCI):** Zaměřuje se na vysoký výkon databází a podnikovou sféru využívající Oracle technologie.
+
+### Trendy v cloudových technologiích
+* **Serverless Computing:** Uživatel se vůbec nestará o servery, pouze nahraje kód, který se spustí na základě události. *Příklad: Kód, který automaticky vytvoří náhled (thumbnail) obrázku v momentě, kdy ho uživatel nahraje do úložiště.*
+* **Multi-cloud a Hybrid-cloud:** Strategie používání více poskytovatelů najednou, aby se firma vyhnula závislosti na jednom prodejci (Vendor Lock-in).
+* **Edge Computing:** Přesun výpočetního výkonu blíž ke zdroji dat (např. senzory v továrně), aby se snížila latence.
+* **AI a ML jako služba (AIaaS):** Poskytovatelé nabízejí hotové API pro rozpoznávání obrazu, textu nebo trénování vlastních modelů (např. *AWS SageMaker* nebo *Google Vertex AI*).
+
 ---
 ## Distribuované databáze
 
@@ -377,6 +443,9 @@ Sloupcově orientované databáze (nebo column-family) ukládají data po sloupc
 * **Komprese:** Díky tomu, že jeden sloupec obsahuje data stejného typu, lze dosáhnout velmi vysoké komprese a úspory místa.
 * **Vysoký výkon pro analytiku:** Systém čte z disku pouze ty sloupce, které jsou pro daný dotaz potřeba, což dramaticky zrychluje agregace (např. SUM, AVG).
 * **Sparse data:** Efektivně nakládají s řádky, které mají mnoho prázdných (null) hodnot.
+
+* **Wide-column (NoSQL):** Data jsou uložena v řádcích, ale sloupce jsou dynamické a seskupené. Optimalizováno pro rychlé zápisy a čtení podle klíče. (*např. Cassandra, ScyllaDB*)
+* **Columnar (Analytické):** Data jsou uložena čistě po sloupcích. Nevhodné pro zápis jednotlivých řádků, ale bleskové pro výpočty nad celým sloupcem. (*např. Parquet soubory, AWS Redshift*)
 
 _Praktické příklady využití sloupcových databází_
 * _**Analýza časových řad:** Ukládání a rychlé vyhodnocování miliard záznamů z IoT senzorů (např. průměrná teplota za měsíc)._
