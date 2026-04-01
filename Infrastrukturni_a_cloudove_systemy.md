@@ -1,4 +1,4 @@
-,,# Infrastrukturní a cloudové systémy
+# Infrastrukturní a cloudové systémy
 
 > Data-center architecture; supercomputers vs. heterogeneous clusters; orchestration architectures (PBS/grids, Kubernetes, OpenStack); 
 > GPU vs. CPU computing and workloads that benefit from massive parallelism; scalable application models; 
@@ -67,8 +67,6 @@ Výběr závisí na tom, zda potřebujete spočítat složitou simulaci (HPC), p
 * **PBS (Portable Batch System) / Slurm:** * **Batch processing:** Uživatel pošle úlohu do fronty. Plánovač ji spustí, až jsou zdroje volné.
 * **OpenStack (IaaS):** * Správa virtuálních strojů (VM). Uživatel má "on-demand" přístup a root práva k OS.
 * **Kubernetes (K8s / CaaS):** Orchestrace kontejnerů. **Deklarativní přístup**: definujete cílový stav (např. "chci 5 instancí webu"), K8s zajistí jeho udržení (*Self-healing*).
-
-
 
 <img alt="img.png" src="img/job-lifecycle.png" width="500"/>
 
@@ -226,24 +224,100 @@ Soubor 12 principů pro vývoj a nasazení škálovatelných, udržitelných a p
 
 ---
 
-## Úrovně úložišť, technologie, teplota dat a přesun (Storage tiers, technologies, data temperature and movement)
+## Úrovně úložišť, technologie, teplota dat a přesun 
+Tato sekce řeší efektivní správu dat skrze hierarchii úložišť, kde se vyvažuje **rychlost (výkon)** a **cena (kapacita)**.
 
-* **Data Temperature:**
-    * **Hot:** Často přístupná (NVMe SSD). Extrémní rychlost, vysoká cena.
-    * **Warm:** Méně častý přístup (SATA SSD/HDD). Balanc mezi cenou a výkonem.
-    * **Cold (Archive):** Téměř se nečtou (Páskové knihovny LTO). Velmi levné, latence přístupu v minutách/hodinách.
-* **ILM (Information Lifecycle Management):** Automatizovaný přesun dat mezi úrovněmi na základě pravidel (např. "pokud na soubor nikdo nesáhl 6 měsíců, přesuň ho na pásku").
-* **Erasure Coding (EC):** Moderní alternativa k RAID. Data jsou rozdělena na $k$ bloků a doplněna o $m$ paritních bloků. Efektivnější využití kapacity při zachování vysoké odolnosti.
+Data se v čase přirozeně "ochlazují", což vyžaduje jejich přesun mezi různými vrstvami (Tiers) pro optimalizaci nákladů.
+
+* **Hot Data (Horká):** Aktivní výpočty a databáze. Vyžadují minimální latenci a maximální propustnost.
+    * *Technologie:* **HBM / RAM**, **NVMe / SSD (Flash)**.
+    * *Úroveň:* **Tier 0** (Performance) a **Tier 1** (Standard).
+* **Warm Data (Teplá):** Méně častý přístup (uživatelské dokumenty, starší záznamy). Balance mezi cenou a rychlostí.
+    * *Technologie:* **HDD (Magnetické disky)** (SAS/SATA).
+    * *Úroveň:* **Tier 2** (Capacity).
+* **Cold Data (Studená / Archivní):** Téměř se nečtou (zálohy, audity). Prioritou je nejnižší cena za GB.
+    * *Technologie:* **Páskové knihovny (Tape)**, levný Cloud Storage (Glacier).
+    * *Úroveň:* **Tier 3** (Archive).
+
+<img alt="img.png" src="img/data-temp.png" width="500"/>
+
+
+* Klíčové metriky a vlastnosti
+  * **Vztah Memory vs. Storage:** Paměť (**Memory**) je volatilní (po vypnutí proudu se smaže) a slouží k výpočtům. Úložiště (**Storage**) je persistentní (trvalé).
+  * **IOPS:** Počet operací za sekundu (kritické pro databáze a malé soubory).
+  * **Throughput (Propustnost):** Rychlost v MB/s až GB/s (kritické pro velké simulace).
+  * **Latency (Latence):** Časová odezva před zahájením přenosu (kritické pro interaktivitu).
+
+<details>
+  <summary>Obrázek - Memory and Sotrage</summary>
+  
+  <img alt="img.png" src="img/memory-storage.png" width="450"/>
+</details>
+
+
+### Architektura propojení a logický přístup
+Způsob, jakým jsou úložiště fyzicky zapojena a jak s nimi aplikace komunikují.
+
+* **Typy přístupu (Storage Systems):**
+    * **Block Storage:** Data uložena v surových blocích bez metadat. Nejvyšší výkon a nejnižší latence. Ideální pro **databáze** a **VM (OpenStack Cinder)**. Přístup přes protokoly jako iSCSI nebo Fibre Channel.
+    * **File Storage:** Data organizována v hierarchické struktuře (složky/soubory). Snadné sdílení a čitelnost pro člověka. Standard pro **clusterové sdílení** (NFS, SMB).
+    * **Object Storage:** Data uložena jako plochý seznam "objektů" s unikátním ID a bohatými metadaty. Extrémně škálovatelné (miliardy souborů), dostupné přes **HTTP/REST API (S3, Ceph)**. Ideální pro nestrukturovaná data (videa, logy, archivy).
+
+<img alt="img.png" src="img/storage-type.png" width="400"/>
+
+* **Síťová infrastruktura:**
+    * **DAS:** Disky přímo v serveru (nízká latence, nesdílené).
+    * **NAS:** Úložiště v běžné síti Ethernet (sdílení souborů).
+    * **SAN:** Dedikovaná vysokorychlostní síť (Fibre Channel) pro blokový přenos.
+* **HPC Specialita (Paralelní souborové systémy):** Systémy jako **Lustre** nebo **GPFS** umožňují tisícům procesorů současný přístup k jednomu souboru s extrémní propustností.
+
+### Přesun dat (Data Movement)
+Automatizace a efektivita ukládání dat pomocí pokročilých algoritmů.
+
+* **ILM (Information Lifecycle Management):** Komplexní správa životního cyklu dat na základě byznys pravidel (např. automatický přesun na pásku po 6 měsících neaktivity).
+* **HSM (Hierarchical Storage Management):** Samotný technologický proces automatického přesouvání dat mezi vrstvami.
+* **Erasure Coding (EC):** Odolnost dat bez nutnosti zrcadlení (RAID). Data jsou rozdělena na $k$ bloků s $m$ paritními bloky. Šetří místo při zachování bezpečnosti.
+* **Caching vs. Tiering:**
+    * **Caching:** Dočasná kopie dat v rychlejší vrstvě pro zrychlení (originál zůstává dole).
+    * **Tiering:** Fyzický přesun dat mezi vrstvami (existují jen na jednom místě).
+* **Recall Latency:** Zpoždění při "probouzení" dat z hlubších archivních vrstev.
+
+
+* **Data Locality (Lokalita dat)**: Princip, kdy se snažíme posunout výpočet co nejblíže k datům (nebo data k výpočtu), aby se minimalizoval síťový provoz.
+* **Data Integrity (Integrita dat)**: Mechanismy jako Checksums (kontrolní součty), které hlídají, zda se při přesunu mezi vrstvami nebo při dlouhodobém ležení na pásce data nepoškodila (bit rot).
 
 ---
 
-## Odolnost a spolehlivost infrastruktury (Infrastructure resilience and reliability)
+## Odolnost a spolehlivost infrastruktury
 
-* **Redundance:** N+1 (jeden náhradní prvek), 2N (plná kopie).
-* **High Availability (HA):** Schopnost systému zůstat dostupný i při výpadku části HW.
-* **Disaster Recovery (DR):** Obnova po totálním selhání (např. vyhoření DC).
-    * **RPO (Recovery Point Objective):** Maximální přípustná ztráta dat (čas od poslední zálohy).
-    * **RTO (Recovery Time Objective):** Maximální čas, za který musí být systém opět online.
+Cílem je eliminovat **SPOF (Single Point of Failure)** – jediné místo selhání, které by mohlo zastavit celý systém.
+
+### Úrovně dostupnosti (Data Center Tiers)
+Standardizovaná klasifikace (podle Uptime Institute) definující spolehlivost zázemí:
+* **Tier I:** Základní infrastruktura bez redundance (99,671 % dostupnost).
+* **Tier II:** Částečná redundance (N+1) napájení a chlazení.
+* **Tier III:** Souběžná udržitelnost. Každý komponent lze opravit bez přerušení provozu (99,982 % dostupnost).
+* **Tier IV:** Úplná odolnost proti chybám (Fault Tolerance). Systém vydrží jakoukoliv poruchu bez dopadu na IT (99,995 % dostupnost).
+
+### Mechanismy redundance
+* **N+1:** Máte o jeden záložní komponent více, než je nutné pro provoz (např. 4 klimatizace, přičemž stačí 3).
+* **2N / 2(N+1):** Úplné zdvojení celých větví (např. dvě nezávislé trafostanice, dva UPS systémy).
+* **High Availability (HA) Cluster:** Skupina serverů, kde při pádu jednoho okamžitě přebírá jeho práci jiný (např. v Kubernetes nebo OpenStacku).
+
+### Ochrana dat a kontinuita
+* **RAID (Redundant Array of Inexpensive Disks):** Ochrana proti výpadku jednotlivých disků v rámci jednoho serveru.
+* **Erasure Coding (EC):** Pokročilejší ochrana rozprostírající data přes více fyzických uzlů (vhodné pro velké distribuované systémy).
+* **Backup vs. Disaster Recovery (DR):**
+    * **Backup:** Pravidelná záloha dat pro obnovu (např. po smazání souboru).
+    * **Disaster Recovery:** Plán a infrastruktura pro obnovu celého provozu v jiném datacentru po totální katastrofě (požár, povodeň).
+* **RTO vs. RPO (Klíčové metriky):**
+    * **RTO (Recovery Time Objective):** Jak dlouho trvá systém znovu nahodit?
+    * **RPO (Recovery Point Objective):** Kolik dat (v čase) si můžeme dovolit ztratit? (např. 15 minut záznamů).
+
+### Fyzická a environmentální spolehlivost
+* **UPS & Generátory:** Baterie pro okamžité vykrytí výpadku a dieselagregáty pro dlouhodobý provoz bez sítě.
+* **Fire Suppression:** Plynové hašení (FM-200, Novec), které uhasí oheň, ale nepoškodí citlivou elektroniku vodou.
+* **Hot/Cold Aisles:** Design uliček v sále, který zabraňuje míchání teplého a studeného vzduchu, čímž předchází přehřátí (thermal stress).
 
 ---
 
