@@ -322,31 +322,64 @@ Standardizovaná klasifikace (podle Uptime Institute) definující spolehlivost 
 ---
 
 ## Automatizace, DevOps/GitOps a SRE
+Tato sekce se zaměřuje na to, jak efektivně a spolehlivě spravovat rozsáhlou infrastrukturu. Cílem je přechod od manuální správy ("servery jako domácí mazlíčci – pets") k plně automatizovanému přístupu ("servery jako dobytek – cattle").
+### DevOps a CI/CD
+**DevOps** propojuje vývoj (**Dev**) a provoz (**Ops**) s cílem zrychlit dodávání softwaru díky automatizaci.
 
-* **DevOps:** Kultura spojující vývoj a provoz. Cílem je **CI/CD** (Continuous Integration/Deployment).
-* **GitOps:** Stav infrastruktury je popsán kódem v Gitu (**Single Source of Truth**). Nástroje jako *Flux* nebo *ArgoCD* automaticky synchronizují realitu v cloudu s kódem v Gitu.
-* **SRE (Site Reliability Engineering):** Inženýrský přístup k provozu.
-    * **SLI** (Indicator), **SLO** (Objective - např. 99.9% uptime).
-    * **Error Budget:** Prostor pro chyby (0.1%). Pokud je vyčerpán, zastavuje se vývoj nových funkcí a řeší se pouze stabilita.
+* **CI/CD (Continuous Integration / Continuous Deployment):**
+    * **CI:** Automatické sestavení a testování kódu při každém commitu. Cílem je včasná detekce chyb.
+    * **CD:** Automatizované nasazení (Deployment) do produkce po úspěšných testech.
+* **Infrastructure as Code (IaC):** Správa infrastruktury pomocí textových konfiguračních souborů (např. **Terraform**, **Ansible**). Umožňuje verzování, opakovatelnost a eliminaci lidských chyb.
+
+### GitOps
+Evoluce IaC, kde je **Git jediným zdrojem pravdy** pro stav infrastruktury.
+* **Princip:** Změny probíhají přes *Pull Requesty*. Nástroje jako **ArgoCD** neustále synchronizují stav v Gitu s realitou v clusteru (**Reconciliation Loop**).
+* **Výhody:** Auditovatelnost (vše je v Gitu) a vysoká bezpečnost (žádné ruční zásahy v produkci).
+
+### SRE a Observability
+**SRE (Site Reliability Engineering)** aplikuje inženýrský přístup k provozu. Cílem je rovnováha mezi rychlostí vývoje a stabilitou systému.
+
+* **Klíčové metriky:** * **SLI/SLO/SLA:** Co měříme (SLI), jaký je cíl (SLO) a co hrozí při nesplnění (SLA).
+    * **Error Budget:** Tolerance nespolehlivosti ($100\% - \text{SLO}$). Pokud je vyčerpán, zastavuje se vývoj nových funkcí a řeší se stabilita.
+    * **Toil:** Manuální, opakovatelná práce bez přidané hodnoty, kterou se SRE snaží automatizovat.
+* **Observability (Pozorovatelnost):** Schopnost pochopit vnitřní stav systému na základě jeho výstupů. Stojí na 3 pilířích: **Logy** (události), **Metriky** (čísla v čase) a **Tracing** (cesta požadavku systémem).
+
+<details>
+  <summary>Obrázek - DevOps vs. SRE vs. Platform Engineering</summary>
+  
+  <img alt="img.png" src="img/devopprs-sre.png" width="600"/>
+  
+  * **DevOps:** Kulturní spojení Dev a Ops v rámci jednoho týmu.
+  * **SRE:** Dedikovaný tým zajišťující spolehlivost napříč produkty pomocí standardů.
+  * **Platform Engineering:** Budování samoobslužných nástrojů pro vývojáře, aby si infrastrukturu obsloužili sami.
+</details>
 
 ---
 
 ## Workflow manažeři a přenositelnost úloh (Workflow managers and workload portability)
+V prostředí HPC a cloudu je nutné řídit komplexní řetězce výpočtů a zajistit, aby aplikace běžela identicky v různých prostředích.
 
-* **Workflow manažeři (Snakemake, Nextflow):** Automatizují komplexní výpočetní řetězce (DAG - Directed Acyclic Graph). Zajišťují, že pokud krok 5 selže, nemusí se po opravě spouštět kroky 1–4 znovu.
-* **Kontejnery pro HPC:** Zatímco v cloudu vládne *Docker*, v HPC se používá **Apptainer (Singularity)**.
-    * *Důvod:* Singularity nevyžaduje root práva, neřeší síťovou izolaci (latence!) a snadno mapuje souborový systém hostitele.
-* **Portability:** Možnost spustit stejný vědecký výpočet kdekoli (notebook -> cloud -> superpočítač).
+### Workflow Managers
+Nástroje pro definici a orchestraci složitých výpočetních procesů, které se často vizualizují jako **DAGs** (Directed Acyclic Graphs).
+* **Využití:** Bioinformatika (zpracování sekvencí DNA), analýza velkých dat, ML pipelines.
+* **Příklady:** **Nextflow**, **Snakemake**, Apache Airflow.
 
+### Přenositelnost (Portability) a Kontejnerizace
+Schopnost spustit stejný kód na notebooku, v cloudu i na superpočítači bez nutnosti měnit konfiguraci.
+
+* **Kontejnery (Docker/Podman):** Balí aplikaci se všemi závislostmi. Jsou standardem pro mikroslužby.
+* **Apptainer (dříve Singularity):** Standard pro **HPC**. Na rozdíl od Dockeru nevyžaduje root oprávnění a je navržen pro bezpečné sdílení výkonného HW (GPU, InfiniBand) na sdílených vědeckých clusterech.
+* **Cloud-native:** Aplikace navržené přímo pro cloud (využívající mikroslužby a orchestraci), které lze snadno stěhovat mezi poskytovateli (např. AWS $\rightarrow$ Azure).
 ---
 
 ## Identita, SSO a AAI (Identity, SSO, and AAI)
+Správa uživatelů v distribuovaných a federovaných systémech (např. vědec z MUNI přistupující k superpočítači v Itálii přes síť e-INFRA CZ).
 
-* **AAI (Authentication and Authorisation Infrastructure):**
-    * *AuthN (Kdo jsi?):* Ověření identity (heslo, MFA).
-    * *AuthZ (Co smíš?):* Oprávnění k přístupu ke zdrojům.
-* **SSO (Single Sign-On):** Uživatel se přihlásí jednou a získá přístup k mnoha nezávislým systémům.
-* **Federace:** Spojení identit různých institucí (např. **eduGAIN**). Umožňuje studentovi MUNI přihlásit se ke službám univerzity v Oxfordu pomocí jeho MUNI hesel.
-* **Protokoly:**
-    * **SAML:** Starší, XML, robustní, používaný ve federacích.
-    * **OpenID Connect (OIDC):** Moderní, postavený nad **OAuth2**, využívá JSON a JWT tokeny. Populární v cloudu.
+* **Autentizace (AuthN):** Ověření identity (Kdo jsi? – např. heslo, certifikát, MFA).
+* **Autorizace (AuthZ):** Ověření oprávnění (Co smíš dělat? – např. přístup k určitému úložišti).
+* **SSO (Single Sign-On):** Přihlášení jednou, přístup k mnoha nezávislým službám.
+* **Federace identit:** Propojení různých organizací. Uživatelé používají své domovské institucionální údaje (např. **eduid.cz**).
+* **Klíčové protokoly:**
+    * **SAML:** Standard založený na XML, hojně využívaný v akademické sféře.
+    * **OIDC (OpenID Connect):** Moderní standard postavený nad OAuth 2.0 (používá JSON/JWT), standard pro webové a mobilní aplikace.
+* **Proxy IdP:** Systémy jako **Perun** (v e-INFRA CZ) nebo **Unity**, které agregují identity z různých zdrojů a spravují skupinová členství uživatelů napříč infrastrukturou.
