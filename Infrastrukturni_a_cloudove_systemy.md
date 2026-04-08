@@ -10,7 +10,7 @@
 Moderní datové centrum (DC) je navrženo pro maximální hustotu výkonu, efektivitu chlazení a propustnost sítě.
 
 ### IT Vybavení (IT Equipment)
-*  Superpočítače / Výpočetní clustery / Servery 
+* Superpočítače / Výpočetní clustery / Servery 
 * Úložiště dat (Storage Devices)
 * Síťové prvky (Networking Equipment)
 * Virtualizační infrastruktura
@@ -36,6 +36,7 @@ Moderní datové centrum (DC) je navrženo pro maximální hustotu výkonu, efek
 * **Síťová topologie (Spine-Leaf):**
     * Na rozdíl od tradiční hierarchické struktury (Core-Agg-Access) využívá cloudová éra **Spine-Leaf (Clos)** architekturu. 
     * Každý **Leaf** switch (v racku) je připojen ke každému **Spine** switchi. To zajišťuje konstantní latenci (vždy max. 2 hopy) a vysokou propustnost pro **East-West traffic** (komunikace mezi servery v DC), který dnes dominuje nad komunikací ven (North-South).
+* **SDN (Software Defined Networking):** Logické oddělení řídicí roviny (Control Plane) od datové (Data Plane), což umožňuje programovou konfiguraci sítě v cloudu bez manuálních zásahů do HW.
 * **Disagregace:** Trend oddělování CPU, RAM a úložiště do samostatných fondů propojených ultra-rychlou sítí, což umožňuje efektivnější využití zdrojů.
   
 <img alt="img.png" src="img/spine-leaf-arch.png" width="400"/>
@@ -47,7 +48,7 @@ Moderní datové centrum (DC) je navrženo pro maximální hustotu výkonu, efek
     * Jednotlivé, vysoce specializované systémy určené pro maximální výkon
     * Navrženy pro **těsně vázané (tightly-coupled)** úlohy *např. simulace počasí, dynamika kapalin, virtuální crash testy, vývoj léků,...*
     * Využívají **MPI (Message Passing Interface)** pro neustálou komunikaci mezi tisíci jádry.
-    * Klíčová je **nízká latence sítě** (technologie jako InfiniBand nebo HPE Slingshot).
+    * Klíčová je **nízká latence sítě** (technologie jako InfiniBand nebo HPE Slingshot) a technologie **RDMA** pro přímý zápis do paměti vzdáleného uzlu.
     * *např.: El Capitan (USA), Karolina v Ostravě*
 
 * **Heterogenní clustery (HTC - High Throughput Computing):**
@@ -64,8 +65,8 @@ Moderní datové centrum (DC) je navrženo pro maximální hustotu výkonu, efek
 Orchestrace řeší "plánování" (scheduling) – kdy a kde se co spustí. V moderních datových centrech a superpočítačových střediscích se nepoužívá jen jeden přístup. 
 Výběr závisí na tom, zda potřebujete spočítat složitou simulaci (HPC), provozovat webovou aplikaci (Cloud) nebo spravovat celou infrastrukturu (IaaS).
 
-* **PBS (Portable Batch System) / Slurm:** * **Batch processing:** Uživatel pošle úlohu do fronty. Plánovač ji spustí, až jsou zdroje volné.
-* **OpenStack (IaaS):** * Správa virtuálních strojů (VM). Uživatel má "on-demand" přístup a root práva k OS.
+* **PBS (Portable Batch System) / Slurm:** * **Batch processing:** Uživatel pošle úlohu do fronty. Plánovač ji spustí, až jsou zdroje volné. Zaměřeno na maximalizaci utilizace HW.
+* **OpenStack (IaaS):** * Správa virtuálních strojů (VM). Uživatel má "on-demand" přístup a root práva k OS. Vhodné pro virtualizaci celých serverů.
 * **Kubernetes (K8s / CaaS):** Orchestrace kontejnerů. **Deklarativní přístup**: definujete cílový stav (např. "chci 5 instancí webu"), K8s zajistí jeho udržení (*Self-healing*).
 
 <img alt="img.png" src="img/job-lifecycle.png" width="500"/>
@@ -103,10 +104,10 @@ Platforma pro budování privátních i veřejných cloudů a správa virtualiza
 Nástroj pro orchestraci kontejnerů, zaměřený na automatizaci a škálování. CaaS - Container as a Service.
 
 * **Orchestrace kontejnerů:** Spravuje aplikace zabalené v lehkých kontejnerech (např. Docker). Na rozdíl od VM kontejnery sdílejí jádro OS, což je činí extrémně rychlými na spuštění.
-* **Deklarativní přístup:** Uživatel definuje v konfiguračním souboru (YAML) cílový stav (např. "vždy chci mít 10 aktivních instancí této služby"). Kubernetes se postará o jeho dosažení a udržení.
+* **Deklarativní přístup:** Uživatel definuje v konfiguračním souboru (YAML) cílový stav (např. "vždy chci mít 10 aktivních instancí této služby"). Kubernetes se postará o jeho dosažení a udržení pomocí **Control Loop**.
 * **Klíčové funkce:**
     * **Self-healing (Samohojení):** Pokud kontejner spadne nebo uzel (node) selže, K8s automaticky restartuje pody na jiném funkčním hardwaru.
-    * **Horizontální škálování:** Automaticky přidává nebo ubírá instance aplikace podle aktuálního vytížení CPU/RAM.
+    * **Horizontální škálování (HPA):** Automaticky přidává nebo ubírá instance aplikace podle aktuálního vytížení CPU/RAM.
     * **Service Discovery:** Automaticky propojuje pody a vyrovnává zátěž (Load Balancing) mezi nimi.
 * **Využití:** Microservices, moderní webové aplikace (Netflix, Spotify), CI/CD potrubí.
 * Pojmy: 
@@ -126,7 +127,7 @@ Základní rozdíl spočívá v tom, na co jsou čipy optimalizovány:
 
 Při nasazení GPU je nutné brát v úvahu dva hlavní limity:
 
-1.  **Amdahlův zákon:** Celkové zrychlení systému je omezeno jeho sekvenční částí. Pokud 10 % algoritmu nelze paralelizovat a musí běžet na CPU, maximální teoretické zrychlení je 10x, i kdyby zbytek běžel na nekonečně mnoha jádrech GPU.
+1.  **Amdahlův zákon (Strong Scaling):** Celkové zrychlení systému je omezeno jeho sekvenční částí. Pokud 10 % algoritmu nelze paralelizovat a musí běžet na CPU, maximální teoretické zrychlení je 10x, i kdyby zbytek běžel na nekonečně mnoha jádrech GPU. Fixní velikost úlohy.
 2.  **PCIe Bottleneck:** Přenos dat mezi systémovou RAM (u CPU) a Video RAM (u GPU) přes sběrnici PCIe je relativně pomalý. Pokud je výpočet na GPU příliš krátký, může režie přenosu dat smazat veškerý výkonnostní zisk.
 
 
@@ -143,7 +144,7 @@ Při nasazení GPU je nutné brát v úvahu dva hlavní limity:
 MIG je technologie (představená společností NVIDIA u architektury Ampere a novějších), která řeší problém **podvytížení** výkonných GPU.
 
 * **Princip:** Umožňuje fyzické GPU hardwarově rozdělit až na 7 samostatných, plně izolovaných instancí.
-* **Hardwarová izolace:** Každá instance má svou vlastní přidělenou paměť (VRAM), cache a výpočetní jádra (SM - Streaming Multiprocessors).
+* **Hardwarová izolace:** Každá instance má svou vlastní přidělenou pamět (VRAM), cache a výpočetní jádra (SM - Streaming Multiprocessors).
 * **Hlavní výhody:**
     * **Quality of Service (QoS):** Úloha v jedné instanci neovlivňuje výkon úlohy v jiné instanci (na rozdíl od softwarového multitaskingu).
     * **Efektivita:** Na jednom silném GPU (např. NVIDIA A100/H100) může běžet současně 7 různých uživatelů nebo 7 různých typů úloh (např. inference AI, rendering a simulace).
@@ -185,6 +186,7 @@ Masivně paralelní úlohy jsou takové, které lze rozdělit na tisíce nezávi
 ### Architektonické principy
 Moderní škálovatelný software využívá specifické vzory (Patterns) pro distribuci zátěže:
 * **Mikroslužby (Microservices):** Rozdělení monolitu na nezávisle škálovatelné celky.
+* **Serverless (FaaS):** Model, kde cloudový poskytovatel dynamicky spravuje přidělování výpočetních zdrojů. Úloha se spouští pouze na základě události (event-driven), což umožňuje škálování na nulu a platbu jen za čistý čas běhu.
 * **Database per Service:** Izolace dat zajišťuje, že úzké hrdlo jedné služby neovlivní ostatní.
 * **CQRS (Command Query Responsibility Segregation):** Oddělení zápisových a čtecích operací pro nezávislou optimalizaci propustnosti čtení.
 * **Event Sourcing & Saga:** Zajištění konzistence dat v distribuovaném prostředí bez nutnosti těsné vazby (tight coupling) mezi servery.
@@ -300,6 +302,7 @@ Standardizovaná klasifikace (podle Uptime Institute) definující spolehlivost 
 * **Tier IV:** Úplná odolnost proti chybám (Fault Tolerance). Systém vydrží jakoukoliv poruchu bez dopadu na IT (99,995 % dostupnost).
 
 ### Mechanismy redundance
+* **Blast Radius:** Rozsah dopadu při selhání konkrétní komponenty. Návrh se snaží o jeho minimalizaci (např. pomocí Availability Zones).
 * **N+1:** Máte o jeden záložní komponent více, než je nutné pro provoz (např. 4 klimatizace, přičemž stačí 3).
 * **2N / 2(N+1):** Úplné zdvojení celých větví (např. dvě nezávislé trafostanice, dva UPS systémy).
 * **High Availability (HA) Cluster:** Skupina serverů, kde při pádu jednoho okamžitě přebírá jeho práci jiný (např. v Kubernetes nebo OpenStacku).
@@ -311,17 +314,17 @@ Standardizovaná klasifikace (podle Uptime Institute) definující spolehlivost 
     * **Backup:** Pravidelná záloha dat pro obnovu (např. po smazání souboru).
     * **Disaster Recovery:** Plán a infrastruktura pro obnovu celého provozu v jiném datacentru po totální katastrofě (požár, povodeň).
 * **RTO vs. RPO (Klíčové metriky):**
-    * **RTO (Recovery Time Objective):** Jak dlouho trvá systém znovu nahodit?
-    * **RPO (Recovery Point Objective):** Kolik dat (v čase) si můžeme dovolit ztratit? (např. 15 minut záznamů).
+    * **RTO (Recovery Time Objective):** Časový limit, do kterého musí být systém po výpadku opět funkční. "Jak dlouho jsme offline?".
+    * **RPO (Recovery Point Objective):** Maximální přípustné stáří dat, která lze ztratit. "Kolik hodin práce jsme ztratili?".
 
 ### Fyzická a environmentální spolehlivost
-* **UPS & Generátory:** Baterie pro okamžité vykrytí výpadku a dieselagregáty pro dlouhodobý provoz bez sítě.
+* **UPS & Generátory:** Baterie pro okamžité vykrytí výpadku a dieselagregáty pro dlouhodobém provoz bez sítě.
 * **Fire Suppression:** Plynové hašení (FM-200, Novec), které uhasí oheň, ale nepoškodí citlivou elektroniku vodou.
 * **Hot/Cold Aisles:** Design uliček v sále, který zabraňuje míchání teplého a studeného vzduchu, čímž předchází přehřátí (thermal stress).
 
 ---
 
-## Automatizace, DevOps/GitOps a SRE
+## Automatizace, DevOps/GitOps and SRE
 Tato sekce se zaměřuje na to, jak efektivně a spolehlivě spravovat rozsáhlou infrastrukturu. Cílem je přechod od manuální správy ("servery jako domácí mazlíčci – pets") k plně automatizovanému přístupu ("servery jako dobytek – cattle").
 ### DevOps a CI/CD
 **DevOps** propojuje vývoj (**Dev**) a provoz (**Ops**) s cílem zrychlit dodávání softwaru díky automatizaci.
@@ -375,11 +378,21 @@ Schopnost spustit stejný kód na notebooku, v cloudu i na superpočítači bez 
 ## Identita, SSO a AAI (Identity, SSO, and AAI)
 Správa uživatelů v distribuovaných a federovaných systémech (např. vědec z MUNI přistupující k superpočítači v Itálii přes síť e-INFRA CZ).
 
-* **Autentizace (AuthN):** Ověření identity (Kdo jsi? – např. heslo, certifikát, MFA).
-* **Autorizace (AuthZ):** Ověření oprávnění (Co smíš dělat? – např. přístup k určitému úložišti).
-* **SSO (Single Sign-On):** Přihlášení jednou, přístup k mnoha nezávislým službám.
-* **Federace identit:** Propojení různých organizací. Uživatelé používají své domovské institucionální údaje (např. **eduid.cz**).
+* **Identita:** Digitální reprezentace uživatele obsahující atributy (jméno, e-mail, role, domovská organizace).
+* **Autentizace (AuthN):** Proces ověření identity (Kdo jsi?). Provádí se pomocí faktorů: heslo, certifikát, MFA (Multi-Factor Auth), biometrie.
+* **Autorizace (AuthZ):** Proces ověření oprávnění (Co smíš dělat?). Určuje přístup ke konkrétním zdrojům (např. právo zápisu do úložiště) na základě rolí nebo atributů.
+
+### Single Sign-On (SSO)
+Mechanismus umožňující uživateli přihlásit se pouze jednou a získat přístup k mnoha nezávislým službám bez nutnosti opakovaného zadávání hesla.
+* **Přínos:** Zvyšuje bezpečnost (uživatel zadává heslo jen na jednom důvěryhodném místě) a uživatelský komfort.
+* **Princip:** Výměna bezpečnostních tokenů mezi poskytovatelem identity a koncovou službou.
+<img alt="img.png" src="sso.png" width="300"/>
+
+### Authentication and Authorization Infrastructure (AAI)
+Komplexní rámec pro správu identit a přístupů v rozsáhlých distribuovaných prostředích.
+* **Federace identit:** Propojení různých organizací, které si vzájemně důvěřují. Uživatelé používají své domovské institucionální údaje (např. **eduid.cz**, eduGAIN).
 * **Klíčové protokoly:**
-    * **SAML:** Standard založený na XML, hojně využívaný v akademické sféře.
-    * **OIDC (OpenID Connect):** Moderní standard postavený nad OAuth 2.0 (používá JSON/JWT), standard pro webové a mobilní aplikace.
-* **Proxy IdP:** Systémy jako **Perun** (v e-INFRA CZ) nebo **Unity**, které agregují identity z různých zdrojů a spravují skupinová členství uživatelů napříč infrastrukturou.
+    * **SAML (Security Assertion Markup Language):** Standard založený na XML, hojně využívaný v akademické sféře pro předávání autentizačních dat.
+    * **OIDC (OpenID Connect):** Moderní standard postavený nad OAuth 2.0. Pro přenos dat využívá JSON a **JWT tokeny** (JSON Web Token). Standard pro webové a mobilní aplikace.
+* **Proxy IdP:** Mezičlánek (např. systémy **Perun** v e-INFRA CZ nebo **Unity**), který agreguje identity z různých zdrojů, sjednocuje je a spravuje skupinová členství (VO - Virtual Organizations) napříč celou infrastrukturou.
+
