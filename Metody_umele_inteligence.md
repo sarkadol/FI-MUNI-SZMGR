@@ -7,202 +7,177 @@
 > teorie užitku, Markovský rozhodovací proces, iterace hodnot, iterace strategie. 
 > Robotika, plánování pohybu robota (konfigurační prostor, kombinatorické a pravděpodobnostní přístupy). (IV126)
 
-# Metody umělé inteligence
+## Prohledávání stavového prostoru (State Space Search)
 
-## Prohledávání stavového prostoru
-Prohledávání stavového prostoru (State Space Search)
+Mnoho problémů v umělé inteligenci (hry, dokazování vět, plánování cest) lze modelovat jako hledání v grafu, kde vrcholy jsou stavy a hrany jsou akce. Cílem je najít sekvenci akcí, která nás dovede z počátku do cíle při minimalizaci ceny.
 
-Prohledávání stavového prostoru je univerzální metodika řešení problémů v AI, kde je cílem najít sekvenci akcí vedoucí z počátečního stavu do stavu cílového.
+**Formální definice problému**
 
-1. Definice a Formální reprezentace
+Problém prohledávání je definován pěticí:
 
-Motivace: Aby mohl počítač řešit reálný problém (např. navigaci), musíme jej převést do abstraktního matematického modelu, se kterým dokáží pracovat algoritmy.
+1. **Množina stavů (**$S$**):** Obsahuje všechny možné konfigurace systému.
 
-Stav ($s$): Momentální konfigurace světa.
+2. **Počáteční stav (**$s_0 \in S$**):** Stav, ve kterém agent začíná.
 
-Počáteční stav ($s_0$): Bod, ve kterém agent začíná.
+3. **Akce (**$A(s)$**):** Množina akcí použitelných ve stavu $s$.
 
-Cílový test ($GoalTest$): Podmínka, která určuje, zda jsme dosáhli řešení (může být jeden stav nebo vlastnost).
+4. **Přechodový model (**$Result(s, a)$**):** Popisuje stav, který vznikne provedením akce $a$ ve stavu $s$.
 
-Akce a Přechodový model: Funkce, která pro daný stav vrátí možné následníky.
+5. **Cílový test (**$GoalTest(s)$**):** Rozhoduje, zda je stav $s$ cílový.
+   *Doplňkově definujeme **Cenu akce (***$ActionCost(s, a, s')$***)**, která určuje numerickou váhu přechodu (typicky* $c(s, a, s') \ge 0$*).*
 
-Cena cesty ($c$): Numerická hodnota (váha), která určuje „náročnost“ přechodu mezi stavy.
+**Základní algoritmy a jejich vlastnosti**
 
-Příklad: 8-hlavolam (Sliding Puzzle)
+Algoritmy vyvíjejí **strom prohledávání**, kde kořenem je $s_0$. Rozlišujeme mezi **stromovým vyhledáváním** (může cyklit) a **grafovým vyhledáváním**, které využívá *Explored set* (uzavřený seznam) pro eliminaci duplicitních stavů. Kvalitu algoritmů měříme pomocí: **Úplnosti** (najde vždy řešení?), **Optimality** (najde nejlevnější?), **Časové a prostorové složitosti**.
 
-Stav: Rozmístění čísel 1–8 na mřížce 3x3.
+* **Neinformované (slepé) prohledávání:** Nemá informaci o vzdálenosti k cíli.
 
-Akce: Posun prázdného pole nahoru, dolů, vlevo, vpravo.
+  * **BFS (Do šířky):** Expanduje nejmělčí uzly. Je úplný a optimální pro konstantní ceny akcí. Paměťová náročnost $O(b^d)$ je hlavním limitem.
 
-Cíl: Seřazená čísla 1–8.
+  * **DFS (Do hloubky):** Expanduje nejhlubší uzly. Nízká paměť $O(b \cdot m)$, ale není úplný (v nekonečných prostorech) ani optimální.
 
-2. Strategie prohledávání
+  * **UCS (Uniform-cost search):** Expanduje uzel $n$ s nejmenší cenou cesty $g(n)$. Je optimální pro libovolné nezáporné ceny.
 
-Motivace: Efektivita hledání závisí na tom, v jakém pořadí expandujeme uzly. Špatná strategie může vést k nekonečným cyklům nebo vyčerpání paměti.
+* **Informované (heuristické) prohledávání:** Využívá **heuristickou funkci** $h(n)$, která odhaduje cenu nejlevnější cesty z $n$ do cíle.
 
-Dopředné prohledávání (Forward Search): Postupujeme od $s_0$ k cíli. Vhodné, pokud je málo možných startů.
+  * **A* Search:*\* Nejdůležitější algoritmus, expanduje uzel s minimální hodnotou $f(n) = g(n) + h(n)$.
 
-Zpětné prohledávání (Backward Search): Postupujeme od cíle k počátku. Vhodné, pokud je cíl velmi specifický a faktor větvení směrem od cíle je menší.
+  * **Podmínky optimality A*:*\* Heuristika musí být **přípustná** (nikdy nepřeceňuje skutečnou cenu, $h(n) \le h^*(n)$) pro stromové hledání a **konzistentní** ($h(n) \le c(n, a, n') + h(n')$) pro grafové hledání.
 
-Obousměrné prohledávání: Hledáme z obou stran zároveň, dokud se cesty neprotnou. Výrazně snižuje časovou složitost ($b^{d/2} + b^{d/2}$ místo $b^d$).
+  * *Příklad: V problému hledání trasy v mapě je přípustnou heuristikou vzdušná vzdálenost do cíle.*
 
-Příklad: Hledání cesty v bludišti
+---
+## Lokální prohledávání a metaheuristiky s jedním řešením
 
-Dopředné: Jdete od vchodu a zkoušíte chodby.
+V mnoha úlohách (např. *problém 8 dam* nebo *rozvrhování*) nás nezajímá cesta k cíli, ale pouze koncový stav. Lokální prohledávání pracuje pouze s **aktuálním stavem** a jeho sousedy, což drasticky snižuje nároky na paměť ($O(1)$).
 
-Zpětné: Podíváte se na východ a zkoumáte, které chodby k němu vedou (často efektivnější u složitých výstupů).
+**Krajina stavového prostoru (State-space landscape)**
 
-3. Klasické algoritmy (Slepé vs. Informované)
+Stavy si představujeme jako body v krajině, kde výška odpovídá **cílové funkci** (maximalizace) nebo **cenové funkci** (minimalizace). Cílem je najít globální maximum/minimum. Problémem jsou **lokální maxima**, **hřebeny (ridges)** a **plošiny (plateaux)**.
 
-Motivace: Výběr algoritmu určuje, zda řešení vůbec najdeme a zda bude optimální (nejkratší/nejlevnější).
+<img alt="img.png" src="img/landscape.png" width="400"/>
 
-A. Neinformované (Slepé) prohledávání
+**Klíčové algoritmy**
 
-Nemají informaci o tom, jak blízko je cíl.
+* **Hill-climbing (Horolezecký algoritmus):** "Hladový" algoritmus, který se neustále pohybuje ve směru největšího stoupání.
 
-BFS (Do šířky): Prochází stavy po vrstvách. Najde nejkratší cestu (při stejných cenách), ale je extrémně náročné na paměť.
+  * *Příklad: V problému 8 dam posuneme dámu v sloupci tak, aby se co nejvíce snížil počet vzájemných ohrožení.*
 
-DFS (Do hloubky): Jde co nejdále v jedné větvi. Malé nároky na paměť, ale může uvíznout v nekonečné větvi a nenajde nejkratší cestu.
+  * Varianty: **Stochastický** (náhodný výběr z lepších), **First-choice** (první lepší soused), **Random-restart** (restartuje hledání z náhodných míst pro nalezení globálního maxima).
 
-Uniform-Cost Search (UCS): Rozšíření BFS pro cesty s různými cenami. Vždy expanduje uzel s nejnižší průběžnou cenou $g(n)$.
+* **Simulované žíhání (Simulated Annealing):** Algoritmus inspirovaný metalurgií, který dovoluje "kroky zpět" (do horšího stavu), aby unikl z lokálního optima.
 
-B. Informované (Heuristické) prohledávání
+  * Pravděpodobnost přijetí horšího stavu je $e^{\Delta E / T}$, kde $\Delta E$ je zhoršení a $T$ je **teplota**. Teplota se postupně snižuje podle plánu ochlazování. Na začátku (vysoké $T$) algoritmus skáče náhodně, na konci (nízké $T$) se chová jako Hill-climbing.
 
-Využívají nápovědu ve formě heuristiky $h(n)$ – odhadu ceny do cíle.
+* **Tabu prohledávání (Tabu Search):** Využívá krátkodobou paměť (**Tabu list**) k uchování nedávno navštívených stavů nebo provedených změn. Tím zabraňuje cyklení a nutí algoritmus prozkoumávat nové oblasti, i za cenu dočasného zhoršení.
 
-Greedy Best-First Search: Jde vždy tam, kde to vypadá nejblíže k cíli (podle $h(n)$). Rychlé, ale nemusí najít optimální cestu.
+* **Local Beam Search:** Udržuje $k$ stavů současně. V každém kroku vygeneruje všechny sousedy všech $k$ stavů a vybere $k$ nejlepších z celého souboru. Nejde o $k$ nezávislých hledání, protože stavy mezi sebou "sdílejí" informace o nejlepších oblastech.
 
-Algoritmus A*: Kombinuje $g(n)$ (cena z počátku) a $h(n)$ (odhad do cíle). Pokud je heuristika přípustná (nikdy nepodstřelí cenu), A* zaručeně najde optimální cestu.
+---
+## Populační metaheuristiky (Evoluční algoritmy a inteligence hejna)
 
-Příklad: Plánování trasy v mapě
+Populační algoritmy pracují s množinou řešení současně, což umožňuje efektivnější prohledávání komplexních prostorů díky kombinaci informací z různých jedinců.
 
-Slepé (BFS): Prohledáváte všechny ulice v kruhu kolem startu, dokud nenarazíte na cíl.
+**Evoluční algoritmy (EA)**
 
-Informované (A):* Prioritně zkoumáte ulice, které vedou směrem k cílovému městu (využíváte vzdušnou vzdálenost jako heuristiku).
+Inspirovány biologickou evolucí (Darwinův princip přežití nejzdatnějších). Základní cyklus: **Inicializace populace** $\to$ **Ohodnocení (fitness)** $\to$ **Selekce** $\to$ **Variace (křížení a mutace)** $\to$ **Nahrazení.**
 
-4. Vlastnosti algoritmů a Heuristiky
+* **Genetické algoritmy (GA):** Jedinci jsou kódováni jako řetězce (chromozomy, často bitové).
 
-Motivace: Abychom mohli algoritmu důvěřovat, musíme vědět, zda je úplný (vždy najde řešení) a optimální (najde to nejlepší).
+  * **Selekce:** Výběr rodičů pro další generaci (např. *ruletový výběr* – pravděpodobnost úměrná fitness, nebo *turnajový výběr*).
 
-Přípustnost (Admissibility): Heuristika $h(n)$ je přípustná, pokud $h(n) \leq h^*(n)$, kde $h^*(n)$ je skutečná minimální cena do cíle.
+  * **Křížení (Crossover):** Kombinuje části dvou rodičů (např. *jednobodové*, *dvoubodové* nebo *uniformní křížení*). Slouží k exploitaci (využití známých dobrých prvků).
 
-Konzistence (Monotonicity): Cena přechodu plus odhad z následníka není menší než odhad ze současného stavu.
+  * **Mutace:** Náhodná změna v chromozomu (např. otočení bitu). Slouží k exploraci (udržení diverzity a objevování nových oblastí).
+  * populace: sada řešení (asi 20–100)
+  * chromozom/jedinec: kódované řešení 
+  * gen: rozhodovací proměnná v řešení 
+  * alela: hodnota rozhodovací proměnné
 
-## Lokální prohledávání
-Lokální prohledávání se používá v situacích, kdy nás nezajímá cesta, jakou jsme se k řešení dostali, ale pouze koncový stav (např. rozvrh hodin, rozmístění komponent). Pracuje s omezenou pamětí – obvykle udržuje pouze jeden aktuální stav.
+<img alt="img.png" src="img/evolalg.png" width="400"/>
 
-1. Motivace a Princip "Krajiny" (State-space Landscape)
+**Inteligence hejna (Swarm Intelligence)**
 
-Motivace: U mnoha problémů je stavový prostor tak obrovský, že nelze stavět strom hledání (BFS/A*). Lokální hledání se místo toho "rozhlíží" po okolí aktuálního stavu a snaží se najít lepší konfiguraci.
+Studuje kolektivní chování decentralizovaných, samoorganizovaných systémů.
 
-Cílová funkce (Objective Function): Hodnotíme, jak "dobrý" stav je (např. počet konfliktů v rozvrhu).
+* **Optimalizace částicemi (PSO - Particle Swarm Optimization):** Každý jedinec (částice) má v prostoru svou **polohu (**$x$**)** a **rychlost (**$v$**)**.
 
-Krajina (Landscape): Představujeme si prostor jako mapu s horami (maxima) a údolími (minima).
+  * Částice si pamatuje své dosavadní nejlepší řešení (**personal best**) a zná nejlepší řešení celého hejna (**global best**).
 
-Globální optimum: Absolutně nejlepší řešení v celém prostoru.
+  * Rychlost částice je v každém kroku ovlivněna její setrvačností, směrem k *personal best* a směrem k *global best*.
 
-Lokální optimum: Bod, který je lepší než všichni jeho sousedé, ale horší než globální maximum.
+  * *Využití: Optimalizace spojitých funkcí, kde částice "létají" prostorem k optimu.*
 
-2. Horolezecký algoritmus (Hill Climbing)
+* **Optimalizace mravenčí kolonií (ACO - Ant Colony Optimization):** Inspirováno mravenci hledajícími cestu k potravě pomocí **feromonových stop**.
 
-Princip: "Hladový" algoritmus, který se neustále pohybuje ve směru největšího nárůstu hodnoty cílové funkce. Pokud žádný soused není lepší, zastaví se.
+  * Mravenci se pohybují stochasticky, ale preferují cesty s vyšší koncentrací feromonu.
 
-Problémy:
+  * Po nalezení cíle mravenec cestu "označkuje". Kratší cesta je projita rychleji více mravenci, čímž se na ní feromon kumuluje dříve (pozitivní zpětná vazba).
 
-Lokální maxima: Algoritmus uvízne na "vrcholku", který není nejvyšší.
+  * Feromon se postupně odpařuje, což umožňuje zapomínat staré, neoptimální cesty.
 
-Hřebeny (Ridges): Úzké vyvýšeniny, kde pohyb v základních směrech vede dolů, i když hřeben stoupá.
+  * *Příklad: Velmi úspěšné u diskrétních problémů jako Problém obchodního cestujícího (TSP).*
 
-Plošiny (Plateaus): Oblasti se stejnou hodnotou, kde algoritmus "bloudí".
+---
+## Plánování a reprezentace problému
 
-Příklad: Problém 8 dam
+Klasické prohledávání stavového prostoru (BFS, A*) vnímá stav jako "černou skříňku". Plánování naproti tomu otevírá strukturu stavu a využívá logickou reprezentaci. To umožňuje agentovi lépe rozumět vztahům mezi akcemi a cíli a využívat pokročilejší heuristiky. Předpokládáme deterministické, plně pozorovatelné a statické prostředí.
 
-Stav: 8 dam na šachovnici (v každém sloupci jedna).
+**Reprezentace stavů a cílů**
+V klasickém plánování využíváme k popisu světa prvořádovou logiku, ale s omezeními (bez funkcí, konečný počet objektů).
+- **Stav:** Množina pozitivních literálů (atomů), které jsou v daném čase pravdivé. Platí **předpoklad uzavřeného světa (Closed World Assumption)** – co není v seznamu, je nepravdivé.
+- **Cíl:** Konjunkce literálů. Stav $s$ splňuje cíl $g$, pokud $g \subseteq s$.
 
-Sousední stav: Posun jedné dámy v rámci jejího sloupce.
+**Reprezentace akcí (Operátory)**
+Akce jsou definovány pomocí schémat (operátorů), které obsahují:
+- **Jméno a parametry:** Identifikace akce (např. *Fly(p, from, to)*).
+- **Prekondenice (Pre):** Literály, které musí být v aktuálním stavu pravdivé, aby bylo možné akci provést.
+- **Efekty (Eff):** Popisují, jak se svět změní. Dělí se na **Add-list** (literály, které se stanou pravdivými) a **Delete-list** (literály, které přestanou platit).
 
-Cílová funkce: Počet dvojic dam, které se vzájemně ohrožují (chceme minimalizovat).
+*Příklad: Akce pro naložení nákladu do letadla v Air Cargo doméně:*
+*Load(c, p, a):*
+*Pre: At(c, a) ∧ At(p, a) ∧ Cargo(c) ∧ Plane(p) ∧ Airport(a)*
+*Eff: ¬At(c, a) ∧ In(c, p)*
 
-Hill Climbing: V každém kroku posune dámu tak, aby co nejvíce klesl počet ohrožení.
 
-3. Simulované žíhání (Simulated Annealing)
+### PDDL  a STRIPS
 
-Motivace: Hill Climbing nikdy neudělá krok "dolů", takže snadno uvízne. Simulované žíhání kombinuje Hill Climbing s náhodným procházením, aby mohlo uniknout z lokálních optim.
+**STRIPS (Stanford Research Institute Problem Solver)**
+Historicky první a nejjednodušší formální jazyk pro plánování. Má velmi striktní omezení (např. efekty mohou být pouze konjunkce literálů, žádné proměnné v cíli). STRIPS položil základy pro reprezentaci akcí pomocí seznamů "přidej" a "smaž".
 
-Princip: Inspirováno metalurgií (kalení kovů).
+**PDDL (Planning Domain Definition Language)**
+Moderní standardizovaný jazyk pro definici domén a problémů. Rozděluje popis na dvě části:
+1.  **Domain file:** Definuje typy objektů, predikáty a operátory (akce). Je společný pro více instancí problému.
+2.  **Problem file:** Definuje konkrétní objekty, počáteční stav a cílovou podmínku.
 
-Pravidlo: Pokud je sousední stav lepší, přijmeme ho. Pokud je horší, přijmeme ho s určitou pravděpodobností, která závisí na:
+**Sémantika přechodu**
+Provedení akce $a$ ve stavu $s$ (pokud $Pre(a) \subseteq s$) definuje nový stav následovně:
+**$s' = (s \setminus Del(a)) \cup Add(a)$**
+Tento mechanismus řeší **problém rámce (Frame Problem)** – vše, co není výslovně změněno efekty, zůstává v platnosti.
 
-Teplotě ($T$): Na začátku je vysoká (přijímáme i velmi špatné kroky), postupně klesá.
-
-Míře zhoršení ($\Delta E$): Čím horší krok je, tím menší je šance na jeho přijetí.
-
-Při dostatečně pomalém ochlazování (chladicí plán) algoritmus s vysokou pravděpodobností najde globální optimum.
-
-Příklad: Logistické plánování
-Při hledání trasy pro rozvoz balíků může algoritmus dočasně přijmout delší trasu (krok dolů), aby se následně mohl "přehoupnout" přes kopec lokálního optima k výrazně efektivnějšímu rozvržení.
-
-4. Tabu prohledávání (Tabu Search)
-
-Motivace: Algoritmy se často vrací do stejných stavů (cyklí se). Tabu prohledávání využívá paměť k prevenci tohoto chování.
-
-Tabu seznam: Seznam nedávno navštívených stavů nebo provedených změn, které jsou po určitou dobu "zakázané".
-
-Tímto mechanismem je algoritmus nucen prozkoumávat nové části stavového prostoru, i kdyby to znamenalo dočasné zhoršení výsledku.
-
-Příklad: Rozvrhování směn
-Pokud jsme právě přesunuli sestru ze směny A do směny B, zakážeme její přesun zpět na smenu A na dalších 10 iterací. Tím donutíme algoritmus vyzkoušet přesuny jiných zaměstnanců.
-
-Srovnání s ostatními metodami
-
-Vlastnost
-
-BFS / A*
-
-Lokální prohledávání
-
-Cesta k cíli
-
-Je součástí řešení.
-
-Nezajímá nás.
-
-Paměť
-
-Ukládá celé větve stromu.
-
-Ukládá jen aktuální stav (a okolí).
-
-Úplnost
-
-Zaručena (pokud existuje).
-
-Není zaručena (může uvíznout).
-
-Vhodnost
-
-Logické hádanky, navigace.
-
-Optimalizace, návrh systémů.
-
-## Metaheuristiky s jedním řešením
-Tyto metody rozšiřují lokální prohledávání o mechanismy, které umožňují únik z lokálních optim. Motivací je najít rovnováhu mezi prozkoumáváním prostoru (exploration) a vytěžováním známých dobrých oblastí (exploitation).
-
-**Simulované žíhání** (Simulated Annealing) je inspirováno chladnutím kovů. Algoritmus s určitou pravděpodobností přijímá i horší řešení, což mu dovoluje vyskočit z lokálního minima. Tato pravděpodobnost se postupně snižuje podle parametru teploty. **Tabu prohledávání** využívá krátkodobou paměť k zakázání nedávno navštívených stavů, čímž brání cyklení a nutí agenta prozkoumávat nové oblasti.
-
-## Populační metaheuristiky
-Populační algoritmy nepracují s jedním řešením, ale s celou množinou (populací) kandidátů. Motivací je paralelní prohledávání různých částí prostoru a možnost kombinovat (sdílet) informace mezi jednotlivými řešeními.
-
-**Evoluční algoritmy** simulují přírodní výběr. Proces zahrnuje selekci nejzdatnějších jedinců na základě fitness funkce, jejich křížení (výměnu částí řešení) a mutaci (náhodnou změnu). Patří sem Genetické algoritmy (binární řetězce), Evoluční strategie (reálná čísla) a Genetické programování (vývoj programů). **Inteligence hejna** (Swarm Intelligence) je inspirována kolektivním chováním zvířat. Například **optimalizace mravenčí kolonií** (ACO) využívá umělé feromonové stopy k nalezení optimálních cest v grafu.
-
-## Plánování
-Plánování je proces hledání sekvence akcí k dosažení cíle v komplexních doménách. Zatímco klasické prohledávání stavového prostoru vnímá stavy jako "černé skříňky", plánování využívá vnitřní strukturu stavů a logické vazby mezi akcemi. Hlavní motivací je schopnost řešit rozsáhlé průmyslové a logistické úlohy efektivněji než čistým prohledáváním grafu.
-
-## Reprezentace problému
-Aby mohl plánovač efektivně pracovat, potřebuje formalizovaný popis světa. Standardem je jazyk **PDDL** (Planning Domain Definition Language). Ten odděluje **Doménu** (obsahuje typy objektů, predikáty a šablony akcí s jejich podmínkami a efekty) a **Problém** (specifikuje konkrétní objekty, výchozí situaci a cílový stav). Tato dekompozice umožňuje používat stejný plánovací algoritmus na různé typy úloh.
+---
 
 ## Plánování se stavovým prostorem
-Tento přístup aplikuje prohledávací algoritmy přímo na stavy popsané v PDDL. **Dopředné plánování** postupuje od počátku a aplikuje akce splňující podmínky. **Zpětné plánování** (regresní) začíná od cíle a hledá akce, které tento cíl naplňují. Zpětný postup je často výhodnější, protože výrazně redukuje prohledávaný prostor tím, že uvažuje pouze akce relevantní pro splnění cíle.
+
+Plánování ve stavovém prostoru hledá cestu v grafu, kde uzly jsou stavy popsané jako množiny literálů a hrany jsou instancované akce.
+
+**Dopředné prohledávání (Progression / Forward Search)**
+Začíná v počátečním stavu $s_0$ a aplikuje akce, jejichž prekondenice jsou splněny.
+- **Výhody:** Snadno se implementuje, stavy jsou plně specifikované (vždy víme, co platí).
+- **Nevýhody:** Obrovský faktor větvení. Mnoho akcí může být irelevantních vzhledem k cíli.
+- *Příklad: Chceme-li letět z Prahy do New Yorku, dopředné hledání může zvažovat i akci "koupit si v Praze kávu", protože je v daném stavu možná, i když k cíli nepomáhá.*
+
+**Zpětné prohledávání (Regression / Backward Search)**
+Začíná od cíle $g$ a postupuje směrem k počátečnímu stavu. Uzly v grafu reprezentují **množiny cílů (podcíle)**, které je třeba splnit.
+- **Relevantní akce:** Akce $a$ je relevantní pro cíl $g$, pokud:
+    1.  Alespoň jeden z efektů akce $a$ sjednocuje s nějakým literálem v $g$.
+    2.  Žádný z efektů akce $a$ není v konfliktu s ostatními literály v $g$ (nepopírá je).
+- **Regresní krok:** Nový stav (množina podcílů) vznikne jako: $g' = (g \setminus Add(a)) \cup Pre(a)$.
+- **Lifting:** Významná technika pro zpětné hledání. Místo abychom hned dosazovali konkrétní objekty (např. letadlo *Plane1*), pracujeme s proměnnými a dosazujeme je až v momentě, kdy je to nutné pro splnění prekondenic. To dramaticky zmenšuje prohledávaný prostor.
+
+**Plánovací heuristiky**
+Efektivita plánování závisí na kvalitě heuristiky $h(s)$. Častým přístupem je **uvolnění problému (Relaxation)**:
+- **Heuristika s vypuštěním smazaných literálů (Empty-delete-list):** Předpokládáme, že akce nic neničí (nemají Delete-list). Problém se stává mnohem jednodušším a cena řešení v tomto relaxovaném světě je přípustnou heuristikou pro původní problém.
 
 ## Práce s neurčitostí
 V reálném světě jsou akce nespolehlivé a senzory nepřesné. Motivací je vytvořit agenty, kteří se dokáží racionálně rozhodovat i za neúplné informace. Agent místo jednoho stavu udržuje **stav víry** (belief state), což je rozdělení pravděpodobnosti přes všechny možné stavy světa. K popisu těchto vztahů se využívá teorie pravděpodobnosti.
