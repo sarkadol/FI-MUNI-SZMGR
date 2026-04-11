@@ -13,18 +13,15 @@ Mnoho problémů v umělé inteligenci (hry, dokazování vět, plánování ces
 
 **Formální definice problému**
 
-Problém prohledávání je definován pěticí:
+Problém prohledávání je definován::
 
-1. **Množina stavů (**$S$**):** Obsahuje všechny možné konfigurace systému.
-
-2. **Počáteční stav (**$s_0 \in S$**):** Stav, ve kterém agent začíná.
-
-3. **Akce (**$A(s)$**):** Množina akcí použitelných ve stavu $s$.
-
-4. **Přechodový model (**$Result(s, a)$**):** Popisuje stav, který vznikne provedením akce $a$ ve stavu $s$.
-
-5. **Cílový test (**$GoalTest(s)$**):** Rozhoduje, zda je stav $s$ cílový.
-   *Doplňkově definujeme **Cenu akce (***$ActionCost(s, a, s')$***)**, která určuje numerickou váhu přechodu (typicky* $c(s, a, s') \ge 0$*).*
+* **Množina stavů (**$S$**):** Obsahuje všechny možné konfigurace systému.
+* **Počáteční stav (**$s_0 \in S$**):** Stav, ve kterém agent začíná.
+* **Akce (**$A(s)$**):** Množina akcí použitelných ve stavu $s$.
+* **Přechodový model (**$Result(s, a)$**):** Popisuje stav, který vznikne provedením akce $a$ ve stavu $s$.
+* **Funkce sousedství N** je zobrazení $N : S → 2^S$, které každému řešení s rozlohy S přiřazuje množinu řešení $N(s) ⊂ S$.
+* **Cílový test (**$GoalTest(s)$**):** Rozhoduje, zda je stav $s$ cílový.
+* **Cena akce (***$ActionCost(s, a, s')$***)**, která určuje numerickou váhu přechodu (typicky* $c(s, a, s') \ge 0$*).*
 
 **Základní algoritmy a jejich vlastnosti**
 
@@ -32,11 +29,13 @@ Algoritmy vyvíjejí **strom prohledávání**, kde kořenem je $s_0$. Rozlišuj
 
 * **Neinformované (slepé) prohledávání:** Nemá informaci o vzdálenosti k cíli.
 
-  * **BFS (Do šířky):** Expanduje nejmělčí uzly. Je úplný a optimální pro konstantní ceny akcí. Paměťová náročnost $O(b^d)$ je hlavním limitem.
+  * **BFS (Breadth First Search - do šířky):** Expanduje nejmělčí uzly. Je úplný a optimální pro konstantní ceny akcí. Paměťová náročnost $O(b^d)$ je hlavním limitem.
 
-  * **DFS (Do hloubky):** Expanduje nejhlubší uzly. Nízká paměť $O(b \cdot m)$, ale není úplný (v nekonečných prostorech) ani optimální.
+  * **DFS (Depth-first search - do hloubky):** Expanduje nejhlubší uzly. Nízká paměť $O(b \cdot m)$, ale není úplný (v nekonečných prostorech) ani optimální.
 
   * **UCS (Uniform-cost search):** Expanduje uzel $n$ s nejmenší cenou cesty $g(n)$. Je optimální pro libovolné nezáporné ceny.
+
+<img alt="img.png" src="img/metody_umele_inteligence/bfs-dfs.png" width="400"/>
 
 * **Informované (heuristické) prohledávání:** Využívá **heuristickou funkci** $h(n)$, která odhaduje cenu nejlevnější cesty z $n$ do cíle.
 
@@ -55,7 +54,7 @@ V mnoha úlohách (např. *problém 8 dam* nebo *rozvrhování*) nás nezajímá
 
 Stavy si představujeme jako body v krajině, kde výška odpovídá **cílové funkci** (maximalizace) nebo **cenové funkci** (minimalizace). Cílem je najít globální maximum/minimum. Problémem jsou **lokální maxima**, **hřebeny (ridges)** a **plošiny (plateaux)**.
 
-<img alt="img.png" src="img/landscape.png" width="400"/>
+<img alt="img.png" src="img/metody_umele_inteligence/landscape.png" width="400"/>
 
 **Klíčové algoritmy**
 
@@ -94,7 +93,7 @@ Inspirovány biologickou evolucí (Darwinův princip přežití nejzdatnějšíc
   * gen: rozhodovací proměnná v řešení 
   * alela: hodnota rozhodovací proměnné
 
-<img alt="img.png" src="img/evolalg.png" width="400"/>
+<img alt="img.png" src="img/metody_umele_inteligence/evolalg.png" width="400"/>
 
 **Inteligence hejna (Swarm Intelligence)**
 
@@ -124,15 +123,19 @@ Studuje kolektivní chování decentralizovaných, samoorganizovaných systémů
 Klasické prohledávání stavového prostoru (BFS, A*) vnímá stav jako "černou skříňku". Plánování naproti tomu otevírá strukturu stavu a využívá logickou reprezentaci. To umožňuje agentovi lépe rozumět vztahům mezi akcemi a cíli a využívat pokročilejší heuristiky. Předpokládáme deterministické, plně pozorovatelné a statické prostředí.
 
 **Reprezentace stavů a cílů**
+
 V klasickém plánování využíváme k popisu světa prvořádovou logiku, ale s omezeními (bez funkcí, konečný počet objektů).
 - **Stav:** Množina pozitivních literálů (atomů), které jsou v daném čase pravdivé. Platí **předpoklad uzavřeného světa (Closed World Assumption)** – co není v seznamu, je nepravdivé.
 - **Cíl:** Konjunkce literálů. Stav $s$ splňuje cíl $g$, pokud $g \subseteq s$.
 
 **Reprezentace akcí (Operátory)**
+
 Akce jsou definovány pomocí schémat (operátorů), které obsahují:
 - **Jméno a parametry:** Identifikace akce (např. *Fly(p, from, to)*).
 - **Prekondenice (Pre):** Literály, které musí být v aktuálním stavu pravdivé, aby bylo možné akci provést.
 - **Efekty (Eff):** Popisují, jak se svět změní. Dělí se na **Add-list** (literály, které se stanou pravdivými) a **Delete-list** (literály, které přestanou platit).
+
+<img alt="img.png" src="img/metody_umele_inteligence/operators-predicates.png" width="500"/>
 
 *Příklad: Akce pro naložení nákladu do letadla v Air Cargo doméně:*
 *Load(c, p, a):*
@@ -143,14 +146,17 @@ Akce jsou definovány pomocí schémat (operátorů), které obsahují:
 ### PDDL  a STRIPS
 
 **STRIPS (Stanford Research Institute Problem Solver)**
+
 Historicky první a nejjednodušší formální jazyk pro plánování. Má velmi striktní omezení (např. efekty mohou být pouze konjunkce literálů, žádné proměnné v cíli). STRIPS položil základy pro reprezentaci akcí pomocí seznamů "přidej" a "smaž".
 
 **PDDL (Planning Domain Definition Language)**
+
 Moderní standardizovaný jazyk pro definici domén a problémů. Rozděluje popis na dvě části:
 1.  **Domain file:** Definuje typy objektů, predikáty a operátory (akce). Je společný pro více instancí problému.
 2.  **Problem file:** Definuje konkrétní objekty, počáteční stav a cílovou podmínku.
 
 **Sémantika přechodu**
+
 Provedení akce $a$ ve stavu $s$ (pokud $Pre(a) \subseteq s$) definuje nový stav následovně:
 **$s' = (s \setminus Del(a)) \cup Add(a)$**
 Tento mechanismus řeší **problém rámce (Frame Problem)** – vše, co není výslovně změněno efekty, zůstává v platnosti.
@@ -162,12 +168,16 @@ Tento mechanismus řeší **problém rámce (Frame Problem)** – vše, co není
 Plánování ve stavovém prostoru hledá cestu v grafu, kde uzly jsou stavy popsané jako množiny literálů a hrany jsou instancované akce.
 
 **Dopředné prohledávání (Progression / Forward Search)**
+
 Začíná v počátečním stavu $s_0$ a aplikuje akce, jejichž prekondenice jsou splněny.
 - **Výhody:** Snadno se implementuje, stavy jsou plně specifikované (vždy víme, co platí).
 - **Nevýhody:** Obrovský faktor větvení. Mnoho akcí může být irelevantních vzhledem k cíli.
 - *Příklad: Chceme-li letět z Prahy do New Yorku, dopředné hledání může zvažovat i akci "koupit si v Praze kávu", protože je v daném stavu možná, i když k cíli nepomáhá.*
 
+<img alt="img.png" src="img/metody_umele_inteligence/forward.png" width="400"/>
+ 
 **Zpětné prohledávání (Regression / Backward Search)**
+
 Začíná od cíle $g$ a postupuje směrem k počátečnímu stavu. Uzly v grafu reprezentují **množiny cílů (podcíle)**, které je třeba splnit.
 - **Relevantní akce:** Akce $a$ je relevantní pro cíl $g$, pokud:
     1.  Alespoň jeden z efektů akce $a$ sjednocuje s nějakým literálem v $g$.
@@ -175,7 +185,10 @@ Začíná od cíle $g$ a postupuje směrem k počátečnímu stavu. Uzly v grafu
 - **Regresní krok:** Nový stav (množina podcílů) vznikne jako: $g' = (g \setminus Add(a)) \cup Pre(a)$.
 - **Lifting:** Významná technika pro zpětné hledání. Místo abychom hned dosazovali konkrétní objekty (např. letadlo *Plane1*), pracujeme s proměnnými a dosazujeme je až v momentě, kdy je to nutné pro splnění prekondenic. To dramaticky zmenšuje prohledávaný prostor.
 
+<img alt="img_1.png" src="img/metody_umele_inteligence/backward.png" width="400"/>
+
 **Plánovací heuristiky**
+
 Efektivita plánování závisí na kvalitě heuristiky $h(s)$. Častým přístupem je **uvolnění problému (Relaxation)**:
 - **Heuristika s vypuštěním smazaných literálů (Empty-delete-list):** Předpokládáme, že akce nic neničí (nemají Delete-list). Problém se stává mnohem jednodušším a cena řešení v tomto relaxovaném světě je přípustnou heuristikou pro původní problém.
 
