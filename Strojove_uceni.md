@@ -13,7 +13,8 @@
 Strojové učení definujeme jako schopnost počítačových systémů zlepšovat svůj výkon při řešení dané úlohy na základě zkušenosti (dat), aniž by byly pro tuto úlohu explicitně naprogramovány. V moderním pojetí jde o hledání matematických funkcí, které nejlépe aproximují vztahy skryté v datech.
 
 ### Supervizované učení
-Učení s učitelem je založeno na trénovací množině párů $(x, y)$, kde $x$ je vstupní vektor příznaků a $y$ je známý label (štítek). Model se snaží minimalizovat ztrátovou funkci (Loss Function), která měří rozdíl mezi predikcí $\hat{y}$ a skutečnou hodnotou $y$.
+Učení s učitelem je založeno na trénovací množině párů $(x, y)$, kde $x$ je vstupní vektor příznaků a $y$ je známý label (štítek). Model se snaží minimalizovat ztrátovou funkci (Loss Function), která měří rozdíl mezi predikcí $\hat{y}$ a skutečnou hodnotou $y$. Učení s učitelem je založeno na trénovací množině párů $(x, y)$, kde model minimalizuje ztrátovou funkci (Loss Function). Klíčovým konceptem je **generalizace** – schopnost modelu podávat dobrý výkon na testovacích datech. 
+Pokud se model naučí trénovací data "nazpaměť" včetně šumu, mluvíme o **overfittingu** (přeučení).
 - Proces učení probíhá iterativně (např. pomocí gradientního sestupu), dokud model nedosáhne požadované přesnosti na testovacích datech.
 - Vyžaduje rozsáhlé "gold standard" datasety, které musí často ručně vytvořit experti.
 - *Příklad 1: Detekce objektů v autonomních vozidlech, kde jsou tisíce snímků označeny obdélníky vymezujícími chodce a jiná auta.*
@@ -72,7 +73,7 @@ Základním úkolem učení metrik je nalézt funkci $f$, která mapuje datové 
 - Výsledný vektorový prostor umožňuje provádět pokročilé úlohy, jako je vyhledávání podle podobnosti, klastrování nebo detekce anomálií.
 - *Příklad: Fotografie stejného obličeje pořízené z různých úhlů by měly mít v embeddingovém prostoru velmi malou euklidovskou vzdálenost.*
 
-<img alt="img.png" src="strojove_uceni/uceni.png" width="600"/>
+<img alt="img.png" src="img/strojove_uceni/uceni.png" width="600"/>
 
 ### Paradigma kontrastivního učení (Contrastive Learning)
 Kontrastivní učení není jedna konkrétní funkce, ale široké paradigma. Učí model rozpoznávat rozdíly mezi vzorky tím, že je mezi sebou "kontrastuje".
@@ -95,7 +96,7 @@ Triplet-loss posouvá kontrastivní učení k relativnímu porovnávání, což 
 - **Výhoda:** Model nemusí tlačit pozitivní vzorky k nule a negativní do nekonečna. Stačí, když je zachováno správné relativní pořadí, což dává prostoru větší flexibilitu.
 - *Příklad: U vyhledávání obrázků stačí, aby "auto v dálce" bylo sémanticky blíž k "detailu kola" než k "obrázku lesa".*
 
-<img alt="img.png" src="strojove_uceni/triples loss.png" width="400"/>
+<img alt="img.png" src="img/strojove_uceni/triples loss.png" width="400"/>
 
 ### Praktické aplikace a vztah ke CLIP
 Pairwise loss optimalizuje absolutní vzdálenost mezi dvěma vzorky, zatímco Triplet loss je pokročilejší metoda zaměřená na relativní uspořádání trojice vzorků.
@@ -117,7 +118,7 @@ Vektorová kvantizace je metoda ztrátové komprese, která mapuje vektory z vys
 - Hlavním přínosem je drastické snížení paměťových nároků, protože místo uložení celého vektoru (např. 1024 floatů) ukládáme pouze jeden celočíselný index.
 - *Příklad: Pokud máme číselník o velikosti 256, můžeme libovolně dlouhý vektor reprezentovat pouhým 1 bajtem.*
 
-<img alt="img.png" src="strojove_uceni/voronoi.png" width="300"/>
+<img alt="img.png" src="img/strojove_uceni/voronoi.png" width="300"/>
 
 Vektorová kvantizace funguje jako diskretizace spojitého vysokodimenzionálního prostoru. Namísto uchování přesných souřadnic bodu jej "zaokrouhlíme" na nejbližší známý prototyp.
 - **Vytvoření číselníku (Training):** Pomocí algoritmu k-means se trénovací data rozdělí do $k$ klastrů. Středy těchto klastrů (centroidy) tvoří číselník (codebook).
@@ -132,7 +133,7 @@ Produktová kvantizace řeší hlavní omezení standardní VQ – neschopnost z
 - Výsledná reprezentace vektoru je pak n-tice indexů. Díky kartézskému součinu těchto pod-číselníků dokáže PQ reprezentovat obrovské množství kombinací s minimálními nároky na paměť.
 - *Příklad: Rozdělíme-li 128-rozměrný vektor na 8 částí po 16 dimenzích a pro každou část použijeme 256 centroidů, můžeme reprezentovat $256^8$ unikátních stavů pomocí pouhých 8 bajtů.*
 
-<img alt="img.png" src="strojove_uceni/pq.png" width="500"/>
+<img alt="img.png" src="img/strojove_uceni/pq.png" width="500"/>
 
 ### Rozdíl mezi VQ a PQ
 - Vektorová kvantizace (VQ): Bere celý vektor (např. o 128 dimenzích) a snaží se pro něj najít jeden nejbližší "vzor" (centroid) z číselníku. Výsledkem je jeden index.
@@ -171,9 +172,9 @@ Moderní systémy nestojí na složitých pravidlech, ale na vytvoření společ
 - Model je penalizován, pokud je negativní příklad v prostoru blíže ke kotvě než ten pozitivní (včetně určité bezpečnostní marže).
 - *Příklad: Pokud je kotvou obrázek jablka, pozitivním příkladem je slovo "jablko" a negativním slovo "automobil". Model se učí zmenšovat vzdálenost k "jablku" a zvětšovat k "automobilu".*
 
-<img alt="img.png" src="strojove_uceni/big picutre.png" width="600"/>
+<img alt="img.png" src="img/strojove_uceni/big picutre.png" width="600"/>
 
-<img alt="img.png" src="strojove_uceni/triplet loss.png" width="600"/>
+<img alt="img.png" src="img/strojove_uceni/triplet loss.png" width="600"/>
 
 ### Architektura CLIP (Contrastive Language-Image Pre-training)
 CLIP, představený společností OpenAI v roce 2021, radikálně zjednodušil a škáloval proces učení společných reprezentací. Namísto klasifikace do pevně daných tříd se učí porozumět vztahu mezi obrazem a textem jako celkem.
@@ -182,7 +183,7 @@ CLIP, představený společností OpenAI v roce 2021, radikálně zjednodušil a
 - **Efektivita:** Maximalizuje se kosinová podobnost u správných dvojic a minimalizuje u všech ostatních (negativních) párů v dané dávce.
 - *Příklad: V dávce obsahující fotku letadla a fotku lodi se CLIP učí, že text "stroj letící v oblacích" patří k prvnímu obrázku a nikoliv k druhému.*
 
-<img alt="img.png" src="strojove_uceni/CLIP.png" width="600"/>
+<img alt="img.png" src="img/strojove_uceni/CLIP.png" width="600"/>
 
 ### Zero-shot klasifikace a vyhledávání
 Jednou z nejrevolučnějších vlastností CLIPu je schopnost generalizace na neznámé úkoly bez nutnosti dalšího dotrénování, což označujeme jako zero-shot učení.
