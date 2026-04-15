@@ -7,6 +7,51 @@
 > Vektorová/produktová kvantizace s využitím pro aproximované hledání. 
 > Principy křížově-modálního (cross-modal) učení (CLIP).
 
+
+## Učení metrik (kontrastivní učení, triplet-loss učení)
+
+Cílem je naučit model takovou transformaci dat, aby vzdálenost ve výsledném vektorovém prostoru odpovídala sémantické podobnosti objektů.
+
+### Cíle učení metrik a tvorba embeddingů
+Základním úkolem učení metrik je nalézt funkci $f$, která mapuje datové objekty (např. obrázky, texty) na numerické vektory, nazývané **embeddingy**. V ideálním případě chceme, aby podobné objekty měly vektory blízko u sebe, zatímco nepodobné objekty byly v prostoru daleko od sebe.
+- Tradiční přístupy spoléhaly na ručně definované příznaky, zatímco moderní metody využívají neuronové sítě k automatickému učení těchto reprezentací přímo z dat.
+- Výsledný vektorový prostor umožňuje provádět pokročilé úlohy, jako je vyhledávání podle podobnosti, klastrování nebo detekce anomálií.
+- *Příklad: Fotografie stejného obličeje pořízené z různých úhlů by měly mít v embeddingovém prostoru velmi malou euklidovskou vzdálenost.*
+
+<img alt="img.png" src="strojove_uceni/uceni.png" width="400"/>
+
+### Paradigma kontrastivního učení (Contrastive Learning)
+Kontrastivní učení není jedna konkrétní funkce, ale široké paradigma. Učí model rozpoznávat rozdíly mezi vzorky tím, že je mezi sebou "kontrastuje".
+- Namísto klasifikace do tříd (např. "pes") model řeší otázku: "Jsou tyto dvě věci stejné nebo jiné?"
+- Využívá se k učení společného prostoru pro různé modality (obraz + text) i pro učení bez učitele (Self-Supervised Learning).
+- Implementuje se nejčastěji pomocí **Pairwise Loss** (práce s dvojicemi) nebo **Triplet Loss** (práce s trojicemi).
+- *Příklad: Model CLIP se učí kontrastivně tím, že v rámci jedné dávky dat hledá správný pár (obrázek-text) mezi mnoha nesprávnými kombinacemi.*
+
+### Pairwise kontrastivní loss (Práce s dvojicemi)
+Jedná se o nejjednodušší formu kontrastivního učení, která optimalizuje vzdálenost mezi dvěma vzorky najednou.
+- **Pozitivní pár:** Dva podobné objekty. Loss funkce se snaží minimalizovat jejich vzdálenost (stlačit ji k nule).
+- **Negativní pár:** Dva odlišné objekty. Loss funkce se snaží maximalizovat jejich vzdálenost, ale jen do určité **$m$ (margin)**. Pokud jsou již dál než $m$, loss je nulová.
+- **Omezení:** Model se učí pouze v absolutních hodnotách (blízko/daleko), což může být méně stabilní než porovnávání relativní.
+- *Příklad: Pokud porovnáváme podpis majitele s pokusem o padělek, pairwise loss zajistí, aby padělek byl v prostoru od originálu alespoň o hodnotu $m$.*
+
+### Triplet-loss učení a relativní uspořádání
+Triplet-loss posouvá kontrastivní učení k relativnímu porovnávání, což vede k lepším výsledkům v úlohách vyhledávání.
+- **Struktura:** Pracuje s trojicí: **Kotva** (Anchor), **Pozitivní** (Positive) a **Negativní** (Negative) vzorek.
+- **Cíl:** Zajistit, aby pozitivní vzorek byl ke kotvě blíž než ten negativní, a to o minimální marži $\alpha$: $d(a, p) + \alpha < d(a, n)$.
+- **Výhoda:** Model nemusí tlačit pozitivní vzorky k nule a negativní do nekonečna. Stačí, když je zachováno správné relativní pořadí, což dává prostoru větší flexibilitu.
+- *Příklad: U vyhledávání obrázků stačí, aby "auto v dálce" bylo sémanticky blíž k "detailu kola" než k "obrázku lesa".*
+
+<img alt="img.png" src="strojove_uceni/triples loss.png" width="400"/>
+
+### Praktické aplikace a vztah ke CLIP
+Pairwise loss optimalizuje absolutní vzdálenost mezi dvěma vzorky, zatímco Triplet loss je pokročilejší metoda zaměřená na relativní uspořádání trojice vzorků.
+Učení metrik a kontrastivní principy jsou klíčové pro propojování různých datových typů (cross-modal learning) a efektivní vyhledávání.
+- **CLIP:** Tento model využívá kontrastivní učení v obrovském měřítku. Místo klasických trojic se snaží v rámci jedné dávky (batch) zarovnat embeddingy odpovídajících si obrázků a textových popisků.
+- **Vyhledávání (Retrieval):** Naučené metriky umožňují efektivní vyhledávání nejbližších sousedů (k-NN) v embeddingovém prostoru, což se často kombinuje s technikami jako produktová kvantizace pro zrychlení.
+- Tyto metody jsou dnes standardem pro biometrické systémy (rozpoznávání obličejů), doporučovací systémy i propojování obrazu a přirozeného jazyka.
+- *Příklad: Uživatel zadá text "červené šaty na svatbu" a systém v embeddingovém prostoru vyhledá obrázky produktů, jejichž vizuální embeddingy mají nejvyšší kosinovou podobnost s textovým embeddingem dotazu.*
+---
+
 ## Vektorová/produktová kvantizace s využitím pro aproximované hledání
 
 Téma se zabývá efektivním ukládáním a rychlým vyhledáváním ve vysokodimenzionálních prostorech, kde standardní metody selhávají kvůli paměťové náročnosti a výpočetní složitosti.
@@ -18,7 +63,7 @@ Vektorová kvantizace je metoda ztrátové komprese, která mapuje vektory z vys
 - Hlavním přínosem je drastické snížení paměťových nároků, protože místo uložení celého vektoru (např. 1024 floatů) ukládáme pouze jeden celočíselný index.
 - *Příklad: Pokud máme číselník o velikosti 256, můžeme libovolně dlouhý vektor reprezentovat pouhým 1 bajtem.*
 
-<img alt="img.png" src="voronoi.png" width="300"/>
+<img alt="img.png" src="strojove_uceni/voronoi.png" width="300"/>
 
 Vektorová kvantizace funguje jako diskretizace spojitého vysokodimenzionálního prostoru. Namísto uchování přesných souřadnic bodu jej "zaokrouhlíme" na nejbližší známý prototyp.
 - **Vytvoření číselníku (Training):** Pomocí algoritmu k-means se trénovací data rozdělí do $k$ klastrů. Středy těchto klastrů (centroidy) tvoří číselník (codebook).
@@ -33,7 +78,7 @@ Produktová kvantizace řeší hlavní omezení standardní VQ – neschopnost z
 - Výsledná reprezentace vektoru je pak n-tice indexů. Díky kartézskému součinu těchto pod-číselníků dokáže PQ reprezentovat obrovské množství kombinací s minimálními nároky na paměť.
 - *Příklad: Rozdělíme-li 128-rozměrný vektor na 8 částí po 16 dimenzích a pro každou část použijeme 256 centroidů, můžeme reprezentovat $256^8$ unikátních stavů pomocí pouhých 8 bajtů.*
 
-<img alt="img.png" src="strojove_uceni/pq.png" width="400"/>
+<img alt="img.png" src="strojove_uceni/pq.png" width="500"/>
 
 ### Rozdíl mezi VQ a PQ
 - Vektorová kvantizace (VQ): Bere celý vektor (např. o 128 dimenzích) a snaží se pro něj najít jeden nejbližší "vzor" (centroid) z číselníku. Výsledkem je jeden index.
