@@ -8,6 +8,60 @@
 > Principy křížově-modálního (cross-modal) učení (CLIP).
 
 
+## Základy strojového učení (ML)
+
+Strojové učení definujeme jako schopnost počítačových systémů zlepšovat svůj výkon při řešení dané úlohy na základě zkušenosti (dat), aniž by byly pro tuto úlohu explicitně naprogramovány. V moderním pojetí jde o hledání matematických funkcí, které nejlépe aproximují vztahy skryté v datech.
+
+### Supervizované učení
+Učení s učitelem je založeno na trénovací množině párů $(x, y)$, kde $x$ je vstupní vektor příznaků a $y$ je známý label (štítek). Model se snaží minimalizovat ztrátovou funkci (Loss Function), která měří rozdíl mezi predikcí $\hat{y}$ a skutečnou hodnotou $y$.
+- Proces učení probíhá iterativně (např. pomocí gradientního sestupu), dokud model nedosáhne požadované přesnosti na testovacích datech.
+- Vyžaduje rozsáhlé "gold standard" datasety, které musí často ručně vytvořit experti.
+- *Příklad 1: Detekce objektů v autonomních vozidlech, kde jsou tisíce snímků označeny obdélníky vymezujícími chodce a jiná auta.*
+- *Příklad 2: Analýza sentimentu v recenzích, kde jsou texty označeny jako "pozitivní", "negativní" nebo "neutrální".*
+- *Příklad 3: Předpověď odchodu zákazníků (churn prediction) u mobilních operátorů na základě historie jejich volání a plateb.*
+
+### Semi-supervizované učení
+Tento přístup řeší problém nedostatku označených dat tím, že kombinuje malé množství supervizovaných dat s velkým objemem dat neoznačených. Předpokládá se, že neoznačená data sdílejí stejnou distribuci a strukturu jako ta označená.
+- Často využívá "shlukovací hypotézu" (body ve stejném shluku mají pravděpodobně stejný label) nebo metodu samoučení (Self-training).
+- Je ideální pro oblasti, kde je sběr dat levný (scraping internetu), ale jejich anotace drahá (práce lékaře, lingvisty).
+- *Příklad 1: Rozpoznávání řeči, kdy máme stovky hodin nahrávek, ale jen pár hodin má přesný textový přepis.*
+- *Příklad 2: Klasifikace webových stránek, kde jsou ručně označeny pouze domovské stránky, ale model využívá strukturu odkazů na miliardy dalších podstránek.*
+- *Příklad 3: Identifikace proteinových struktur, kde jsou experimentálně potvrzeny jen tisíce vzorků, ale k dispozici jsou miliony necharakterizovaných sekvencí.*
+
+### Nesupervizované učení
+Učení bez učitele se snaží najít vnitřní strukturu v datech bez jakýchkoliv labelů. Model nehledá správnou odpověď, ale snaží se data co nejlépe popsat, seskupit nebo zjednodušit.
+- **Clustering (Shlukování):** Rozdělení dat do skupin na základě podobnosti (např. algoritmus K-means).
+- **Redukce dimenzionality:** Snížení počtu vstupních proměnných při zachování maximum informace (např. PCA), což pomáhá s vizualizací nebo bojem proti "prokletí dimenzionality".
+- *Příklad 1: Analýza nákupních košů pro zjištění, které produkty lidé často kupují společně (asociační pravidla).*
+- *Příklad 2: Komprese obrazu nebo zvuku pomocí nalezení redundantních informací v datech.*
+- *Příklad 3: Astronomický výzkum při hledání nových typů galaxií seskupováním milionů pozorovaných objektů s podobným spektrem.*
+
+### Klasifikace
+Klasifikace je proces predikce diskrétní (kategorické) hodnoty. Cílem je nalézt optimální rozhodovací hranici (Decision Boundary), která v prostoru příznaků co nejlépe odděluje jednotlivé třídy.
+- Rozlišujeme binární klasifikaci (Ano/Ne), multikvadrátovou (např. druhy zvířat) a víceštítkovou (jeden objekt patří do více kategorií zároveň).
+- Hodnocení probíhá pomocí metrik jako Accuracy, Precision, Recall nebo F1-score.
+- *Příklad 1: Medicínská diagnostika – určení, zda je nádor na snímku z mamografu benigní, nebo maligní.*
+- *Příklad 2: Filtrování spamu – rozhodnutí, zda příchozí e-mail doručit do doručené pošty, nebo do složky nevyžádané pošty.*
+- *Příklad 3: Biometrie – identifikace uživatele podle otisku prstu nebo skenu obličeje.*
+
+### Regrese
+Regrese se zabývá předpovídáním spojitých číselných hodnot. Model se snaží proložit daty křivku (nebo nadrovinu), která minimalizuje čtverec odchylek (Mean Squared Error).
+- Na rozdíl od klasifikace může mít výstup regrese nekonečně mnoho hodnot v daném intervalu.
+- Je klíčová pro pochopení kauzálních vztahů a trendů v čase.
+- *Příklad 1: Finanční trhy – předpověď kurzu akcií nebo kryptoměn na následující obchodní den.*
+- *Příklad 2: Meteorologie – odhad přesné teploty vzduchu v konkrétní hodinu na základě tlaku a vlhkosti.*
+- *Příklad 3: Logistika – výpočet předpokládaného času příjezdu (ETA) kurýra na základě aktuální dopravy a počasí.*
+
+### Detekce anomálií
+Detekce anomálií (Outlier Detection) identifikuje vzorky, které neodpovídají běžnému vzorci chování zbytku dat. Hawkins definuje anomálii jako pozorování, které vzbuzuje podezření, že bylo generováno jiným mechanismem.
+- **Kontextuální anomálie:** Bod je anomální jen v určitém kontextu (např. vysoká spotřeba elektřiny je v noci anomálie, ale ve dne nikoliv).
+- **Kolektivní anomálie:** Skupina bodů je anomální jen tehdy, když se vyskytnou společně (např. sekvence akcí v PC, které samy o sobě jsou v pořádku, ale dohromady značí útok).
+- *Příklad 1: Kybernetická bezpečnost – detekce neobvyklých síťových toků, které mohou značit probíhající DDoS útok.*
+- *Příklad 2: Prediktivní údržba – monitorování vibrací motoru letadla, kdy i drobná odchylka od normálu signalizuje blížící se mechanickou závadu.*
+- *Příklad 3: Monitoring zdraví – upozornění na arytmii u pacienta s chytrými hodinkami na základě náhlé změny v EKG křivce.*
+
+---
+
 ## Učení metrik (kontrastivní učení, triplet-loss učení)
 
 Cílem je naučit model takovou transformaci dat, aby vzdálenost ve výsledném vektorovém prostoru odpovídala sémantické podobnosti objektů.
@@ -18,7 +72,7 @@ Základním úkolem učení metrik je nalézt funkci $f$, která mapuje datové 
 - Výsledný vektorový prostor umožňuje provádět pokročilé úlohy, jako je vyhledávání podle podobnosti, klastrování nebo detekce anomálií.
 - *Příklad: Fotografie stejného obličeje pořízené z různých úhlů by měly mít v embeddingovém prostoru velmi malou euklidovskou vzdálenost.*
 
-<img alt="img.png" src="strojove_uceni/uceni.png" width="400"/>
+<img alt="img.png" src="strojove_uceni/uceni.png" width="600"/>
 
 ### Paradigma kontrastivního učení (Contrastive Learning)
 Kontrastivní učení není jedna konkrétní funkce, ale široké paradigma. Učí model rozpoznávat rozdíly mezi vzorky tím, že je mezi sebou "kontrastuje".
