@@ -64,9 +64,9 @@ Pro demonstraci použijeme následující dataset a parametry:
   - {B,C}: 2x (Koš i, v) -> **Není frekventovaná**
 - *Ačkoliv jsou B i C samostatně populární, spolu se nekupují dostatečně často.*
 
-<img alt="img.png" src="dobyv/apri1.png" width="300"/>
+<img alt="img.png" src="img/dobyv/apri1.png" width="300"/>
 
-<img alt="img.png" src="dobyv/apri2.png" width="500"/>
+<img alt="img.png" src="img/dobyv/apri2.png" width="500"/>
 
 
 
@@ -77,11 +77,11 @@ PCY je vylepšením A-Priori, které lépe využívá operační paměť během 
 - V Pass 2 pak algoritmus považuje dvojici za kandidáta pouze tehdy, pokud: 1. Obě položky jsou frekventované (jako v A-Priori) A ZÁROVEŇ 2. Dvojice hashovala do "frekventovaného" kbelíku.
 - *Příklad: I když jsou pivo a víno individuálně frekventované, pokud jejich společný hashovací kbelík má velmi nízký součet, v Pass 2 se jimi model vůbec nezabývá.*
 
-<img alt="img.png" src="dobyv/pcy.png" width="300"/>
+<img alt="img.png" src="img/dobyv/pcy.png" width="300"/>
 
-<img alt="img.png" src="dobyv/pcy-priklad1.png" width="400"/>
-<img alt="img.png" src="dobyv/pcy-priklad2.png" width="400"/>
-<img alt="img.png" src="dobyv/pcy-priklad3.png" width="400"/>
+<img alt="img.png" src="img/dobyv/pcy-priklad1.png" width="400"/>
+<img alt="img.png" src="img/dobyv/pcy-priklad2.png" width="400"/>
+<img alt="img.png" src="img/dobyv/pcy-priklad3.png" width="400"/>
 
 ## Rozšíření PCY: Multistage a Multihash
 Tyto techniky dále snižují počet falešných kandidátů ve druhém průchodu za cenu více průchodů nebo složitějšího hashování.
@@ -89,14 +89,11 @@ Tyto techniky dále snižují počet falešných kandidátů ve druhém průchod
 - **Multihash:** Používá dvě nebo více nezávislých hashovacích tabulek přímo v prvním průchodu. Dvojice musí hashovat do frekventovaného kbelíku ve všech tabulkách, aby se stala kandidátem.
 - *Příklad: Použitím dvou nezávislých hashů v Pass 1 eliminujeme dvojice, které by náhodou sdílely jeden "silný" kbelík s jinou skutečně frekventovanou dvojicí.*
 
-<img alt="img.png" src="dobyv/multistage.png" width="300"/>
-<img alt="img.png" src="dobyv/multihash.png" width="300"/>
+<img alt="img.png" src="img/dobyv/multistage.png" width="300"/>
+<img alt="img.png" src="img/dobyv/multihash.png" width="300"/>
 
 
 ---
-
-
-
 # Shlukovací analýza
 
 Shlukování (clustering) je metoda učení bez učitele, jejímž cílem je rozdělit data do skupin (shluků) tak, aby si objekty uvnitř jedné skupiny byly co nejvíce podobné a objekty v různých skupinách co nejvíce odlišné.
@@ -109,7 +106,7 @@ Shlukování (clustering) je metoda učení bez učitele, jejímž cílem je roz
 - ***Biologie**: Shlukování genů nebo organismů podle podobnosti (např. genetické) pro studium příbuznosti.*
 - ***Finance a bezpečnost**: Detekce anomálií (např. podezřelých transakcí) jako odchylek od běžných shluků.*
 
-<img alt="img.png" src="dobyv/intercluster.png" width="200"/>
+<img alt="img.png" src="img/dobyv/intercluster.png" width="200"/>
 
 | Algoritmus | Hlavní výhody | Klíčová omezení |
 | :--- | :--- | :--- |
@@ -127,7 +124,7 @@ Jedná se o nejrozšířenější rozdělovací (partitní) algoritmus, který s
 - **Omezení:** Nedokáže dobře zachytit shluky, které nemají kulovitý tvar nebo mají výrazně odlišnou hustotu.
 - *Příklad: Rozdělení zákazníků e-shopu do 5 skupin podle věku a průměrné útraty pro účely cíleného marketingu.*
 
-<img alt="img.png" src="dobyv/kmeans.png" width="400"/>
+<img alt="img.png" src="img/dobyv/kmeans.png" width="400"/>
 
 ## Hierarchické shlukování
 Tento přístup vytváří hierarchii shluků, kterou lze vizualizovat pomocí stromové struktury zvané dendrogram. Nejčastěji se používá aglomerativní (zdola nahoru) přístup.
@@ -146,7 +143,7 @@ Způsob, jakým měříme vzdálenost mezi dvěma skupinami bodů, zásadně ovl
 - **Vzdálenost centroidů (Centroid Distance):** Vzdálenost mezi těžišti (průměry) obou shluků. Často používané, ale může docházet k anomáliím při velmi rozdílných velikostech shluků.
 
 
-<img alt="img.png" src="dobyv/hier.png" width="300"/>
+<img alt="img.png" src="img/dobyv/hier.png" width="300"/>
 
 ## DBSCAN
 DBSCAN (Density-Based Spatial Clustering of Applications with Noise) je algoritmus založený na hustotě, který dokáže identifikovat shluky libovolného tvaru a efektivně odfiltrovat šum.
@@ -159,7 +156,7 @@ DBSCAN (Density-Based Spatial Clustering of Applications with Noise) je algoritm
 - **Výhody:** Automaticky detekuje počet shluků a je odolný vůči outlierům. Má však potíže v datech s výrazně proměnlivou hustotou.
 - *Příklad: Detekce shluků hvězd v astronomických datech, kde hvězdy mimo shluky jsou považovány za šum.*
 
-<img alt="img.png" src="dobyv/dbscan.png" width="700"/>
+<img alt="img.png" src="img/dobyv/dbscan.png" width="700"/>
 
 ## Chameleon
 Chameleon je sofistikovaný hierarchický algoritmus, který překonává omezení statických modelů tím, že používá dynamické modelování pro spojování shluků.
@@ -171,8 +168,79 @@ Chameleon je sofistikovaný hierarchický algoritmus, který překonává omezen
 - **Vlastnosti:** Velmi robustní vůči šumu a schopný modelovat velmi složité a do sebe zaklesnuté tvary shluků, které DBSCAN nebo k-means nezvládnou.
 - *Příklad: Shlukování prostorových dat v geografických informačních systémech (GIS), kde tvary územních celků mohou být velmi nepravidelné a protáhlé.*
 
-<img alt="img.png" src="dobyv/chamel.png" width="700"/>
+<img alt="img.png" src="img/dobyv/chamel.png" width="700"/>
 
 
 ---
         
+## Analýza temporálních dat
+
+Časová řada je definována jako posloupnost pozorování $X = x_1, x_2, \dots, x_n$ měřených postupně v čase. Klíčovým rysem je, že pořadí datových bodů je kritické a body jsou na sobě často závislé (autokorelace).
+Cílem analýzy je porozumět struktuře dat, identifikovat vzory (trendy, sezónnost) nebo predikovat budoucí hodnoty.
+
+*Příklady časových řad:*
+- *Vývoj denních uzavíracích cen akcií na burze v průběhu jednoho roku.*
+- *Záznam srdečního tepu (EKG) pacienta v průběhu deseti minut.*
+- *Měsíční objem srážek naměřený konkrétní meteorologickou stanicí za poslední dekádu.*
+
+## Vlastnosti časových řad
+Analýza vlastností je prvním krokem k porozumění mechanismu, který data generuje. Mezi základní komponenty časové řady patří:
+
+- **Trend:** Dlouhodobý nárůst nebo pokles hodnot v čase. Může být lineární i nelineární.
+  - *Příklad: Dlouhodobý nárůst koncentrace CO2 v atmosféře v posledních desetiletích.*
+- **Sezónnost (Seasonality):** Pravidelně se opakující vzory v pevných časových intervalech (např. denní, týdenní, roční).
+  - *Příklad: Zvýšený odběr elektrické energie v ranních hodinách nebo v zimních měsících.*
+- **Cykličnost (Cyclicity):** Kolísání hodnot, které nemá pevnou periodu (na rozdíl od sezónnosti). Často souvisí s ekonomickými nebo klimatickými cykly.
+  - *Příklad: Hospodářské cykly střídající období recese a růstu v řádu let.*
+- **Stacionarita:** Klíčová vlastnost pro predikční modely. Stacionární řada má konstantní průměr, rozptyl a autokorelační strukturu v čase. Nestacionární řady se často musí převést na stacionární (např. diferencováním).
+- **Autokorelace:** Vyjadřuje míru lineární závislosti mezi aktuální hodnotou a hodnotami v předchozích časových krocích (lagech).
+- **Šum (Noise):** Náhodné fluktuace, které nenesou žádnou informaci a model se je snaží pomocí vyhlazování ignorovat.
+
+<img alt="img.png" src="img/dobyv/trend.png" width="300"/>
+
+## Předzpracování časových řad
+Surová data málokdy umožňují přímé srovnání kvůli rozdílným měřítkům, posunům nebo šumu. Cílem předzpracování je převést řady do formy, kde lze porovnávat jejich "tvar" (vlastnosti) nezávisle na absolutních hodnotách.
+
+- **Zarovnání posunu (Offset Translation):** Odstraní rozdílnou úroveň hodnot odečtením průměru $\mu$. Řada se tak vycentruje kolem nuly.
+  $$x'_i = x_i - \mu$$
+- **Změna amplitudy (Amplitude Scaling):** Sjednotí měřítko (rozptyl) hodnot vydělením směrodatnou odchylkou $\sigma$.
+  $$x'_i = \frac{x_i}{\sigma}$$
+- **Standardizace (Z-score Normalization):** Kombinuje oba předchozí kroky. Je to standardní postup před výpočtem eukleidovské vzdálenosti.
+  $$x'_i = \frac{x_i - \mu}{\sigma}$$
+- **Odstranění trendu (Detrending):** Pokud řada vykazuje dlouhodobý nárůst či pokles, tento trend se modeluje (např. lineárně jako $y = at + b$) a od řady odečte.
+  $$x'_t = x_t - (at + b)$$
+
+<img alt="img.png" src="img/dobyv/predzp.png" width="600"/>
+
+
+## DTW (Dynamic Time Warping)
+DTW je algoritmus pro měření podobnosti dvou časových řad, které mohou mít různou délku nebo mohou být vůči sobě v čase posunuté či lokálně roztažené.
+- **Omezení Eukleidovské vzdálenosti:** Standardní vzdálenost porovnává body v čase $t$ proti sobě ($x_t$ vs. $y_t$). Pokud je jedna řada jen mírně posunutá, eukleidovská vzdálenost bude obrovská, i když jsou tvary identické.
+- **Princip DTW:** Algoritmus hledá optimální cestu (alignment) v matici vzdáleností mezi všemi páry bodů obou řad. Tato cesta minimalizuje celkovou kumulativní vzdálenost.
+- **Podmínky cesty:**
+  - **Okrajové podmínky:** Cesta musí začínat v $(1,1)$ a končit v $(n,m)$.
+  - **Monotonicita:** Body se v čase nesmí vracet zpět.
+  - **Spojitost:** Cesta se smí pohybovat pouze o jeden krok (diagonálně, vodorovně nebo svisle).
+- *Příklad: Rozpoznávání řeči, kde různí mluvčí vyslovují stejné slovo různou rychlostí – DTW dokáže tyto časové rozdíly "srovnat" a rozpoznat shodu.*
+
+<img alt="img.png" src="img/dobyv/dtw.png" width="600"/>
+
+<img alt="img.png" src="img/dobyv/dtw3.png" width="400"/>
+
+<img alt="img.png" src="img/dobyv/dtw2.png" width="400"/>
+
+## Klouzavý průměr (MA)
+Klouzavý průměr (Moving Average) je základní technika předzpracování sloužící k vyhlazení řady a odstranění krátkodobých výkyvů (šumu).
+- **Princip:** Každý bod řady je nahrazen průměrem hodnot v "okně" o velikosti $k$ kolem daného bodu. 
+- **Vliv velikosti okna:** Čím větší je okno $k$, tím je výsledná řada hladší, ale zároveň dochází k většímu zpoždění (lag) a ztrátě detailů o prudkých změnách.
+- **Využití:** Kromě předzpracování tvoří MA základní komponentu statistických modelů jako ARIMA pro předpovídání budoucího vývoje.
+
+<img alt="img.png" src="img/dobyv/ma.png" width="400"/>
+
+- **Jednoduchý klouzavý průměr (SMA):** Nová hodnota v čase $t$ je průměrem hodnot v okně o délce $k$.
+  $$MA_t = \frac{1}{k} \sum_{i=0}^{k-1} x_{t-i}$$
+- **Vlastnosti:**
+  - Odstraňuje vysokofrekvenční šum.
+  - Čím větší je okno $k$, tím je řada hladší, ale dochází k většímu časovému zpoždění (lag).
+  - Může dojít ke ztrátě informací o náhlých, ale důležitých špičkách.
+- *Příklad: Sledování trendu epidemie pomocí 7denního klouzavého průměru, který vyruší "víkendový propad" v hlášení počtu nakažených.*
