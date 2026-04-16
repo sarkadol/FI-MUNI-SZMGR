@@ -1,9 +1,9 @@
 # Dobývání znalostí
-
+pro absolventy předmětu PV056 od jara 2025 včetně
 > Asociační pravidla a algoritmy pro hledání frekventovaných vzorů (A-Priori, PCY). 
 > Principy shlukovacích algoritmů (k-means, hierarchické shlukování, DBSCAN, Chameleon). 
 > Analýza temporálních dat: vlastnosti a předzpracování časových řad, DTW, klouzavý průměr (MA). 
-> pro absolventy předmětu PV056 od jara 2025 včetně
+
 
 ## Asociační pravidla a hledání frekventovaných vzorů
 
@@ -101,7 +101,23 @@ Tyto techniky dále snižují počet falešných kandidátů ve druhém průchod
 
 Shlukování (clustering) je metoda učení bez učitele, jejímž cílem je rozdělit data do skupin (shluků) tak, aby si objekty uvnitř jedné skupiny byly co nejvíce podobné a objekty v různých skupinách co nejvíce odlišné.
 
-<img alt="img.png" src="dobyv/intercluster.png" width="300"/>
+*Příklady využití:*
+- ***Marketing**: Segmentace zákazníků na základě chování (např. nákupní historie) a cílená reklama.*
+- ***Zdravotnictví**: Seskupování pacientů podle symptomů nebo reakcí na léčbu pro podporu personalizované medicíny.*
+- ***Sociální sítě**: Seskupování uživatelů podle zájmů pro doporučování obsahu.*
+- ***Urbanistika**: Analýza oblastí města podle dopravního zatížení nebo demografie pro plánování infrastruktury.*
+- ***Biologie**: Shlukování genů nebo organismů podle podobnosti (např. genetické) pro studium příbuznosti.*
+- ***Finance a bezpečnost**: Detekce anomálií (např. podezřelých transakcí) jako odchylek od běžných shluků.*
+
+<img alt="img.png" src="dobyv/intercluster.png" width="200"/>
+
+| Algoritmus | Hlavní výhody | Klíčová omezení |
+| :--- | :--- | :--- |
+| **k-means** | Velmi rychlý a jednoduchý; škáluje na velká data. | Nutnost znát $k$; citlivý na outliery; jen kulovité shluky. |
+| **Hierarchické** | Dendrogram ukazuje celou strukturu; nemusíme znát $k$. | Vysoká výpočetní složitost ($O(n^2)$); neumí opravit chybná spojení. |
+| **DBSCAN** | Najde libovolné tvary; automaticky detekuje šum. | Nefunguje dobře při proměnlivé hustotě; citlivý na parametry $Eps/MinPts$. |
+| **Chameleon** | Velmi robustní; zvládne extrémně složité geometrické tvary. | Velmi vysoká výpočetní a implementační náročnost. |
+
 
 ## k-means
 Jedná se o nejrozšířenější rozdělovací (partitní) algoritmus, který se snaží minimalizovat součet čtverců vzdáleností mezi body a příslušným středem shluku (centroidem).
@@ -111,7 +127,7 @@ Jedná se o nejrozšířenější rozdělovací (partitní) algoritmus, který s
 - **Omezení:** Nedokáže dobře zachytit shluky, které nemají kulovitý tvar nebo mají výrazně odlišnou hustotu.
 - *Příklad: Rozdělení zákazníků e-shopu do 5 skupin podle věku a průměrné útraty pro účely cíleného marketingu.*
 
-<img alt="img.png" src="dobyv/kmeans.png" width="600"/>
+<img alt="img.png" src="dobyv/kmeans.png" width="400"/>
 
 ## Hierarchické shlukování
 Tento přístup vytváří hierarchii shluků, kterou lze vizualizovat pomocí stromové struktury zvané dendrogram. Nejčastěji se používá aglomerativní (zdola nahoru) přístup.
@@ -123,7 +139,14 @@ Tento přístup vytváří hierarchii shluků, kterou lze vizualizovat pomocí s
 - **Výhoda:** Není nutné předem znát počet shluků; ten lze určit dodatečným "uříznutím" dendrogramu v určité výšce.
 - *Příklad: Sestavení evolučního stromu organismů na základě genetické podobnosti.*
 
-<img alt="img.png" src="dobyv/hier.png" width="400"/>
+Způsob, jakým měříme vzdálenost mezi dvěma skupinami bodů, zásadně ovlivňuje tvar výsledných shluků:
+- **MIN (Single link):** Vzdálenost dvou nejbližších bodů z různých shluků. Dokáže najít shluky netradičních tvarů, ale trpí na "řetězení" (spojení shluků přes úzký most bodů).
+- **MAX (Complete link):** Vzdálenost dvou nejvzdálenějších bodů z různých shluků. Vytváří kompaktní, kulovité shluky, ale je citlivé na odlehlé body.
+- **Group Average:** Průměrná vzdálenost mezi všemi páry bodů z obou shluků. Je to kompromis mezi MIN a MAX, robustnější vůči šumu.
+- **Vzdálenost centroidů (Centroid Distance):** Vzdálenost mezi těžišti (průměry) obou shluků. Často používané, ale může docházet k anomáliím při velmi rozdílných velikostech shluků.
+
+
+<img alt="img.png" src="dobyv/hier.png" width="300"/>
 
 ## DBSCAN
 DBSCAN (Density-Based Spatial Clustering of Applications with Noise) je algoritmus založený na hustotě, který dokáže identifikovat shluky libovolného tvaru a efektivně odfiltrovat šum.
@@ -137,7 +160,6 @@ DBSCAN (Density-Based Spatial Clustering of Applications with Noise) je algoritm
 - *Příklad: Detekce shluků hvězd v astronomických datech, kde hvězdy mimo shluky jsou považovány za šum.*
 
 <img alt="img.png" src="dobyv/dbscan.png" width="700"/>
-![img.png](img.png)
 
 ## Chameleon
 Chameleon je sofistikovaný hierarchický algoritmus, který překonává omezení statických modelů tím, že používá dynamické modelování pro spojování shluků.
@@ -148,6 +170,9 @@ Chameleon je sofistikovaný hierarchický algoritmus, který překonává omezen
 - **Princip:** Dva shluky jsou spojeny pouze tehdy, pokud je jejich vzájemné propojení a blízkost vysoká ve srovnání s vnitřním propojením a blízkostí uvnitř samotných shluků.
 - **Vlastnosti:** Velmi robustní vůči šumu a schopný modelovat velmi složité a do sebe zaklesnuté tvary shluků, které DBSCAN nebo k-means nezvládnou.
 - *Příklad: Shlukování prostorových dat v geografických informačních systémech (GIS), kde tvary územních celků mohou být velmi nepravidelné a protáhlé.*
+
+<img alt="img.png" src="dobyv/chamel.png" width="700"/>
+
 
 ---
         
