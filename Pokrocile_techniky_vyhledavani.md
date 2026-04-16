@@ -123,13 +123,29 @@ Min-Hashing slouží k vytvoření krátkých "podpisů" (signatur) z velkých m
 - *V tomto specifickém případě vykazují signatury 100% shodu (3/3), což je odhad Jaccardovy podobnosti. Skutečná hodnota je 0,75. Rozdíl mezi odhadem a skutečností je dán velmi malým počtem permutací; v praxi se používají stovky permutací, aby se odhad (Sig/Sig) stabilizoval na hodnotě Jaccardovy podobnosti (0,75).*
 
 ## Locality-Sensitive Hashing (LSH)
-LSH řeší problém "všech párů" tím, že se zaměřuje pouze na dvojice dokumentů, které mají vysokou pravděpodobnost shody, a ostatní ignoruje.
-- **Princip kbelíků (Buckets):** Hashujeme položky do kbelíků tak, aby podobné položky padaly do stejného kbelíku mnohem častěji než ty nepodobné. Dvojice v jednom kbelíku se stávají **kandidáty** na porovnání.
-- **Technika pásem (Bands):** Matice signatur se rozdělí na $b$ pásem po $r$ řádcích. Dva dokumenty jsou kandidáty, pokud se jejich vektory shodují v alespoň jednom celém pásmu.
-- **S-křivka:** Tato metoda vytváří charakteristickou S-křivku pravděpodobnosti. Práh podobnosti (threshold), nad kterým se dokumenty pravděpodobně stanou kandidáty, je přibližně $s \approx (1/b)^{1/r}$.
-- **Chyby:** - **Falešně negativní:** Podobné dokumenty, které náhodou nepadly do stejného pásma (lze minimalizovat zvýšením počtu pásem).
+I když máme krátké signatury (např. 100 čísel), porovnat každý dokument s každým v milionech prvků je stále výpočetně nemožné ($O(n^2)$). LSH tento problém řeší tak, že dokumenty hashujeme do kbelíků (buckets) takovým způsobem, aby podobné dokumenty skončily ve stejném kbelíku s velmi vysokou pravděpodobností, zatímco nepodobné jen výjimečně.
+
+### Princip pásem (Bands) a řádků (Rows)
+Matici signatur rozdělíme na $b$ pásem, kde každé pásmo obsahuje $r$ řádků. Celková délka signatury je tedy $n = b \times r$.
+- **Logika kandidátů:** Dva dokumenty se stanou **kandidáty** na porovnání pouze tehdy, pokud se jejich signatury **shodují úplně ve všech $r$ řádcích alespoň v jednom z $b$ pásem**.
+- Pokud se dokumenty neshodnou v žádném pásmu, systém je dál neřeší a ušetří výpočetní čas.
+- *Příklad: Máme signaturu o 100 číslech. Rozdělíme ji na 20 pásem po 5 číslech. Pokud se dokumenty D1 a D3 shodují v celém 5. pásmu (všech 5 čísel je stejných), jdou k detailní kontrole.*
+
+### Matematika S-křivky
+Pravděpodobnost, že se dva dokumenty s Jaccardovou podobností $s$ stanou kandidáty, je vyjádřena funkcí $1 - (1 - s^r)^b$. Tato funkce vytváří charakteristickou **S-křivku**:
+1. **$s^r$**: Pravděpodobnost, že se dokumenty shodují ve všech řádcích jednoho konkrétního pásma.
+2. **$1 - s^r$**: Pravděpodobnost, že se v daném pásmu aspoň v jednom řádku liší.
+3. **$(1 - s^r)^b$**: Pravděpodobnost, že se dokumenty neliší ani v jednom z $b$ pásem (tedy se nikdy nestanou kandidáty).
+4. **$1 - (1 - s^r)^b$**: Pravděpodobnost, že se shodují aspoň v jednom pásmu a stanou se kandidáty.
+
+- **Chyby:** 
+  - **Falešně negativní:** Podobné dokumenty, které náhodou nepadly do stejného pásma (lze minimalizovat zvýšením počtu pásem).
   - **Falešně pozitivní:** Nepodobné dokumenty, které se náhodou shodly v jednom pásmu (lze odfiltrovat následným přesným výpočtem podobnosti).
-- *Příklad: Identifikace duplicitních zpráv v systému s miliony článků za sekundu – LSH bleskově vybere pár tisíc podezřelých dvojic k detailní kontrole.*
 
 
+<img alt="img.png" src="pokroc/lhs.png" width="400"/>
+
+<img alt="img.png" src="pokroc/lsh.png" width="400"/>
+
+![img.png](pokroc/lsenh.png)
         
