@@ -131,21 +131,87 @@ Matici signatur rozdělíme na $b$ pásem, kde každé pásmo obsahuje $r$ řád
 - Pokud se dokumenty neshodnou v žádném pásmu, systém je dál neřeší a ušetří výpočetní čas.
 - *Příklad: Máme signaturu o 100 číslech. Rozdělíme ji na 20 pásem po 5 číslech. Pokud se dokumenty D1 a D3 shodují v celém 5. pásmu (všech 5 čísel je stejných), jdou k detailní kontrole.*
 
+<img alt="img.png" src="pokroc/lsenh.png" width="400"/>
+
 ### Matematika S-křivky
-Pravděpodobnost, že se dva dokumenty s Jaccardovou podobností $s$ stanou kandidáty, je vyjádřena funkcí $1 - (1 - s^r)^b$. Tato funkce vytváří charakteristickou **S-křivku**:
+Pravděpodobnost, že se dva dokumenty s Jaccardovou podobností $s$ stanou kandidáty, je vyjádřena funkcí $P = 1 - (1 - s^r)^b$. Tato funkce vytváří charakteristickou **S-křivku**:
 1. **$s^r$**: Pravděpodobnost, že se dokumenty shodují ve všech řádcích jednoho konkrétního pásma.
 2. **$1 - s^r$**: Pravděpodobnost, že se v daném pásmu aspoň v jednom řádku liší.
 3. **$(1 - s^r)^b$**: Pravděpodobnost, že se dokumenty neliší ani v jednom z $b$ pásem (tedy se nikdy nestanou kandidáty).
 4. **$1 - (1 - s^r)^b$**: Pravděpodobnost, že se shodují aspoň v jednom pásmu a stanou se kandidáty.
+
+<img alt="img.png" src="pokroc/lhs.png" width="400"/>
+
+<img alt="img.png" src="pokroc/lsh.png" width="400"/>
+
+- **Osa X (s):** Podobnost vstupních dokumentů (Jaccardova podobnost) v rozmezí $[0, 1]$. Hodnota $1$ znamená identické dokumenty, $0$ naprosto odlišné.
+- **Osa Y (P):** Pravděpodobnost, že se dokumenty stanou kandidáty (skončí ve stejném kbelíku) v rozmezí $[0, 1]$.
+- **Parametr $r$ (rows):** Počet řádků v jednom pásmu. Ovlivňuje "přísnost" shody v rámci pásma (AND logika). Vyšší $r$ posouvá křivku doprava.
+- **Parametr $b$ (bands):** Počet pásem. Udává, kolik "šancí" mají dokumenty na shodu (OR logika). Vyšší $b$ zvyšuje strmost křivky.
+
+<img alt="img.png" src="pokroc/chyby.png" width="300"/>
 
 - **Chyby:** 
   - **Falešně negativní:** Podobné dokumenty, které náhodou nepadly do stejného pásma (lze minimalizovat zvýšením počtu pásem).
   - **Falešně pozitivní:** Nepodobné dokumenty, které se náhodou shodly v jednom pásmu (lze odfiltrovat následným přesným výpočtem podobnosti).
 
 
-<img alt="img.png" src="pokroc/lhs.png" width="400"/>
+### Konkrétní numerický příklad (S-křivka v praxi)
+Uvažujme nastavení parametrů $b = 20$ pásem a $r = 5$ řádků. Práh podobnosti je definován jako $t \approx (1/b)^{1/r} \approx (1/20)^{1/5} \approx 0.55$.
 
-<img alt="img.png" src="pokroc/lsh.png" width="400"/>
+**Případ A: Vysoká podobnost ($s = 0.8$)**
+1. $s^r = 0.8^5 \approx 0.328$
+2. $1 - s^r = 1 - 0.328 = 0.672$
+3. $(1 - s^r)^b = 0.672^{20} \approx 0.00035$
+4. $P = 1 - 0.00035 = \mathbf{0.99965}$
+Výsledek: Dokumenty s vysokou podobností se stanou kandidáty s pravděpodobností cca 99.97 %.
 
-![img.png](pokroc/lsenh.png)
-        
+**Případ B: Nízká podobnost ($s = 0.2$)**
+1. $s^r = 0.2^5 = 0.00032$
+2. $1 - s^r = 1 - 0.00032 = 0.99968$
+3. $(1 - s^r)^b = 0.99968^{20} \approx 0.9936$
+4. $P = 1 - 0.9936 = \mathbf{0.0064}$
+Výsledek: Dokumenty s nízkou podobností se stanou kandidáty s pravděpodobností pouze cca 0.64 %. 
+
+
+---
+# Zpracování proudů dat
+
+U proudových dat (Data Streams) předpokládáme, že data přicházejí vysokou rychlostí, jsou potenciálně nekonečná a nelze je všechna uložit. Zpracování probíhá v reálném čase s omezenou pamětí, často pomocí klouzavých oken (Sliding Windows).
+
+## Bloomovy filtry
+Bloomův filtr je prostorově efektivní pravděpodobnostní datová struktura sloužící k rychlému testování příslušnosti prvku do množiny. Hlavní motivací je ušetřit obrovské množství operační paměti v situacích, kdy si nemůžeme dovolit ukládat skutečné prvky (např. miliardy URL adres), ale potřebujeme bleskově rozhodnout, zda jsme daný prvek už viděli.
+
+### Princip a fungování
+Struktura se skládá z bitového pole o délce $m$ (všechny bity jsou na začátku 0) a $k$ nezávislých hashovacích funkcí $h_1, h_2, \dots, h_k$.
+- **Vkládání (Insertion):** Pro prvek $x$ vypočítáme $k$ hashů a bity na pozicích $h_1(x), \dots, h_k(x)$ nastavíme na 1.
+- **Dotaz (Query):** Pro prvek $y$ zkontrolujeme bity na pozicích $h_1(y), \dots, h_k(y)$. Pokud je alespoň jeden z těchto bitů 0, prvek v množině **určitě není** (žádné False Negatives). Pokud jsou všechny 1, prvek v množině **pravděpodobně je** (možné False Positives).
+- **Klíčová vlastnost:** Bloomův filtr nikdy nelže, pokud řekne "NE". Pokud řekne "ANO", musíme počítat s malou pravděpodobností chyby, kterou lze ale matematicky minimalizovat.
+
+### Optimální nastavení a matematika
+Klíčem k efektivitě je správný poměr mezi velikostí pole $m$, počtem vložených prvků $n$ a počtem hashovacích funkcí $k$.
+- **Pravděpodobnost False Positive:** Přibližně $(1 - e^{-kn/m})^k$. Tato hodnota roste s počtem vložených prvků $n$.
+- **Optimální hodnota $k$:** Abychom minimalizovali pravděpodobnost chyby pro dané $m$ a $n$, volíme počet hashovacích funkcí jako:
+  $k = \frac{m}{n} \ln 2 \approx 0.7 \times \frac{m}{n}$
+- Při tomto nastavení je zaplněna právě polovina bitového pole jedničkami, což poskytuje nejvyšší informační hodnotu.
+- *Příklad: Pokud máme k dispozici 10 bitů na prvek ($m/n = 10$), optimální $k$ je 7 a pravděpodobnost chyby klesne pod 1 %.*
+
+<img alt="img.png" src="pokroc/optimal.png" width="200"/>
+
+### Praktické využití
+- **Webové prohlížeče:** Google Chrome využívá Bloomův filtr ke kontrole, zda URL není na seznamu škodlivých stránek. Pokud filtr zahlásí "ANO", provede se teprve pak drahý dotaz na server pro potvrzení.
+- **Databáze:** Apache Cassandra nebo Google BigTable používají filtry k tomu, aby zabránily zbytečnému čtení z disku pro neexistující klíče.
+- *Příklad: Router filtrující spamové IP adresy – Bloomův filtr okamžitě propustí 99 % legitimního provozu bez nutnosti prohledávat obří databázi v RAM.*
+
+## Algoritmus DGIM (Datar-Gionis-Indyk-Motwani)
+DGIM řeší problém odhadu počtu jedniček v posledních $N$ bitech datového proudu (problém "Counting ones"). Protože uložení celého okna vyžaduje $N$ bitů, DGIM využívá logaritmickou kompresi pro úsporu místa za cenu mírné nepřesnosti (chyba max 50 %).
+
+* **Struktura kbelíků (Buckets):** Proud je rozdělen na kbelíky, které uchovávají časovou značku konce a počet jedniček (velikost), která musí být mocninou 2.
+* **Pravidla udržování:**
+    * Kbelíky se nesmí překrývat a musí být řazeny podle času.
+    * Pro každou povolenou velikost (1, 2, 4, 8, ...) mohou existovat maximálně dva kbelíky (nebo jeden).
+    * Při příchodu nové 1 se vytvoří kbelík velikosti 1. Pokud jsou nyní tři kbelíky velikosti 1, nejstarší dva se sloučí do jednoho kbelíku velikosti 2. Tento proces se může řetězit (kaskádové slučování).
+* **Odhad součtu:** Součet se spočítá jako součet velikostí všech kbelíků, které končí v okně $N$, přičemž z posledního (nejstaršího) kbelíku se započítá pouze polovina jeho velikosti.
+* *Příklad: Monitorování počtu unikátních uživatelů za poslední hodinu v reálném čase – DGIM udržuje úspornou statistiku bez nutnosti držet miliony záznamů.*
+
+<img alt="img.png" src="pokroc/buckets.png" width="300"/>
