@@ -52,9 +52,9 @@ V clusterech s tisíci stroji jsou selhání hardwaru na denním pořádku. Map-
 - **Master Failure:** Master je obvykle "single point of failure"; pokud spadne, job končí, ale stav lze obnovit z checkpointu.
 - *Příklad: Pokud uprostřed výpočtu vyhoří uzel v racku, systém detekuje ztrátu, najde repliky dat na jiných discích a výpočet plynule dokončí jinde.*
 
-<img alt="img.png" src="pokroc/mapred.png" width="400"/>
+<img alt="img.png" src="img/pokroc/mapred.png" width="400"/>
 
-<img alt="img.png" src="pokroc/map.png" width="400"/>
+<img alt="img.png" src="img/pokroc/map.png" width="400"/>
 
 ---
 
@@ -62,7 +62,7 @@ V clusterech s tisíci stroji jsou selhání hardwaru na denním pořádku. Map-
 
 Hledání podobných objektů (Near-Neighbor Search) ve vysokodimenzionálních prostorech je výpočetně náročné. Klasické porovnávání všech párů dokumentů má kvadratickou složitost $O(n^2)$, což je u velkých dat neúnosné. Proces se proto dělí do tří kroků: Shingling (převod na množiny), Min-Hashing (zkrácení na signatury) a LSH (rychlé nalezení kandidátů).
 
-<img alt="img.png" src="pokroc/vyhled.png" width="400"/>
+<img alt="img.png" src="img/pokroc/vyhled.png" width="400"/>
 
 ## Shingling
 Prvním krokem je převod textového dokumentu na množinu krátkých řetězců délky $k$, nazývaných **k-shingles**. Dokument je tak reprezentován jako množina identifikátorů těchto řetězců.
@@ -76,9 +76,9 @@ Min-Hashing slouží k vytvoření krátkých "podpisů" (signatur) z velkých m
 - **Signatura:** Opakováním postupu s $n$ různými permutacemi (nebo hashovacími funkcemi) získáme pro každý dokument signaturní vektor. Podobnost dokumentů pak odhadujeme jako podíl shodných prvků v jejich signaturách.
 - *Příklad: Porovnání dvou stránek Wikipedie pomocí signatury o délce 100 čísel místo porovnávání všech slov v textu.*
 
-<img alt="img.png" src="pokroc/shingle.png" width="100"/>
+<img alt="img.png" src="img/pokroc/shingle.png" width="100"/>
 
-<img alt="img.png" src="pokroc/minhash.png" width="400"/>
+<img alt="img.png" src="img/pokroc/minhash.png" width="400"/>
 
 ### Příklad
 *Mějme vstupní matici 7 řádků (shingles) a 4 dokumentů (sloupců). Zaměříme se na dokumenty D1 a D3.*
@@ -131,7 +131,7 @@ Matici signatur rozdělíme na $b$ pásem, kde každé pásmo obsahuje $r$ řád
 - Pokud se dokumenty neshodnou v žádném pásmu, systém je dál neřeší a ušetří výpočetní čas.
 - *Příklad: Máme signaturu o 100 číslech. Rozdělíme ji na 20 pásem po 5 číslech. Pokud se dokumenty D1 a D3 shodují v celém 5. pásmu (všech 5 čísel je stejných), jdou k detailní kontrole.*
 
-<img alt="img.png" src="pokroc/lsenh.png" width="400"/>
+<img alt="img.png" src="img/pokroc/lsenh.png" width="400"/>
 
 ### Matematika S-křivky
 Pravděpodobnost, že se dva dokumenty s Jaccardovou podobností $s$ stanou kandidáty, je vyjádřena funkcí $P = 1 - (1 - s^r)^b$. Tato funkce vytváří charakteristickou **S-křivku**:
@@ -140,16 +140,16 @@ Pravděpodobnost, že se dva dokumenty s Jaccardovou podobností $s$ stanou kand
 3. **$(1 - s^r)^b$**: Pravděpodobnost, že se dokumenty neliší ani v jednom z $b$ pásem (tedy se nikdy nestanou kandidáty).
 4. **$1 - (1 - s^r)^b$**: Pravděpodobnost, že se shodují aspoň v jednom pásmu a stanou se kandidáty.
 
-<img alt="img.png" src="pokroc/lhs.png" width="400"/>
+<img alt="img.png" src="img/pokroc/lhs.png" width="400"/>
 
-<img alt="img.png" src="pokroc/lsh.png" width="400"/>
+<img alt="img.png" src="img/pokroc/lsh.png" width="400"/>
 
 - **Osa X (s):** Podobnost vstupních dokumentů (Jaccardova podobnost) v rozmezí $[0, 1]$. Hodnota $1$ znamená identické dokumenty, $0$ naprosto odlišné.
 - **Osa Y (P):** Pravděpodobnost, že se dokumenty stanou kandidáty (skončí ve stejném kbelíku) v rozmezí $[0, 1]$.
 - **Parametr $r$ (rows):** Počet řádků v jednom pásmu. Ovlivňuje "přísnost" shody v rámci pásma (AND logika). Vyšší $r$ posouvá křivku doprava.
 - **Parametr $b$ (bands):** Počet pásem. Udává, kolik "šancí" mají dokumenty na shodu (OR logika). Vyšší $b$ zvyšuje strmost křivky.
 
-<img alt="img.png" src="pokroc/chyby.png" width="300"/>
+<img alt="img.png" src="img/pokroc/chyby.png" width="300"/>
 
 - **Chyby:** 
   - **Falešně negativní:** Podobné dokumenty, které náhodou nepadly do stejného pásma (lze minimalizovat zvýšením počtu pásem).
@@ -196,7 +196,7 @@ Klíčem k efektivitě je správný poměr mezi velikostí pole $m$, počtem vlo
 - Při tomto nastavení je zaplněna právě polovina bitového pole jedničkami, což poskytuje nejvyšší informační hodnotu.
 - *Příklad: Pokud máme k dispozici 10 bitů na prvek ($m/n = 10$), optimální $k$ je 7 a pravděpodobnost chyby klesne pod 1 %.*
 
-<img alt="img.png" src="pokroc/optimal.png" width="200"/>
+<img alt="img.png" src="img/pokroc/optimal.png" width="200"/>
 
 ### Praktické využití
 - **Webové prohlížeče:** Google Chrome využívá Bloomův filtr ke kontrole, zda URL není na seznamu škodlivých stránek. Pokud filtr zahlásí "ANO", provede se teprve pak drahý dotaz na server pro potvrzení.
@@ -215,7 +215,7 @@ DGIM řeší problém odhadu počtu jedniček v posledních $N$ bitech datového
 * **Odhad součtu:** Součet se spočítá jako součet velikostí všech kbelíků, které končí v okně $N$, přičemž z posledního (nejstaršího) kbelíku se započítá pouze polovina jeho velikosti.
 * *Příklad: Monitorování počtu unikátních uživatelů za poslední hodinu v reálném čase – DGIM udržuje úspornou statistiku bez nutnosti držet miliony záznamů.*
 
-<img alt="img.png" src="pokroc/buckets.png" width="300"/>
+<img alt="img.png" src="img/pokroc/buckets.png" width="300"/>
 
 ---
 ## PageRank
@@ -234,7 +234,7 @@ Pro matematický popis a výpočet PageRanku využíváme stochastickou matici p
 - **Vlastní vektor:** PageRank hledáme jako stacionární distribuci (vlastní vektor), pro kterou platí rovnice: $r = M \cdot r$.
 - Součet všech prvků ve vektoru $r$ je roven 1.
 
-<img alt="img.png" src="pagerank.png" width="300"/>
+<img alt="img.png" src="img/pokroc/pagerank.png" width="300"/>
 
 ### Dead ends a Spider traps
 Reálný webový graf obsahuje struktury, které způsobují, že se "tok důležitosti" v grafu chová nekorektně při prosté iteraci.
@@ -264,4 +264,4 @@ PageRank lze matematicky chápat jako soustavu lineárních rovnic. Proč se ale
 - **Konvergence:** Opakujeme, dokud $\lvert r^{(t+1)} - r^{(t)} \rvert < \epsilon$.
 - *Příklad: V každém kroku se "hladina" ranku přelévá po hranách grafu, dokud nedosáhne stabilního stavu (rovnováhy).*
 
-<img alt="img.png" src="pokroc/iter.png" width="300"/>
+<img alt="img.png" src="img/pokroc/iter.png" width="300"/>
