@@ -160,25 +160,25 @@ Pravděpodobnost, že se dva dokumenty s Jaccardovou podobností $s$ stanou kand
 Uvažujme nastavení parametrů $b = 20$ pásem a $r = 5$ řádků. Práh podobnosti je definován jako $t \approx (1/b)^{1/r} \approx (1/20)^{1/5} \approx 0.55$.
 
 **Případ A: Vysoká podobnost ($s = 0.8$)**
-1. $s^r = 0.8^5 \approx 0.328$
-2. $1 - s^r = 1 - 0.328 = 0.672$
-3. $(1 - s^r)^b = 0.672^{20} \approx 0.00035$
+1. $s^r = 0.8^5 \approx 0.328$ Pravděpodobnost, že se dokumenty shodují ve všech řádcích jednoho konkrétního pásma.
+2. $1 - s^r = 1 - 0.328 = 0.672$ Pravděpodobnost, že se v daném pásmu aspoň v jednom řádku liší.
+3. $(1 - s^r)^b = 0.672^{20} \approx 0.00035$ Pravděpodobnost, že se dokumenty neliší ani v jednom z $b$ pásem (tedy se nikdy nestanou kandidáty).
 4. $P = 1 - 0.00035 = \mathbf{0.99965}$
 Výsledek: Dokumenty s vysokou podobností se stanou kandidáty s pravděpodobností cca 99.97 %.
 
 **Případ B: Nízká podobnost ($s = 0.2$)**
-1. $s^r = 0.2^5 = 0.00032$
-2. $1 - s^r = 1 - 0.00032 = 0.99968$
-3. $(1 - s^r)^b = 0.99968^{20} \approx 0.9936$
-4. $P = 1 - 0.9936 = \mathbf{0.0064}$
+1. $s^r = 0.2^5 = 0.00032$ Pravděpodobnost, že se dokumenty shodují ve všech řádcích jednoho konkrétního pásma.
+2. $1 - s^r = 1 - 0.00032 = 0.99968$ Pravděpodobnost, že se v daném pásmu aspoň v jednom řádku liší.
+3. $(1 - s^r)^b = 0.99968^{20} \approx 0.9936$ Pravděpodobnost, že se dokumenty neliší ani v jednom z $b$ pásem (tedy se nikdy nestanou kandidáty).
+4. $P = 1 - 0.9936 = \mathbf{0.0064}$ 
 Výsledek: Dokumenty s nízkou podobností se stanou kandidáty s pravděpodobností pouze cca 0.64 %. 
-
 
 ---
 # Zpracování proudů dat
 
 U proudových dat (Data Streams) předpokládáme, že data přicházejí vysokou rychlostí, jsou potenciálně nekonečná a nelze je všechna uložit. Zpracování probíhá v reálném čase s omezenou pamětí, často pomocí klouzavých oken (Sliding Windows).
 
+---
 ## Bloomovy filtry
 Bloomův filtr je prostorově efektivní pravděpodobnostní datová struktura sloužící k rychlému testování příslušnosti prvku do množiny. Hlavní motivací je ušetřit obrovské množství operační paměti v situacích, kdy si nemůžeme dovolit ukládat skutečné prvky (např. miliardy URL adres), ale potřebujeme bleskově rozhodnout, zda jsme daný prvek už viděli.
 
@@ -203,6 +203,7 @@ Klíčem k efektivitě je správný poměr mezi velikostí pole $m$, počtem vlo
 - **Databáze:** Apache Cassandra nebo Google BigTable používají filtry k tomu, aby zabránily zbytečnému čtení z disku pro neexistující klíče.
 - *Příklad: Router filtrující spamové IP adresy – Bloomův filtr okamžitě propustí 99 % legitimního provozu bez nutnosti prohledávat obří databázi v RAM.*
 
+---
 ## Algoritmus DGIM (Datar-Gionis-Indyk-Motwani)
 DGIM řeší problém odhadu počtu jedniček v posledních $N$ bitech datového proudu (problém "Counting ones"). Protože uložení celého okna vyžaduje $N$ bitů, DGIM využívá logaritmickou kompresi pro úsporu místa za cenu mírné nepřesnosti (chyba max 50 %).
 
@@ -215,3 +216,52 @@ DGIM řeší problém odhadu počtu jedniček v posledních $N$ bitech datového
 * *Příklad: Monitorování počtu unikátních uživatelů za poslední hodinu v reálném čase – DGIM udržuje úspornou statistiku bez nutnosti držet miliony záznamů.*
 
 <img alt="img.png" src="pokroc/buckets.png" width="300"/>
+
+---
+## PageRank
+
+Web lze vnímat jako obrovský orientovaný graf, kde uzly jsou stránky a hrany jsou hypertextové odkazy. PageRank je algoritmus, který určuje důležitost (autoritu) stránek na základě struktury těchto odkazů, navržený Larry Pagem a Sergeyem Brinem, tvořící základ vyhledávače Google. 
+
+Základní myšlenkou PageRanku je, že odkaz ze stránky $A$ na stránku $B$ lze interpretovat jako "hlas" pro důležitost stránky $B$.
+- Důležitost stránky není dána pouze počtem příchozích odkazů, ale také důležitostí stránek, které na ni odkazují.
+- Hlas z důležité stránky má větší váhu než hlas ze stránky nevýznamné.
+- Pokud má stránka mnoho odchozích odkazů, její váha se mezi ně rovnoměrně dělí.
+- *Příklad: Odkaz z domovské stránky Seznam.cz má pro cílový web mnohem větší hodnotu než odkaz z neznámého osobního blogu.*
+
+### Maticová formulace
+Pro matematický popis a výpočet PageRanku využíváme stochastickou matici přechodu $M$ a vektor hodnocení $r$.
+- **Matice přechodu $M$:** Pokud stránka $j$ má $d_j$ odchozích odkazů a jeden z nich vede na $i$, pak prvek matice $M_{ij} = 1/d_j$. Jinak je roven 0.
+- **Vlastní vektor:** PageRank hledáme jako stacionární distribuci (vlastní vektor), pro kterou platí rovnice: $r = M \cdot r$.
+- Součet všech prvků ve vektoru $r$ je roven 1.
+
+<img alt="img.png" src="pagerank.png" width="300"/>
+
+### Dead ends a Spider traps
+Reálný webový graf obsahuje struktury, které způsobují, že se "tok důležitosti" v grafu chová nekorektně při prosté iteraci.
+- **Dead ends (Slepé uličky):** Stránky bez odchozích odkazů. Způsobují, že se PageRank z grafu "vylévá" a celková důležitost v systému klesá k nule.
+- **Spider traps (Pavoučí pasti):** Skupiny stránek, které odkazují pouze samy na sebe. Tyto struktury do sebe "nasají" veškerý PageRank z ostatních částí grafu.
+- *Příklad: Stránka, která odkazuje pouze sama na sebe, postupně získá PageRank roven 1, zatímco zbytek internetu bude mít 0.*
+
+### Koncept náhodného surfaře (Random Surfer Model)
+Aby se zabránilo uváznutí v pastech nebo ztrátě ranku v dead endech, zavedl Google koncept "náhodného surfaře" (Random Surfer Model).
+- **Teleportace:** S určitou pravděpodobností (typicky $1-\beta = 0.15$) surfař neklikne na odkaz, ale skočí na náhodnou stránku v grafu.
+- **Rovnice se zdaněním:** $r = \beta M r + (1-\beta) \frac{1}{n} \mathbf{1}$.
+- Parametr $\beta$ (damping factor) se obvykle nastavuje na 0.85. To zajišťuje, že rank v grafu neustále cirkuluje a výpočet konverguje.
+- *Příklad: Pokud surfař narazí na slepou uličku nebo nudnou past, prostě do adresního řádku napíše novou náhodnou adresu a pokračuje jinde.*
+
+---
+## Iterační výpočet PageRanku (Power Iteration)
+PageRank lze matematicky chápat jako soustavu lineárních rovnic. Proč se ale v praxi používá **mocninná iterace** namísto přímého řešení rovnic (např. Gaussovou eliminací)?
+
+1. **Extrémní rozměry (Scale):** Web obsahuje miliardy stránek. Přímé řešení soustavy o $10^9$ neznámých má složitost $O(n^3)$, což je výpočetně neproveditelné.
+2. **Řídkost matice (Sparsity):** Matice $M$ je extrémně řídká (většina stránek odkazuje jen na pár dalších). Iterační metoda využívá násobení matice vektorem, které je pro řídké matice velmi efektivní ($O(k \cdot nz)$, kde $nz$ je počet nenulových prvků).
+3. **Konvergence:** PageRank konverguje velmi rychle. K získání dostatečně přesného odhadu pro miliardy stránek stačí obvykle pouze 50 až 100 iterací.
+4. **Distribuované zpracování:** Výpočet násobení matice vektorem lze snadno paralelizovat pomocí přístupu Map-Reduce, což u přímých metod řešení rovnic není u takto velkých dat možné.
+
+**Algoritmus:**
+- **Inicializace:** $r^{(0)} = [1/n, 1/n, \dots, 1/n]^T$.
+- **Iterační krok:** $r^{(t+1)} = \beta M r^{(t)} + \frac{1-\beta}{n} \mathbf{1}$.
+- **Konvergence:** Opakujeme, dokud $\lvert r^{(t+1)} - r^{(t)} \rvert < \epsilon$.
+- *Příklad: V každém kroku se "hladina" ranku přelévá po hranách grafu, dokud nedosáhne stabilního stavu (rovnováhy).*
+
+<img alt="img.png" src="pokroc/iter.png" width="300"/>
