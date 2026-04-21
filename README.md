@@ -16,7 +16,7 @@ Otázky viz https://www.fi.muni.cz/studies/fe-mgr/uizd2018.html
 | [Neuronové sítě](./Neuronove_site.md) | PV021 | |
 | [Dobývání znalostí](./Dobyvani_znalosti_PV056.md) | PV056 | Pro absolventy předmětu do jara 2024 včetně |
 | [Strojové učení](./Strojove_uceni.md) | PV056 | Pro absolventy předmětu od jara 2025 včetně |
-| [Dobývání znalostí](./Dobyvani_znalosti_PA212_PV056.md) | PA212, PV056 | Pro absolventy předmětu PV056 od jara 2025 včetně |
+| [Dobývání znalostí](./Dobyvani_znalosti.md) | PA212, PV056 | Pro absolventy předmětu PV056 od jara 2025 včetně |
 | [Vizualizace](./Vizualizace.md) | PV251 | |
 
 ### Zpracování a analýza rozsáhlých dat
@@ -43,7 +43,7 @@ _Pro studium od kontrolní šablony 2024/2025 a pro absolventy PV056 od jara 202
 > 7) **[Strojové učení](./Strojove_uceni.md):** Semi-supervised learning a aktivní učení. Ansámblové učení. Základy analýzy anomálií. Pokročilé metody vyhodnocování experimentů (křížová validace, ROC křivky, AUC, M učících algoritmů na N datových sadách, bootstrapping). Teoretické základy strojového učení (relace generalizace ve výrokové a predikátové logice, prostor hypotéz a verzí, bias-variance trade off) (PV056) pro absolventy předmětu do jara 2024 včetně
 > 8) **[Dobývání znalostí](./Dobyvani_znalosti_PV056.md):** Předzpracování dat. Učení častých vzorů a asociačních pravidel. Nástroje pro strojové učení a dolování z dat (obecně + popis jednoho podrobně). Analýza temporálních dat. (PV056) pro absolventy předmětu do jara 2024 včetně
 9) **✅[Strojové učení](./Strojove_uceni.md):** Základy strojového učení (supervizované, semi-supervizované a nesupervizované učení; operace klasifikace, regrese, detekce anomálií). Učení metrik (kontrastivní učení, triplet-loss učení). Vektorová/produktová kvantizace s využitím pro aproximované hledání. Principy křížově-modálního (cross-modal) učení (CLIP). (PV056) pro absolventy předmětu od jara 2025 včetně
-10) **✅[Dobývání znalostí](./Dobyvani_znalosti_PA212_PV056.md):** Asociační pravidla a algoritmy pro hledání frekventovaných vzorů (A-Priori, PCY). Principy shlukovacích algoritmů (k-means, hierarchické shlukování, DBSCAN, Chameleon). Analýza temporálních dat: vlastnosti a předzpracování časových řad, DTW, klouzavý průměr (MA). (PA212, PV056) pro absolventy předmětu PV056 od jara 2025 včetně
+10) **✅[Dobývání znalostí](./Dobyvani_znalosti.md):** Asociační pravidla a algoritmy pro hledání frekventovaných vzorů (A-Priori, PCY). Principy shlukovacích algoritmů (k-means, hierarchické shlukování, DBSCAN, Chameleon). Analýza temporálních dat: vlastnosti a předzpracování časových řad, DTW, klouzavý průměr (MA). (PA212, PV056) pro absolventy předmětu PV056 od jara 2025 včetně
 11) **[Vizualizace](./Vizualizace.md):** Základní metriky pro hodnocení kvality vizualizace (efektivita a expresivita), osm základních vizuálních proměnných. Základní vizualizační techniky pro 1D, 2D, 3D (explicitní a implicitní reprezentace povrchu). Techniky pro vizualizaci multidimenzionálních dat (paralelní souřadnice, RadViz, scatterplot matrices, dimensional stacking) a hierarchických struktur (treemaps). Základní třídy interakčních technik (fisheye, perspektivní stěny), specifika aplikace interakčních technik v prostoru samotných dat a v prostoru jejich atributů. (PV251)
 
 ## Specializace - Zpracování a analýza rozsáhlých dat
