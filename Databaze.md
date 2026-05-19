@@ -7,6 +7,7 @@
 > Ladění dotazů a schématu. Zpracování transakcí, výpadky a zotavení. 
 > Bezpečnost, přístupová oprávnění. 
 
+---
 
 ## Ukládání dat
 
@@ -15,21 +16,21 @@ Výkon každého databázového systému (DBMS) je primárně limitován rychlos
 ### 1. Paměťová hierarchie a specifika hardwaru
 Aby mohl systém efektivně fungovat, využívá paměťovou hierarchii, kde platí: čím je paměť blíže procesoru, tím je rychlejší, dražší a má menší kapacitu.
 
-*   **Primární paměť (RAM):** Rychlá, drahá, ale volatilní (při výpadku napájení ztrácí data). Pracuje na úrovni bajtů.
-*   **Sekundární paměť (HDD/SSD):** Pomalá, levná, ale perzistentní (trvalá). Hardwarová vrstva nedokáže efektivně pracovat s jednotlivými bajty, proto komunikace mezi RAM a diskem probíhá vždy v **atomických blocích (stránkách)**, typicky o velikosti $4\text{ KiB}$ až $8\text{ KiB}$.
+* **Primární paměť (RAM):** Rychlá, drahá, ale volatilní (při výpadku napájení ztrácí data). Pracuje na úrovni bajtů.
+* **Sekundární paměť (HDD/SSD):** Pomalá, levná, ale perzistentní (trvalá). Hardwarová vrstva nedokáže efektivně pracovat s jednotlivými bajty, proto komunikace mezi RAM a diskem probíhá vždy v **atomických blocích (stránkách)**, typicky o velikosti $4\text{ KiB}$ až $8\text{ KiB}$.
 
 #### Mechanické disky (HDD)
 Přístupová doba k datům na HDD je diktována mechanikou a skládá se ze:
-1.  **Seeku:** Fyzický přesun čtecí hlavy nad správnou stopu ($4\text{--}10\text{ ms}$).
-2.  **Rotační latence:** Čekání, než se plotna otočí pod hlavu (polovina otáčky).
-3.  **Samotného přenosu dat.**
+1. **Seeku:** Fyzický přesun čtecí hlavy nad správnou stopu ($4-10\text{ ms}$).
+2. **Rotační latence:** Čekání, než se plotna otočí pod hlavu (polovina otáčky).
+3. **Samotného přenosu dat.**
 
 Z této konstrukce plyne zásadní pravidlo: **Náhodný přístup (Random I/O) je u HDD až $300\times$ pomalejší než sekvenční přístup (Sequential I/O).** Při sekvenčním čtení se hlava přesune pouze jednou a pak kontinuálně čte celou stopu.
 
 #### Polovodičové disky (SSD)
 NAND Flash paměti sice eliminovaly mechanický přesun hlav, ale přinesly novou asymetrii mezi čtením a zápisem:
-*   **Čtení a zápis** probíhají po **stránkách** (např. $4\text{ KiB}$).
-*   **Mazání** lze provést pouze po celých **blocích** (např. $128$ stránek).
+* **Čtení a zápis** probíhají po **stránkách** (např. $4\text{ KiB}$).
+* **Mazání** lze provést pouze po celých **blocích** (např. $128$ stránek).
 
 Kvůli tomu nelze data jednoduše přepsat na stejném místě. Používá se strategie **Out-of-place Updates**: při změně dat se nová verze zapíše na čistou stránku a stará stránka se označí za neplatnou. Mazání na pozadí (**Garbage Collection**) pak musí neplatné bloky vyčistit. To vede k přesunům dat, opotřebení buněk a k nežádoucímu **zesílení zápisu (Write Amplification)**, kdy se fyzicky zapíše mnohem více dat, než databáze reálně požadovala.
 
@@ -45,7 +46,6 @@ Pro zvýšení rychlosti I/O operací a zajištění odolnosti proti selhání h
 *   **RAID 10 (1+0):** Kombinace zrcadlení a proužkování. Nejvyšší výkon i spolehlivost za cenu vysokých nákladů (vyžaduje dvojnásobný počet disků).
 
 *V praxi se u SSD polí nasazuje navíc mechanismus **Diff-RAID**. Ten záměrně opotřebovává disky v poli nerovnoměrně, aby se předešlo situaci, kdy všechna SSD selžou v tentýž den kvůli dosažení limitu zápisů.*
-
 
 <img alt="img.png" src="img/db/raid.png" width="600"/>
 
@@ -64,12 +64,10 @@ Adresování určuje, jakým způsobem jsou logické datové řádky (záznamy) 
 ### 1. Reprezentace záznamů na stránce
 Záznamy mohou mít pevnou délku (sloupce jako `INT`, `CHAR`) nebo proměnlivou délku (`VARCHAR`, `BLOB`). U proměnlivé délky obsahuje hlavička každého řádku **vektor ofsetů** (ukazatelů na startovní pozice jednotlivých sloupců) a **Null Bitmapu** (indikaci, které sloupce jsou prázdné, aby se pro ně netratilo místo).
 
-
-
 Fyzická organizace uvnitř jedné diskové stránky se standardně řeší architekturou **Slotted-Page (stránka se sloty)**:
-*   Na samotném začátku stránky se nachází **adresář slotů**, který obsahuje dvojice `(fyzický ofset, délka záznamu)`. Tento adresář roste odshora dolů.
-*   Samotné datové řádky se ukládají od konce stránky a rostou **odspoda nahoru**.
-*   Jakmile se adresář slotů potká s datovými řádky, stránka je plná.
+* Na samotném začátku stránky se nachází **adresář slotů**, který obsahuje dvojice `(fyzický ofset, délka záznamu)`. Tento adresář roste odshora dolů.
+* Samotné datové řádky se ukládají od konce stránky a rostou **odspoda nahoru**.
+* Jakmile se adresář slotů potká s datovými řádky, stránka je plná.
 
 Tento design přináší zásadní výhodu: **nepřímé adresování**. Externí struktury (např. indexy) neodkazují na absolutní fyzickou bajtovou adresu řádku na disku, ale výhradně na **ID slotu** na dané stránce. Pokud se řádek uvnitř stránky změní (např. se nafoukne a databáze musí stránku setřást a řádky fyzicky posunout), změní se pouze ofset v adresáři slotů. ID slotu zůstává stejné, takže indexy není potřeba aktualizovat.
 
@@ -104,11 +102,11 @@ Podle toho, jak jsou stránky se sloty řazeny v souboru za sebou, rozlišujeme 
     *   *Vyhledávání na přesnou shodu:* Okamžité, $O(1)$ v ideálním případě bez kolizí.
     *   *Rozsahové dotazy:* Zcela nepoužitelné. *Dotaz na hodnoty v rozmezí 10 až 20 by znamenal prohledat náhodně rozházené stránky po celém disku, protože hašovací funkce záměrně likviduje sousednost dat.*
 
-
 ---
 
 ## Indexování a hašování více atributů
-Index je pomocná datová struktura (kolekce dvojic `<klíč, ukazatel na záznam/blok>`), která slouží k výraznému zrychlení přístupu k datům. Namísto pomalého sekvenčního procházení celé tabulky (Table/Sequential Scan) umožňuje databázi najít požadované řádky v řádu několika málo diskových I/O operací.
+
+Index je pomocná datová struktura (kolekce dvojic `[klíč, ukazatel]`), která slouží k výraznému zrychlení přístupu k datům bez nutnosti sekvenčního procházení celé tabulky (Table Scan).
 
 ### Základní jednorozměrné indexy
 * **B+ strom:** Standard pro relační DB. Vyvážený strom, kde jsou všechny datové ukazatele výhradně v listech a listy jsou obousměrně zřetězené. Výborný pro bodové i rozsahové dotazy (komplexita vyhledávání, vkládání i mazání je $O(\log N)$).
@@ -116,7 +114,6 @@ Index je pomocná datová struktura (kolekce dvojic `<klíč, ukazatel na zázna
 
 <img alt="img.png" src="img/db/hash.png" width="400"/>
 <img alt="img.png" src="img/db/btree.png" width="400"/>
-
 
 ### Klasické přístupy (Složené indexy)
 * **Index na jeden atribut + filtrace:** Vyhledá se podle jednoho atributu a nalezené záznamy se následně dofiltrují podle druhé podmínky.
@@ -128,13 +125,14 @@ Index je pomocná datová struktura (kolekce dvojic `<klíč, ukazatel na zázna
 * **Princip:** Pro vyhledávání nad více klíči se použije jedna společná výsledná adresa bloku. Ta vznikne tak, že se spojí bitové výstupy samostatných hašovacích funkcí pro jednotlivé atributy.
 * **Příklad:** *Atribut `Dept` má funkci $h_1$ a `Salary` funkci $h_2$. Výsledná adresa vznikne spojením jejich bitů (např. bity z $h_1$ tvoří začátek adresy, bity z $h_2$ konec).*
 * **Vlastnosti dotazování:** Pokud dotaz specifikuje všechny atributy, určí se jedna přesná adresa bucketu. Pokud specifikuje pouze jeden, zbývající bity adresy jsou neznámé a databáze musí prohledat všechny adresy odpovídající známému bitovému vzoru.
-    * Pokud dotaz specifikuje pouze jeden atribut, zbývající bity adresy jsou neznámé, a databáze proto musí prohledat (skenovat) všechny adresy odpovídající známému bitovému vzoru.
 
 ### Mřížkový index (Grid Index)
 * **Princip:** Prostor dat je rozdělen do vícedimenzionální mřížky (matice), kde každá osa odpovídá jednomu atributu. Hodnoty na osách mohou být definovány i jako intervaly (tzv. binning). Každá buňka mřížky ukazuje na příslušný datový bucket (případně s využitím indirection/ukazatelů).
 * **Vlastnosti dotazování:** Velmi efektivní pro dotazy na přesnou shodu i pro rozsahové dotazy (`range queries`), které v mřížce vyříznou celou obdélníkovou oblast buněk.
 * **Nevýhody:** Rozměry mřížky musí být fixní. Při nerovnoměrném rozdělení dat hrozí plýtvání místem (prázdné buňky) nebo přeplnění omezené kapacity buněk.
 
+### Pokročilé / AI indexy
+* **Vektorové indexy (Vector Indexes):** Klíčové pro AI (vyhledávání v embeddings, RAG systémy). Používají se struktury jako **HNSW** (Hierarchical Navigable Small World) grafy nebo **IVF** (Inverted File) indexy pro rychlé přibližné hledání nejbližších sousedů (ANN – Approximate Nearest Neighbor) ve vícedimenzionálních prostorech.
 
 ### Obecná pravidla pro návrh indexů (Guidelines)
 * **Dobrá selektivita:** Indexovat by se měly sloupce, kde podmínku splňuje jen malý zlomek řádků z tabulky.
@@ -145,11 +143,12 @@ Index je pomocná datová struktura (kolekce dvojic `<klíč, ukazatel na zázna
 * **Pokrývající index (Covering Index):** Pokud index obsahuje všechny sloupce požadované dotazem, odpověď se přečte přímo z indexu a k samotným záznamům v tabulce se vůbec nepřistupuje.
 
 ---
+
 ## Rastrové (bitmap) indexy
+
 Speciální databázový index, který přítomnost či nepřítomnost hodnoty reprezentuje pomocí bitových polí (sekvencí jedniček a nul) namísto klasických ukazatelů na řádky.
 
 ### Příklad
-
 Máme tabulku se 4 řádky a dvěma sloupci (`Pohlaví` a `Město`).
 
 | ID řádku | Jméno | Pohlaví | Město |
@@ -184,9 +183,12 @@ Výsledek (AND): 0 0 0 1  -> Podmínku splňuje pouze 4. řádek (Tomáš).
 
 ### Nevýhody
 * **Vysoká kardinalita:** Naprosto nevhodné pro unikátní data jako rodná čísla, e-maily nebo ID, kde by index neúměrně narostl.
-* **Časté zápisy (OLTP):** Zcela nevhodné pro transakční systémy s častým vkládáním a úpravou dat (`INSERT`, `UPDATE`), protože modifikace jednoho bitu často zamyká celý datový blok a blokuje ostatní operace.
+* **Časté zápisy (OLTP):** Zcela nevhodné pro transakční systémy s častým vkládáním a úpravou dat (`INSERT`, `UPDATE`), protože modifikace jednoho bitu často zamyká celý datový blok (vektor) a blokuje ostatní operace souběhu (lock contention).
 
----## Dynamické hašování (Dynamic Hashing)
+---
+
+## Dynamické hašování (Dynamic Hashing)
+
 Používá se pro data, jejichž objem se v čase mění. Na rozdíl od statického hašování předchází vzniku dlouhých přetékajících řetězců (overflow chains) průběžnou reorganizací adresního prostoru.
 
 ### 1. Rozšířitelné hašování (Extendible Hashing)
@@ -198,7 +200,7 @@ Používá se pro data, jejichž objem se v čase mění. Na rozdíl od statick�
 
 ### 2. Lineární hašování (Linear Hashing)
 * **Princip:** **Nepoužívá adresář.** Počet bucketů roste lineárně (přidáváním jednoho po druhém). Pro adresaci se využívá $i$ nejnižších (koncových) bitů adresy. Rozhodování o štěpení se řídí celkovým zaplněním prostoru (faktorem zaplnění, např. překročení 80 %).
-* **Štěpení:** Když nastane trigger pro štěpení, rozštěpí se konkrétní bucket určený interním ukazatelem pointeru $P$, **který se ale může lišit od bucketu, kam se právě zapisovalo** (proto mohou vzniknout dočasné overflow bloky). Pointer $P$ se posune o jedna dále. Jakmile se postupně rozštěpí všechny buckety v dané fázi, zvýší se počet bitů $i$ pro adresaci, pointer $P$ skočí na začátek (na 0) a proces běží nanovo.
+* **Štěpení:** Když nastane trigger pro štěpení, rozštěpí se konkrétní bucket určený interním ukazatelem pointeru $P$, **který se ale může lišit od bucketu, kam se právě zapisovalo** (proto mohou vzniknout dočasné overflow bloky). Pointer $P$ se posune o jedna dále. Jakmile se postupně rozštěpí všechny buckety v dané fázi, zvýší se počet bitů $i$ pro adresaci, pointer $P$ skočí na začátek (na 0) a proces běžní nanovo.
 * **Výhody/Nevýhody:** Žádná režie na adresář, paměť roste plynule. Kvůli asynchronnímu štěpení se ale občas nelze vyhnout krátkým overflow řetězcům.
 
 ---
@@ -207,15 +209,26 @@ Používá se pro data, jejichž objem se v čase mění. Na rozdíl od statick�
 
 Zpracování SQL dotazu probíhá ve 3 hlavních krocích:
 1. **Analýza a překlad (Parsing):** Kontrola syntaxe a sémantiky proti katalogu. Vzniká logický plán (výraz relační algebry).
-2. **Optimalizace (Query Optimization):** Generování ekvivalentních plánů. Cost-Based Optimizer (CBO) vybere plán s nejnižší odhadovanou cenou na základě statistik.
+2. **Optimalizace (Query Optimization):** Generování ekvivalentních plánů. Cost-Based Optimizer (CBO) vybere plán s nejnižší odhadovanou cenou na základě statistik. *Starší Rule-Based Optimizer (RBO) se slepě řídil sadou pevných pravidel (např. "vždy použij index, je-li k dispozici"), což mohlo vést k neoptimálním plánům.*
 3. **Kódování a spuštění (Execution):** Prováděcí engine spustí fyzický plán nad databází.
 
+*Příklad z praxe:*
+*Pro dotaz na nalezení filmů s herci narozenými v roce 1960:*
+```sql
+SELECT title FROM StarsIn WHERE starName IN (SELECT name FROM MovieStar WHERE birthdate = 1960);
+```
+*Vytvoří optimalizátor počáteční logický plán:*
+$$\Pi_{\text{title}} [ \sigma_{\text{starName}=\text{name} \land \text{birthdate}=1960} (\text{StarsIn} \times \text{MovieStar}) ]$$
+*Který následně vylepší transformací kartézského součinu na efektivnější přirozené spojení (Natural Join):*
+$$\Pi_{\text{title}} [ \text{StarsIn} \bowtie \sigma_{\text{birthdate}=1960}(\text{MovieStar}) ]$$
+
+<img alt="img.png" src="img/db/query-process-schema.png" width="300"/>
+
 ### Předávání dat mezi operátory
-* **Materializace:** Operátor zapíše celý mezivýsledek do dočasné tabulky na disk/do paměti a až pak ho předá dál. Vysoké I/O náklady.
+* **Materializace (Materialization):** Operátor zapíše celý mezivýsledek do dočasné tabulky na disk/do paměti a až pak ho předá dál. Vysoké I/O náklady.
 * **Pipelining (Proudové zpracování):** Operátory předávají data průběžně po jednotlivých řádcích bez zápisu na disk (Iterator Model / Volcano architecture s metodami `open()`, `next()`, `close()`).
 
 <img alt="img.png" src="img/db/pipelining.png" width="300"/>
-
 
 ---
 
@@ -230,16 +243,17 @@ Používá se, pokud se tříděná data nevejdou do paměti RAM ($M$ bloků).
 
 #### B) Algoritmy pro Spojení (Join Operators)
 Mějme vnější relaci $R_1$ a vnitřní relaci $R_2$.
-1. **Nested-Loop Join:** * *Block Nested-Loop:* Pro každý blok $R_1$ v paměti se sekvenčně projde celá relace $R_2$ blok po bloku.
+1. **Nested-Loop Join (Vnořené cykly):**
+   * *Block Nested-Loop:* Pro každý blok $R_1$ v paměti se sekvenčně projde celá relace $R_2$ blok po bloku.
    * *Indexed Nested-Loop:* Pokud má $R_2$ index nad spojovacím atributem, prohledává se přímo index pro každý řádek z $R_1$. Efektivní pro malou vnější relaci.
 2. **Sort-Merge Join:** Obě relace se nejprve setřídí podle spojovacího atributu a následně se procházejí paralelně jedním společným průchodem.
-3. **Hash Join:** * *Build fáze:* Nad menší relací se v RAM vybuduje hašovací tabulka podle spojovacího klíče.
+3. **Hash Join:**
+   * *Build fáze:* Nad menší relací se v RAM vybuduje hašovací tabulka podle spojovacího klíče.
    * *Probe fáze:* Větší relace se sekvenčně čte a pro každý řádek se hašováním klíče okamžitě ověřuje shoda.
-
 
 ### Statistiky a odhady nákladů
 
-CBO vyjadřuje cenu prováděcího plánu v arbitrárních jednotkách (odhad počtu diskových I/O operací a CPU cyklů). Statistiky se udržují v systémovém katalogu a aktualizují se periodicky (např. pomocí vzorkování dat přes příkaz `ANALYZE`).
+CBO vyjadřuje cenu prováděcího plánu v arbitrárních jednotkách (odhad počtu diskových I/O operací a CPU cyklů). Statistiky se udržují v systémovém katalogu a aktualizují se periodicky na základě vzorkování dat přes příkaz `ANALYZE`.
 
 **Základní metadata v katalogu:**
 * $T(R)$ – celkový počet řádků (kardinalita) relace $R$.
@@ -251,14 +265,14 @@ CBO vyjadřuje cenu prováděcího plánu v arbitrárních jednotkách (odhad po
 
 Při předpokladu uniformního rozdělení dat se velikost mezivýsledků odhaduje pomocí faktoru selektivity ($sf$):
 
-* **Kartézský součin ($W = R_1 	\times R_2$):**
+* **Kartézský součin ($W = R_1 \times R_2$):**
   $$T(W) = T(R_1) \cdot T(R_2)$$
 
-* **Selekce – Rovnost ($\sigma_{A = 	ext{val}}(R)$):**
-  $$sf = rac{1}{V(R, A)} \quad \implies \quad T(W) = rac{T(R)}{V(R, A)}$$
+* **Selekce – Rovnost ($\sigma_{A = \text{val}}(R)$):**
+  $$sf = \frac{1}{V(R, A)} \quad \implies \quad T(W) = \frac{T(R)}{V(R, A)}$$
 
-* **Selekce – Rozsah ($\sigma_{A \ge 	ext{val}}(R)$):**
-  $$sf = rac{	ext{Max} - 	ext{val} + 1}{	ext{Max} - 	ext{Min} + 1}$$
+* **Selekce – Rozsah ($\sigma_{A \ge \text{val}}(R)$):**
+  $$sf = \frac{\text{Max} - \text{val} + 1}{\text{Max} - \text{Min} + 1}$$
 
 * **Konjunkce (AND) nezávislých podmínek:**
   $$sf(C_1 \land C_2) = sf(C_1) \cdot sf(C_2)$$
@@ -266,23 +280,22 @@ Při předpokladu uniformního rozdělení dat se velikost mezivýsledků odhadu
 * **Disjunkce (OR) nezávislých podmínek:**
   $$sf(C_1 \lor C_2) = sf(C_1) + sf(C_2) - (sf(C_1) \cdot sf(C_2))$$
 
-* **Přirozené spojení ($W = R_1  owtie R_2$) přes společný atribut $A$:**
-  $$T(W) = rac{T(R_1) \cdot T(R_2)}{\max\{V(R_1, A), V(R_2, A)\}}$$
+* **Přirozené spojení ($W = R_1 \bowtie R_2$) přes společný atribut $A$:**
+  $$T(W) = \frac{T(R_1) \cdot T(R_2)}{\max\{V(R_1, A), V(R_2, A)\}}$$
 
 * **Odhad počtu unikátních hodnot v mezivýsledku $U$:**
   $$V(U, A) = \min\{V(R, A), T(U)\}$$
+
 ---
 
-## Optimalizace dotazů a schémat 
+## Optimalizace dotazů a schémat
 
 Tato fáze se zaměřuje na strukturální úpravy databázového schématu (globální úroveň) a na přepisování samotných dotazů (lokální úroveň) s cílem odstranit úzká hrdla a dosáhnout maximálního výkonu.
 
-### 1. Optimalizace schématu (Schema Tuning)
+### 1. Optimalizace schématu (Schema Optimization)
+Volba správného schématu představuje trade-off mezi úsporou místa (ochranou před anomáliemi) a rychlostí čtení.
 
-Volba mezi normalizovaným a denormalizovaným schématem představuje trade-off mezi úsporou místa (ochranou před anomáliemi) a rychlostí čtení.
-
-#### A) Normalizace vs. Denormalizace
-* **Normalizované schéma (3NF/BCNF):** Každá funkční závislost $X \rightarrow A$ vyžaduje, aby $X$ byl superklíč. Zabraňuje redundanci a šetří místo na disku, ale vynucuje si drahé spojování tabulek (`JOIN`).
+* **Normalizace (1NF, 2NF, 3NF, BCNF):** Každá funkční závislost $X \rightarrow A$ vyžaduje, aby $X$ byl superklíč. Zabraňuje redundanci a šetří místo na disku, ale vynucuje si drahé spojování tabulek (`JOIN`).
 * **Denormalizace:** Záměrné porušení normálních forem pro zrychlení kritických dotazů (eliminace `JOIN`ů za cenu redundance a složitějších zápisů).
 
 *Příklad z praxe (TPC-H):*
@@ -298,7 +311,14 @@ SELECT i_orderkey, i_regionname FROM itemdenormalized WHERE i_regionname = 'Euro
 ```
 *Tato úprava přináší až 54% nárůst propustnosti systému za cenu duplikace textového řetězce u všech 600 000 řádků.*
 
+* **Alternative k denormalizaci - Clusterované ukládání (Clustered Storage):** Dovoluje ukládat fyzicky záznamy ze dvou různých tabulek k sobě na základě společného klíče (např. v Oracle nebo u dokumentových NoSQL databází). Například záznamy objednávek z `Order` jsou fyzicky zapsány hned za odpovídajícím dodavatelem ze `Supplier`. Rychlé čtení 1:N bez nutnosti provádět logické spojení.
+
+### 2. Materializované pohledy a triggery
+* **Materializované pohledy (Materialized Views):** Pohled, jehož data jsou fyzicky uložena v tabulce na disku. Na rozdíl od obyčejných pohledů, které se vyhodnocují za běhu, se materializovaný pohled předpočítá. Optimalizátor automaticky nahrazuje původní složité dotazy materializovaným pohledem (Query Rewrite).
+* **Triggery (Databázové spouštěče):** Uložené procedury, které se automaticky spouštějí při DML (`INSERT`, `UPDATE`, `DELETE`) nebo DDL událostech. Používají se k postupné údržbě agregovaných tabulek a materializovaných pohledů (increment maintenance), což šetří výkon, ale vnáší režii na zápisové operace.
+
 ---
+
 ## Pravidla pro transformaci dotazů
 
 Logické transformace přepisují počáteční relačně-algebraický strom dotazu do ekvivalentní, ale výpočetně mnohem efektivnější podoby. Cílem je zmenšit velikost mezivýsledků co nejdříve v průběhu exekuce.
@@ -318,7 +338,6 @@ Pořadí vyhodnocování relací není pro konečný výsledek podstatné, proto
   $$R \cup S = S \cup R$$
   $$(R \cup S) \cup T = R \cup (S \cup T)$$
 
-
 ### 2. Pravidla pro Selekci ($\sigma$)
 Selekce filtruje řádky. Lze ji rozkládat na kaskády nezávislých podmínek, což umožňuje přesouvat konkrétní jednodušší filtry hlouběji do stromu.
 
@@ -329,13 +348,11 @@ Selekce filtruje řádky. Lze ji rozkládat na kaskády nezávislých podmínek,
   Při práci s multimnožinami (bags) v SQL se pro rozklad disjunktivních predikátů využívá sjednocení typu $MAX$ pro zachování správného počtu duplicit:
   $$\sigma_{p_1 \lor p_2}(R) = \sigma_{p_1}(R) \cup_{max} \sigma_{p_2}(R)$$
 
-
 ### 3. Pravidla pro Projekci ($\pi$)
 Projekce redukuje sloupce. Kaskádové projekce umožňují ignorovat vnější (nadbytečné) projekce, pokud jsou vnitřní projekce jejich nadmnožinou.
 
 * **Kaskádové projekce (předpoklad $X \subseteq Y$):**
   $$\pi_{X}(\pi_{Y}(R)) = \pi_{X}(R)$$
-
 
 ### 4. Kombinace operátorů (Heuristiky pro optimalizaci)
 
@@ -368,14 +385,17 @@ Odstraněním nepotřebných sloupců co nejdříve (ještě před selekcí nebo
 ---
 
 ## Rozdělování dat (Partitioning)
+
 Rozdělováním se velká logická tabulka rozčlení do menších, nezávisle spravovatelných fyzických pod-tabulek (particií).
 
-* **Horizontální dělení:** Řádky se distribuují do particií podle klíče (na základě rozsahu hodnot, definovaného seznamu nebo hašování). Hlavní výhodou je **prořezávání particií (Partition Pruning)**, kdy optimalizátor zcela ignoruje particie, které neodpovídají podmínkám v dotazu. *Příklad: Pokud tabulku objednávek rozdělíme horizontálně podle let a dotaz směřuje pouze na prosinec 2025, databáze fyzicky čte pouze partici pro rok 2025.*
-* **Vertikální dělení:** Tabulka se rozděluje podle sloupců. Málo používané nebo široké sloupce se vyčlení do samostatné tabulky (se vztahem 1:1), což zmenší velikost datového bloku pro nejčastější dotazy. *Příklad: Vyčlenění velkého textového sloupce `životopis_pdf` z hlavní tabulky `zaměstnanci` do vedlejší tabulky, aby se zrychlil běžný scan jmen a emailů.*
+### 1. Horizontální dělení (Horizontal Partitioning)
+Řádky se distribuují do particií podle klíče (na základě rozsahu hodnot, definovaného seznamu nebo hašování). Hlavní výhodou je **prořezávání particií (Partition Pruning)**, kdy optimalizátor zcela ignoruje particie, které neodpovídají podmínkám v dotazu.
 
+*Příklad:*
+*Pokud tabulku objednávek rozdělíme horizontálně podle let a dotaz směřuje pouze na prosinec 2025, databáze fyzicky čte pouze partici pro rok 2025.*
 
-#### B) Vertikální dělení (Vertical Partitioning)
-Rozdělení jedné tabulky na více menších tabulek (vztah 1:1) podle sloupců. Je výhodné, pokud jsou některé sloupce dotazovány výrazně častěji nebo jsou řádově menší než zbytek tabulky.
+### 2. Vertikální dělení (Vertical Partitioning)
+Rozdělení jedné tabulky na více menších tabulek (vztah 1:1) podle sloupců. Je výhodné, pokud jsou některé sloupce dotazovány výrazně častěji nebo jsou řádově menší než zbytek tabulky (např. LOB sloupce, které se ukládají odděleně).
 
 *Příklad z praxe:*
 *Mobilní operátor eviduje u zákazníka ID, adresu a kredit: `Customer(id, address, credit)`. Kredit se mění a kontroluje mnohokrát denně, zatímco adresa se čte pouze jednou měsíčně při generování faktur. Výhodné je rozdělení na:*
@@ -383,26 +403,21 @@ Rozdělení jedné tabulky na více menších tabulek (vztah 1:1) podle sloupců
 * `CustCredit(id, credit)`
 *Tabulka `CustCredit` je extrémně malá, zabírá minimum diskových bloků a může být kompletně nahrána v RAM, což dramaticky urychlí její neustálé skenování.*
 
-#### C) Vertikální replikace (Antipartitioning)
+### 3. Vertikální replikace (Antipartitioning)
 Záměrná replikace několika málo atributů z jedné tabulky do druhé s cílem eliminovat spojení.
 
 *Příklad z praxe:*
 *Burzovní portál má tabulky `StockDetail(stock_id, company)` a `StockPrice(stock_id, date, price)`. Dotazy na aktuální cenu vyžadují drahé spojení. Pokud do `StockDetail` zavedeme redundantní sloupce `price_today` a `price_yesterday`, nejčastější dotazy vyřešíme jediným index scanem bez nutnosti joinu.*
 
-
 <img alt="img.png" src="img/db/hor-ver.png" width="400"/>
-
 
 ---
 
 ## Ladění dotazů a schématu
+
 Ladění (Query/Schema Tuning) reaguje na situace, kdy automatická optimalizace nestačí a exekuce je příliš pomalá. Cílem je upravit struktury nebo samotný zápis kódu tak, aby optimalizátor dokázal najít lepší cestu. K analýze se standardně používá příkaz `EXPLAIN`.
 
-* **Indexy a pokrývající indexy:** Přidávají se chybějící indexy na spojovací atributy nebo sloupce s vysokou selektivitou. Využívá se pokrývající index (Covering Index), který obsahuje všechny sloupce požadované dotazem, takže exekuční plán nemusí vůbec přistupovat k samotné tabulce a čte data přímo z listů indexu.
-* **Přepis dotazů:** Složité poddotazy se často přepisují na klasické operace spojení (`JOIN`), nebo se vynucuje konkrétní prováděcí postup pomocí nápověd pro optimalizátor (**Hints**). *Příklad: Vynucení použití konkrétního indexu pomocí `FORCE INDEX (index_name)` v MySQL, pokud optimalizátor chybně zvolil celostránkový scan.*
-* **Zpětná úprava schématu:** Pokud normalizované schéma kvůli velkému množství joinů neúměrně zpomaluje čtení, přistupuje se k řízené denormalizaci nebo k vytváření materializovaných pohledů.
-
-### Vliv indexů na modifikace dat
+### 1. Vliv indexů na modifikace dat
 Indexy výrazně urychlují `SELECT`, ale dramaticky zpomalují zápisy (`INSERT`, `DELETE`, `UPDATE`), protože DBMS musí synchronně aktualizovat i datové struktury indexu (např. B+ strom).
 
 *Příklad z praxe:*
@@ -412,7 +427,10 @@ Indexy výrazně urychlují `SELECT`, ale dramaticky zpomalují zápisy (`INSERT
 * *Oba indexy: Čtení podle herce = 4 I/O, Čtení podle filmu = 4 I/O, Zápis = 6 I/O.*
 *Zavedení obou indexů se vyplatí pouze tehdy, pokud je frekvence vyhledávání výrazně vyšší než frekvence zápisů ($p_1, p_2 \ge 0.4$).*
 
-### Eliminace zbytečných DISTINCTů
+### 2. Speciální typy indexů (Reversed-key Index)
+Oracle specialita pro zvýšení propustnosti při masivním paralelním vkládání řádků (typicky automaticky generované sekvence jako ID objednávek). Hodnoty klíčů se v indexu uloží pozpátku (např. 12345 se uloží jako 54321 a 12346 jako 64321). Tím se zápisy rozptýlí do různých listových bloků B+ stromu a předejde se kolizím zápisů na jednom "horkém" bloku (hot block contention).
+
+### 3. Eliminace zbytečných DISTINCTů
 Použití `DISTINCT` nutí databázi provést drahé řazení nebo hašování (*Unique* / *HashAggregate*) pro odstranění duplicit. Často je však `DISTINCT` v dotazu nadbytečný.
 
 * **Pravidlo privilegovanosti:** Tabulka je privilegovaná, pokud výběr (projection) obsahuje její primární klíč.
@@ -425,19 +443,28 @@ SELECT DISTINCT ssnum FROM employee, tech WHERE employee.dept = tech.dept;
 ```
 *Protože `ssnum` je primární klíč v `employee` (je privilegovaná) a `dept` je klíč v `tech`, každý zaměstnanec se spojí s nejvýše jedním oddělením. Výsledek duplicity přirozeně neobsahuje a klauzule DISTINCT je nadbytečná.*
 
-### Správné využití indexů v klauzulích WHERE
+### 4. Správné využití indexů v klauzulích WHERE
 Optimalizátory často nedokážou použít index, pokud je indexovaný sloupec obalen funkcí nebo matematickým výrazem:
-
 * **Pomalé (nevyužije index):** `WHERE salary/12 >= 4000;`
 * **Rychlé (využije index):** `WHERE salary >= 48000;`
 * **Pomalé (nevyužije index):** `WHERE SUBSTR(name, 1, 1) = 'G';`
 * **Rychlé (využije index):** `WHERE name LIKE 'G%';`
 
-### Nevhodné použití HAVING
+### 5. Nevhodné použití HAVING
 Klauzule `HAVING` slouží výhradně pro filtrování agregačních výsledků. Pro běžnou filtraci řádků před agregací se musí zásadně používat `WHERE`, což sníží počet řádků vstupujících do drahé operace `GROUP BY`.
-
 * **Špatně:** `SELECT avg(salary), dept FROM employee GROUP BY dept HAVING dept = 'IT';`
 * **Správně:** `SELECT avg(salary), dept FROM employee WHERE dept = 'IT' GROUP BY dept;`
+
+### 6. Přepis poddotazů (Subquery Rewriting)
+Optimální vyhodnocení vnořených poddotazů je pro optimalizátory obtížné. Doporučuje se nahrazovat je explicitními `JOIN` operacemi nebo dočasnými tabulkami. Je však nutné dávat pozor na záludnosti:
+
+* **The Infamous COUNT Bug (Nechvalně známá chyba s COUNT):**
+  Při přepisu poddotazu s agregací `COUNT` do `JOIN` přes dočasnou tabulku může dojít ke skryté ztrátě dat. 
+  *Mějme vyhledání zaměstnanců, jejichž počet spolupracovníků odpovídá počtu lidí v jejich technickém oddělení. Zaměstnanec Helene, která nepracuje v žádném technickém oddělení, má v původním dotazu počet lidí v oddělení roven $COUNT(\emptyset) = 0$. Pokud má 0 spolupracovníků, původní podmínkou projde. Při přepisu na dočasnou tabulku s GROUP BY přes technická oddělení se ale Helene z filtru zcela vytratí (v dočasné tabulce její oddělení neexistuje, takže JOIN ji odfiltruje).*
+
+* **Anti-joiny a záludnosti s NULL (NOT IN vs. NOT EXISTS):**
+  Při hledání prvků, které neexistují ve druhé tabulce (např. hotely bez pokojů), se často používá `NOT IN` nebo `NOT EXISTS`.
+  * **Chování s NULL:** Pokud poddotaz v `NOT IN` vrátí byť jedinou hodnotu `NULL` (např. pokoj s neexistujícím ID hotelu), pak celý dotaz `NOT IN` vrátí **prázdnou množinu** (protože podmínka se vnitřně přepisuje jako řetězec `AND id != x`, kde porovnání s NULL dává `UNKNOWN` a zneplatní celý filtr). `NOT EXISTS` se s hodnotami `NULL` vypořádá správně a je proto pro anti-joiny doporučován jako bezpečnější.
 
 ---
 
@@ -466,6 +493,7 @@ SQL standard definuje 4 úrovně izolace transakcí na základě toho, jakým an
 * **Read Committed:** Čtecí zámek se uvolňuje ihned po přečtení dat. Zabraňuje *Dirty Read*, ale povoluje **Non-repeatable Read** (opakované čtení stejného řádku v téže transakci vrátí jiné hodnoty, protože je jiná transakce mezitím změnila a potvrdila).
 * **Repeatable Read:** Čtecí zámky se drží až do konce transakce. Zabraňuje předchozím anomáliím, ale povoluje **Phantom Read** (opakovaný rozsahový dotaz v téže transakci vrátí nové, mezitím vložené řádky od jiné transakce).
 * **Serializable:** Nejvyšší úroveň, exekuce je ekvivalentní sériovému spuštění transakcí za sebou. Zabraňuje všem anomáliím.
+
 <img alt="img.png" src="img/db/isaloation-level.png" width="500"/>
 
 ---
@@ -503,6 +531,7 @@ Periodická operace, která zkracuje čas zotavení po havárii.
 ---
 
 ## Bezpečnost, přístupová oprávnění
+
 Bezpečnostní subsystém se zaměřuje na ochranu před neautorizovaným přístupem a zneužitím informací zvenčí. Bezpečnost v databázových systémech (DBMS) se opírá o kontrolu přístupu, která určuje, kteří uživatelé mají oprávnění k jakým datům a operacím.
 
 V moderních databázových systémech se k řízení přístupu využívají dva hlavní koncepční modely:
