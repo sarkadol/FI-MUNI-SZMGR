@@ -443,33 +443,62 @@ Klauzule `HAVING` slouží výhradně pro filtrování agregačních výsledků.
 
 ## Zpracování transakcí
 
-Transakce je skupina operací, která tvoří jednu logickou jednotku práce s databází. Správné zpracování transakcí garantuje vlastnosti **ACID**:
+Transakce tvoří logickou jednotku práce s databází a její správné zpracování garantuje vlastnosti **ACID** (Atomicita, Konzistence, Izolovanost, Trvanlivost). Zatímco pohled aplikace na transakci je takový, že běží zcela izolovaně, databáze se musí vypořádat s masivní souběžnou exekucí (concurrency).
 
-* **Atomicita (Atomicity):** Transakce se provede buď celá, nebo vůbec. Pokud uprostřed dojde k chybě, všechny dosavadní změny se vrátí zpět (**Rollback**).
-* **Konzistence (Consistency):** Transakce převádí databázi z jednoho validního stavu do druhého, přičemž nesmí být porušena žádná integritní omezení (cizí klíče, check podmínky).
-* **Izolovanost (Isolation):** Souběžně běžící transakce nesmí navzájem vidět své neodeslané změny. Izolovanost řeší zamykací protokoly (např. Dvoufázové zamykání – **2PL**, které zaručuje serializovatelnost plánu) nebo verzování (**MVCC** – Multi-Version Concurrency Control), kdy čtení neblokuje zápis a naopak, protože transakce čtou starší konzistentní verze dat.
-* **Trvanlivost (Durability):** Jakmile je transakce úspěšně potvrzena (**Commit**), její změny jsou trvale zapsány a nesmí být ztraceny ani při následném výpadku napájení.
+### 1. Řízení souběhu a zamykání (Concurrency Control)
+K zajištění korektnosti při paralelním běhu transakcí se využívají semafory na úrovni celé databáze (vhodné pro in-memory databáze) nebo zamykací mechanismy na úrovni stránek a řádků (vhodné pro diskové DB).
+* **Zámky:** Sdílené pro čtení (Shared - S) a exkluzivní pro zápis (Exclusive - X).
+* **Protokol 2PL (Two-Phase Locking):** Garantuje serializovatelnost prováděcího plánu. Má dvě fáze:
+  1. *Růstová fáze:* Transakce zámky pouze získává, nesmí žádný uvolnit.
+  2. *Smršťovací fáze:* Transakce zámky pouze uvolňuje, nesmí žádný nový získat.
 
-### Izolační úrovně a anomálie
-SQL standard definuje 4 úrovně izolace transakcí na základě toho, jakým anomáliím zabraňují:
-1. **Read Uncommitted:** Povoluje anomálii *Dirty Read* (čtení nepotvrzených dat jiné transakce).
-2. **Read Committed:** Zabraňuje *Dirty Read*, ale povoluje *Non-repeatable Read* (opakované čtení stejného řádku v téže transakci vrátí jiné hodnoty, protože je jiná transakce mezitím změnila a commitla).
-3. **Repeatable Read:** Zabraňuje předchozím, ale povoluje *Phantom Read* (opakovaný rozsahový dotaz vrátí nové řádky vložené mezitím jinou transakcí).
-4. **Serializable:** Nejvyšší úroveň, transakce se chovají, jako by běžely striktně sériově za sebou.
+### 2. Pravidla pro návrh a ladění transakcí (Tuning Guidelines)
+Dlouho běžící transakce drží zámky po dlouhou dobu, čímž blokují ostatní transakce, zvyšují riziko uváznutí (deadlock) a snižují propustnost systému.
+* **Zákaz interakce s uživatelem:** Transakce nikdy nesmí čekat na vstup od uživatele (např. kliknutí na tlačítko), během čehož by držela zámky.
+* **Zamykat pouze nezbytné:** Filtrování řádků se musí provádět na straně DB serveru (přes `WHERE`), nikoliv načtením celé tabulky do aplikace a jejím postupným zamykáním.
+* **Sekání transakcí (Chopping):** Pokud transakce $T$ přistupuje k prvkům $x$ a $y$ a ostatní paralelní transakce přistupují nejvýše k jednomu z nich, je výhodné rozdělit $T$ na dvě kratší transakce $T_1$ (zpracuje $x$) a $T_2$ (zpracuje $y$).
+* **Uvolňování zámků dříve:** Většina DBMS uvolňuje čtecí (S) zámky ihned po dokončení konkrétního I/O čtení, nečeká se na commit (oslabení izolace).
 
+### 3. Úrovně izolace vs. Anomálie
+SQL standard definuje 4 úrovně izolace transakcí na základě toho, jakým anomáliím (nežádoucím jevům při souběhu) předchází:
+
+* **Read Uncommitted:** Nejnižší úroveň, nepoužívá téměř žádné zamykání pro čtení. Povoluje anomálii **Dirty Read** (čtení nepotvrzených dat jiné aktivní transakce).
+* **Read Committed:** Čtecí zámek se uvolňuje ihned po přečtení dat. Zabraňuje *Dirty Read*, ale povoluje **Non-repeatable Read** (opakované čtení stejného řádku v téže transakci vrátí jiné hodnoty, protože je jiná transakce mezitím změnila a potvrdila).
+* **Repeatable Read:** Čtecí zámky se drží až do konce transakce. Zabraňuje předchozím anomáliím, ale povoluje **Phantom Read** (opakovaný rozsahový dotaz v téže transakci vrátí nové, mezitím vložené řádky od jiné transakce).
+* **Serializable:** Nejvyšší úroveň, exekuce je ekvivalentní sériovému spuštění transakcí za sebou. Zabraňuje všem anomáliím.
 <img alt="img.png" src="img/db/isaloation-level.png" width="500"/>
 
 ---
 
 ## Výpadky a zotavení
-Systém zotavení (Recovery Manager) zajišťuje atomicitu a trvanlivost transakcí v případě selhání systému (pád OS, výpadek proudu). Využívá k tomu transakční log (žurnál) zapsaný na stabilním úložišti.
 
-* **Pravidlo WAL (Write-Ahead Logging):** Žádný datový blok nesmí být zapsán na disk do primární databáze dříve, než je příslušný záznam o jeho změně bezpečně zapsán a synchronizován (flushed) v transakčním logu.
-* **Strategie správy bufferu:** Rozhoduje o tom, kdy se data přepisují na disk. 
-    * Strategie **Steal** dovoluje systému zapsat na disk změny i nepotvrzených transakcí (vyžaduje operaci *UNDO* při pádu pro zachování atomicity).
-    * Strategie **No-Force** nevyžaduje zápis všech změn na disk okamžitě při commitu (vyžaduje operaci *REDO* při pádu pro zachování trvanlivosti). Moderní DBMS typicky používají kombinaci **Steal / No-Force**.
-* **Zotavení pomocí logu (ARIES / REDO a UNDO):** Při restartu po havárii systém projde log. Operace potvrzených transakcí se provedou znovu z logu na disk (**REDO**), zatímco změny nedokončených (aktivních) transakcí se z databáze odstraní a vrátí zpět (**UNDO**).
-* **Kontrolní body (Checkpoints):** Periodické ukládání stavu paměti na disk. Zkracují čas zotavení po havárii, protože systém ví, že operace zapsané před kontrolním bodem jsou již bezpečně flushnuté na disku a nemusí log analyzovat od úplného začátku.
+Systém zotavení (Recovery Manager) zajišťuje atomicitu (vrácení nedokončených změn) a trvanlivost (zápis potvrzených změn) transakcí po nečekaném výpadku proudu nebo pádu operačního systému.
+
+### 1. Write-Ahead Logging (WAL)
+Základní pravidlo pro zachování konzistence dat na disku: **Žádný datový blok nesmí být zapsán do primární databáze na disk dříve, než je příslušný záznam o jeho změně bezpečně uložen a synchronizován (flushed) v transakčním logu.**
+
+### 2. Strategie správy bufferu (Buffer Management)
+Správce paměti (Buffer Manager) rozhoduje o tom, kdy se špinavé (změněné) stránky z RAM bufferu přepisují do primárního souboru na disku. Kombinace strategií definuje náročnost zotavení:
+
+* **Steal vs. No-Steal:**
+  * *Steal:* Systém smí zapsat na disk změny provedené dosud nepotvrzenou transakcí (např. při nedostatku RAM). Vyžaduje fázi **UNDO** při pádu (vrácení změn nedokončených transakcí).
+  * *No-Steal:* Systém nesmí zapsat necommitované změny na disk. Fáze UNDO není nutná.
+* **Force vs. No-Force:**
+  * *Force:* Všechny změny musí být zapsány na disk okamžitě při potvrzení (commit) transakce.
+  * *No-Force:* Změny commitované transakce mohou zůstat v RAM bufferu a zapíšou se na disk později. Šetří diskové I/O, ale vyžaduje fázi **REDO** při pádu (znovupřehrání změn potvrzených transakcí z logu).
+
+Moderní vysoce výkonné databáze používají kombinaci **Steal / No-Force** (maximální volnost pro správu paměti), což znamená, že proces zotavení musí bezpodmínečně provádět jak fázi REDO, tak fázi UNDO.
+
+### 3. Fáze zotavení (např. ARIES)
+Po restartu systému po havárii probíhá proces zotavení ve třech po sobě jdoucích fázích:
+1. **Analytická fáze:** Prochází log směrem dopředu od posledního kontrolního bodu. Identifikuje aktivní transakce (které v momentě pádu běžely a bude nutné je vrátit) a špinavé stránky v bufferu.
+2. **Fáze REDO (Zopakování):** Prochází log dopředu a znovu aplikuje všechny zapsané změny (potvrzených i nepotvrzených transakcí), čímž uvádí databázi přesně do stavu, v jakém byla v momentě pádu.
+3. **Fáze UNDO (Vrácení zpět):** Prochází log pozpátku a odstraňuje (rolluje zpět) změny všech transakcí, které nebyly před pádem úspěšně potvrzeny (commitovány).
+
+### 4. Kontrolní body (Checkpoints)
+Periodická operace, která zkracuje čas zotavení po havárii. 
+* Během checkpointu se aktuální špinavé stránky z RAM bufferu zapíšou na disk a do logu se zapíše záznam o stavu aktivních transakcí.
+* Při následném pádu víme, že všechny změny zapsané před checkpointem jsou bezpečně na disku, a analýzu logu proto nemusíme provádět od úplného začátku souboru logu.
 
 ---
 
@@ -484,4 +513,5 @@ V moderních databázových systémech se k řízení přístupu využívají dv
 * **Řízení přístupu na základě rolí (RBAC – Role-Based Access Control):** Tento model výrazně zjednodušuje správu oprávnění ve větší organizaci. Namísto přidělování práv jednotlivým uživatelům se oprávnění naváží na logické entity zvané **role** (např. *role `manažer`, `analytik`, `účetní`*), které reprezentují pracovní funkce. Uživatelům jsou následně tyto role pouze přiřazovány, což minimalizuje riziko lidské chyby a usnadňuje auditování přístupu.
 
 Z hlediska granularity se bezpečnost vynucuje na různých úrovních. Kromě klasického zabezpečení celých tabulek či schémat lze využít pohledy (`VIEWS`), které uživateli zpřístupní pouze vybranou podmnožinu sloupců a řádků, čímž efektivně skrývají citlivá data bez nutnosti měnit fyzickou strukturu podkladových tabulek. Pokročilé systémy pak integrují přímé řízení na úrovni řádků (**Row-Level Security – RLS**), kde jsou dotazy uživatelů na pozadí automaticky modifikovány o bezpečnostní predikáty. *Příklad: V tabulce `faktury` uvidí obchodní zástupce přes RLS automaticky pouze ty řádky, kde sloupec `id_obchodnika` odpovídá jeho přihlašovacímu ID.*
+
 <img alt="img.png" src="img/db/overview.png" width="600"/>
