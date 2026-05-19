@@ -33,6 +33,7 @@ NAND Flash paměti sice eliminovaly mechanický přesun hlav, ale přinesly novo
 
 Kvůli tomu nelze data jednoduše přepsat na stejném místě. Používá se strategie **Out-of-place Updates**: při změně dat se nová verze zapíše na čistou stránku a stará stránka se označí za neplatnou. Mazání na pozadí (**Garbage Collection**) pak musí neplatné bloky vyčistit. To vede k přesunům dat, opotřebení buněk a k nežádoucímu **zesílení zápisu (Write Amplification)**, kdy se fyzicky zapíše mnohem více dat, než databáze reálně požadovala.
 
+<img alt="img.png" src="img/db/mem-hir.png" width="700"/>
 
 ### 2. Spolehlivost a optimalizace na úrovni OS (RAID a FS)
 Pro zvýšení rychlosti I/O operací a zajištění odolnosti proti selhání hardwaru se disky sdružují do logických polí **RAID** (Redundant Array of Independent Disks):
@@ -204,78 +205,165 @@ Používá se pro data, jejichž objem se v čase mění. Na rozdíl od statick�
 
 ## Vyhodnocování dotazu, algoritmy, statistiky a odhady nákladů
 
-Zpracování deklarativního SQL dotazu probíhá ve třech základních krocích:
-1. **Analýza a překlad (Parsing and Translation):** Kontrola syntaxe, ověření jmen tabulek/sloupců proti katalogu a překlad dotazu do interní podoby – **relačně-algebraického výrazu** (logického plánu).
-2. **Optimalizace dotazu (Query Optimization):** Generování různých logicky ekvivalentních prováděcích plánů. **Cost-Based Optimizer (CBO)** na základě statistik odhadne cenu provádění plánů a vybere ten s nejnižší cenou. *Starší Rule-Based Optimizer (RBO) se slepě řídil sadou pevných pravidel (např. „vždy použij index, je-li k dispozici“), což mohlo vést k neoptimálním plánům.*
-3. **Kódování a spuštění (Execution):** **Prováděcí engine (Execution Engine)** vezme zvolený fyzický plán, spustí nad databází příslušné nízkoúrovňové algoritmy a vrátí výsledek.
+Zpracování SQL dotazu probíhá ve 3 hlavních krocích:
+1. **Analýza a překlad (Parsing):** Kontrola syntaxe a sémantiky proti katalogu. Vzniká logický plán (výraz relační algebry).
+2. **Optimalizace (Query Optimization):** Generování ekvivalentních plánů. Cost-Based Optimizer (CBO) vybere plán s nejnižší odhadovanou cenou na základě statistik.
+3. **Kódování a spuštění (Execution):** Prováděcí engine spustí fyzický plán nad databází.
 
-<img alt="img.png" src="img/db/query-process-schema.png" width="300"/>
-
-Fyzický plán tvoří strom operátorů. Spolupráce mezi nimi při předávání dat může být implementována dvěma způsoby:
-* **Materializace (Materialization):** Operátor plně zpracuje svůj vstup, zapíše celý mezivýsledek do dočasné tabulky na disk/do paměti a až poté ho předá nadřazenému operátoru. Generuje vysoké I/O náklady.
-* **Pipelining (Proudové zpracování):** Operátory předávají data průběžně po jednotlivých řádcích (nebo blocích) bez zápisu na disk. Implementuje se pomocí **Iterator Modelu (Volcano architecture)**, kde každý operátor poskytuje rozhraní se třemi metodami: `open()`, `next()` (vrátí jeden řádek nebo EOF) a `close()`. Ušetří obrovské množství I/O operací.
+### Předávání dat mezi operátory
+* **Materializace:** Operátor zapíše celý mezivýsledek do dočasné tabulky na disk/do paměti a až pak ho předá dál. Vysoké I/O náklady.
+* **Pipelining (Proudové zpracování):** Operátory předávají data průběžně po jednotlivých řádcích bez zápisu na disk (Iterator Model / Volcano architecture s metodami `open()`, `next()`, `close()`).
 
 <img alt="img.png" src="img/db/pipelining.png" width="300"/>
 
+
+---
+
 ### Algoritmická implementace fyzických operátorů
-Rychlost zpracování kriticky závisí na zvoleném algoritmu pro operace **Spojení (Join)**, **Seřazení (Sort)** a **Selekce (Selection)**.
 
 #### A) Externí třídění (External Sort-Merge)
-Pokud se data nevejdou do paměti RAM (velikost paměti je $M$ bloků), klasický Quicksort selže. Použije se vícedobé externí třídění:
-1. **Fáze generování běhů (Runs):** Data se načítají po částech o velikosti $M$ bloků do paměti, seřadí se v RAM a zapíšou se na disk jako setříděné sub-soubory (běhy).
-2. **Fáze slévání (Merge):** V každém kroku se paralelně načte začátek $M-1$ běhů do paměti, slévají se do jednoho setříděného proudu a zapisují zpět. Kroky se opakují, dokud nevznikne jediný setříděný soubor.
+Používá se, pokud se tříděná data nevejdou do paměti RAM ($M$ bloků).
+1. **Fáze generování běhů (Runs):** Data se načtou po částech o velikosti $M$ bloků do RAM, seřadí se a zapíšou na disk jako setříděné běhy.
+2. **Fáze slévání (Merge):** V paměti se alokuje $M-1$ bloků pro vstupní proudy a $1$ pro výstup. Data se paralelně slévají do jednoho setříděného souboru.
 
 <img alt="img.png" src="img/db/mergesort.png" width="400"/>
 
 #### B) Algoritmy pro Spojení (Join Operators)
-Mějme vnější relaci $R$ (velikost $B_R$ bloků, $V_R$ řádků) a vnitřní relaci $S$ (velikost $B_S$ bloků, $V_S$ řádků).
+Mějme vnější relaci $R_1$ a vnitřní relaci $R_2$.
+1. **Nested-Loop Join:** * *Block Nested-Loop:* Pro každý blok $R_1$ v paměti se sekvenčně projde celá relace $R_2$ blok po bloku.
+   * *Indexed Nested-Loop:* Pokud má $R_2$ index nad spojovacím atributem, prohledává se přímo index pro každý řádek z $R_1$. Efektivní pro malou vnější relaci.
+2. **Sort-Merge Join:** Obě relace se nejprve setřídí podle spojovacího atributu a následně se procházejí paralelně jedním společným průchodem.
+3. **Hash Join:** * *Build fáze:* Nad menší relací se v RAM vybuduje hašovací tabulka podle spojovacího klíče.
+   * *Probe fáze:* Větší relace se sekvenčně čte a pro každý řádek se hašováním klíče okamžitě ověřuje shoda.
 
-1. **Nested-Loop Join (Spojení vnořenými cykly):**
-   * **Block Nested-Loop:** Pro každý blok relace $R$ načtený do paměti se sekvenčně projde celá relace $S$ blok po bloku a porovnají se řádky. Celková cena je $B_R + (B_R \times B_S)$ I/O operací.
-   * **Indexed Nested-Loop:** Pokud má relace $S$ index nad spojovacím atributem, místo sekvenčního čtení $S$ se pro každý řádek z $R$ dotáže rovnou index nad $S$. Velmi rychlé, pokud je relace $R$ malá.
-2. **Sort-Merge Join:**
-   * Obě relace se nejprve setřídí podle spojovacího atributu (pokud již setříděné nejsou, např. z indexu).
-   * Následně se obě relace procházejí paralelně jedním průchodem (podobně jako slévání při třídění). Velmi efektivní pro velké relace a rozsahové podmínky.
-3. **Hash Join:**
-   * **Fáze sestavení (Build):** Menší relace ($R$) se načte do paměti a vybuduje se nad ní v paměti hašovací tabulka podle spojovacího klíče.
-   * **Fáze ověření (Probe):** Větší relace ($S$) se sekvenčně čte a pro každý její řádek se hašováním klíče okamžitě ověří shoda v hašovací tabulce v paměti. Pokud se relace $R$ nevejde do paměti, provede se **Grace Hash Join** – obě relace se nejdříve stejnou funkcí rozhašují do particií na disk a spojují se particie po dvojicích.
 
-### Statistiky a odhady nákladů (Cost Estimation)
-Optimalizátor se při výpočtu nákladů (odhad počtu diskových I/O operací a CPU cyklů) spoléhá na **statistiky uložené v systémovém katalogu**:
-* $V(R)$ – celkový počet řádků (kardinalita) relace $R$.
-* $B(R)$ – celkový počet datových bloků relace $R$.
-* $V(A, R)$ – počet unikátních hodnot atributu $A$ v relaci $R$.
-* **Histogramy:** Rozdělení četnosti hodnot v daném sloupci (ekviprostanční nebo ekvifrekvenční) pro zachycení datového zešikmení (*skew*).
+### Statistiky a odhady nákladů
 
-### Odhad selektivity a kardinality výsledku (Size Estimation)
-**Faktor selektivity ($sf$)** udává očekávaný podíl řádků, které projdou danou podmínkou (nabývá hodnot 0 až 1). Odhadovaný počet řádků výsledku je pak $\text{Kardinalita} \times sf$.
+CBO vyjadřuje cenu prováděcího plánu v arbitrárních jednotkách (odhad počtu diskových I/O operací a CPU cyklů). Statistiky se udržují v systémovém katalogu a aktualizují se periodicky (např. pomocí vzorkování dat přes příkaz `ANALYZE`).
 
-Základní teoretické odhady (při předpokladu uniformního rozdělení dat):
-* **Rovnost ($A = \text{konstanta}$):**
-  $sf = \frac{1}{V(A, R)}$
-* **Nerovnost ($A > \text{konstanta}$):** Využívá známé minimum a maximum hodnot v daném sloupci:
-  $sf = \frac{\text{max} - \text{konstanta}}{\text{max} - \text{min}}$
-* **Konjunkce (AND) nezávislých podmínek:** Selektivity se násobí:
-  $sf(C_1 \land C_2) = sf(C_1) \times sf(C_2)$
-* **Disjunkce (OR) nezávislých podmínek:** Použije se zákon pravděpodobnosti:
-  $sf(C_1 \lor C_2) = sf(C_1) + sf(C_2) - (sf(C_1) \times sf(C_2))$
+**Základní metadata v katalogu:**
+* $T(R)$ – celkový počet řádků (kardinalita) relace $R$.
+* $B(R)$ – celkový počet datových bloků relace $R$ na disku.
+* $V(R, A)$ – počet unikátních hodnot atributu $A$ v relaci $R$.
+* **Histogramy:** Rozdělení četnosti hodnot pro zachycení datového zešikmení (skew).
 
+### Matematické odhady velikosti výsledku
+
+Při předpokladu uniformního rozdělení dat se velikost mezivýsledků odhaduje pomocí faktoru selektivity ($sf$):
+
+* **Kartézský součin ($W = R_1 	\times R_2$):**
+  $$T(W) = T(R_1) \cdot T(R_2)$$
+
+* **Selekce – Rovnost ($\sigma_{A = 	ext{val}}(R)$):**
+  $$sf = rac{1}{V(R, A)} \quad \implies \quad T(W) = rac{T(R)}{V(R, A)}$$
+
+* **Selekce – Rozsah ($\sigma_{A \ge 	ext{val}}(R)$):**
+  $$sf = rac{	ext{Max} - 	ext{val} + 1}{	ext{Max} - 	ext{Min} + 1}$$
+
+* **Konjunkce (AND) nezávislých podmínek:**
+  $$sf(C_1 \land C_2) = sf(C_1) \cdot sf(C_2)$$
+
+* **Disjunkce (OR) nezávislých podmínek:**
+  $$sf(C_1 \lor C_2) = sf(C_1) + sf(C_2) - (sf(C_1) \cdot sf(C_2))$$
+
+* **Přirozené spojení ($W = R_1  owtie R_2$) přes společný atribut $A$:**
+  $$T(W) = rac{T(R_1) \cdot T(R_2)}{\max\{V(R_1, A), V(R_2, A)\}}$$
+
+* **Odhad počtu unikátních hodnot v mezivýsledku $U$:**
+  $$V(U, A) = \min\{V(R, A), T(U)\}$$
 ---
 
 ## Optimalizace dotazů a schémat 
-Předchozí část se zabývala fyzickým prováděním operátorů a výpočtem jejich ceny. Tato fáze se posouvá o úroveň výš do oblasti logického plánování, kde se deklarativní SQL dotaz transformuje na optimální strom relační algebry ještě před volbou konkrétních algoritmů. Cílem je minimalizovat velikost mezivýsledků co nejdříve, čímž se drasticky sníží I/O náklady v pozdějších fázích.
 
-Optimalizace využívá toho, že SQL je deklarativní jazyk. Uživatel definuje pouze výsledek, nikoli postup jeho získání, což dává optimalizátoru možnost volby z mnoha ekvivalentních cest. 
+Tato fáze se zaměřuje na strukturální úpravy databázového schématu (globální úroveň) a na přepisování samotných dotazů (lokální úroveň) s cílem odstranit úzká hrdla a dosáhnout maximálního výkonu.
 
-V rámci schématu se volí mezi **normalizací** a **denormalizací**. Zatímco normalizované schéma (do 3NF/BCNF) zabraňuje redundanci a anomáliím při aktualizacích, denormalizace záměrně duplikuje data pro zrychlení čtení. Dalším nástrojem jsou **materializované pohledy**, které výsledek dotazu fyzicky ukládají na disk jako tabulku, což odstraňuje nutnost opakovaných drahých výpočtů za cenu složitější aktualizace při změně podkladových dat.
+### 1. Optimalizace schématu (Schema Tuning)
+
+Volba mezi normalizovaným a denormalizovaným schématem představuje trade-off mezi úsporou místa (ochranou před anomáliemi) a rychlostí čtení.
+
+#### A) Normalizace vs. Denormalizace
+* **Normalizované schéma (3NF/BCNF):** Každá funkční závislost $X \rightarrow A$ vyžaduje, aby $X$ byl superklíč. Zabraňuje redundanci a šetří místo na disku, ale vynucuje si drahé spojování tabulek (`JOIN`).
+* **Denormalizace:** Záměrné porušení normálních forem pro zrychlení kritických dotazů (eliminace `JOIN`ů za cenu redundance a složitějších zápisů).
+
+*Příklad z praxe (TPC-H):*
+*Chceme najít položky od evropských dodavatelů. Normalizovaný dotaz spojuje 4 tabulky:*
+```sql
+SELECT i_orderkey, r_name FROM item, supplier, nation, region
+WHERE i_suppkey = s_suppkey AND s_nationkey = n_nationkey 
+AND n_regionkey = r_regionkey AND r_name = 'Europe';
+```
+*Vytvořením denormalizované tabulky `itemdenormalized` se sloupcem `i_regionname` získáme dotaz nad jedinou tabulkou:*
+```sql
+SELECT i_orderkey, i_regionname FROM itemdenormalized WHERE i_regionname = 'Europe';
+```
+*Tato úprava přináší až 54% nárůst propustnosti systému za cenu duplikace textového řetězce u všech 600 000 řádků.*
 
 ---
 ## Pravidla pro transformaci dotazů
-Transformace přepisují logický strom dotazu do efektivnější podoby pomocí zákonitostí relační algebry (heuristiky).
 
-* **Včasná selekce (Pushing Selections Down):** Podmínky filtrace ($\sigma$) se přesouvají co nejblíže k samotným tabulkám před operace spojení. Tím se zásadně zmenšuje objem dat vstupujících do drahých joinů.
-* **Včasná projekce (Pushing Projections Down):** Odstranění nepotřebných sloupců ($\pi$) v počátečních fázích zmenšuje šířku řádků v mezivýsledcích a šetří operační paměť.
-* **Změna pořadí spojení (Join Reordering):** Využívá se komutativita a asociativita spojení. Optimalizátor vyhodnocuje tvary stromů spojení (např. *Left-deep trees*, které dobře pasují do pipeliningu) a hledá takové pořadí operací, které vygeneruje nejmenší mezivýsledky.
+Logické transformace přepisují počáteční relačně-algebraický strom dotazu do ekvivalentní, ale výpočetně mnohem efektivnější podoby. Cílem je zmenšit velikost mezivýsledků co nejdříve v průběhu exekuce.
+
+### 1. Komutativita a asociativita (Změna pořadí)
+Pořadí vyhodnocování relací není pro konečný výsledek podstatné, protože všechny atributy jsou zachovány. Optimalizátor proto může měnit strukturu stromu tak, aby drahé operace (např. spojení velkých tabulek) proběhly co nejpozději.
+
+* **Přirozené spojení (Natural Join):**
+  $$R \bowtie S = S \bowtie R$$
+  $$(R \bowtie S) \bowtie T = R \bowtie (S \bowtie T)$$
+
+* **Kartézský součin (Cross Product):**
+  $$R \times S = S \times R$$
+  $$(R \times S) \times T = R \times (S \times T)$$
+
+* **Sjednocení (Union):**
+  $$R \cup S = S \cup R$$
+  $$(R \cup S) \cup T = R \cup (S \cup T)$$
+
+
+### 2. Pravidla pro Selekci ($\sigma$)
+Selekce filtruje řádky. Lze ji rozkládat na kaskády nezávislých podmínek, což umožňuje přesouvat konkrétní jednodušší filtry hlouběji do stromu.
+
+* **Kaskádové větvení (splitting AND):**
+  $$\sigma_{p_1 \land p_2}(R) = \sigma_{p_1}[\sigma_{p_2}(R)]$$
+
+* **Rozklad disjunkce (splitting OR):**
+  Při práci s multimnožinami (bags) v SQL se pro rozklad disjunktivních predikátů využívá sjednocení typu $MAX$ pro zachování správného počtu duplicit:
+  $$\sigma_{p_1 \lor p_2}(R) = \sigma_{p_1}(R) \cup_{max} \sigma_{p_2}(R)$$
+
+
+### 3. Pravidla pro Projekci ($\pi$)
+Projekce redukuje sloupce. Kaskádové projekce umožňují ignorovat vnější (nadbytečné) projekce, pokud jsou vnitřní projekce jejich nadmnožinou.
+
+* **Kaskádové projekce (předpoklad $X \subseteq Y$):**
+  $$\pi_{X}(\pi_{Y}(R)) = \pi_{X}(R)$$
+
+
+### 4. Kombinace operátorů (Heuristiky pro optimalizaci)
+
+#### A) Včasná selekce (Pushing Selections Down)
+Přesunutí selekce pod operátor spojení ($\bowtie$) drasticky snižuje počet řádků vstupujících do drahé join operace.
+
+* **Základní posun selekce pod spojení:**
+  Mějme predikát $p$, který se odkazuje pouze na atributy z tabulky $R$. Pak platí:
+  $$\sigma_{p}(R \bowtie S) = [\sigma_{p}(R)] \bowtie S$$
+
+* **Komplexní posun selekce pod spojení:**
+  Mějme predikát $p$ (obsahuje pouze atributy z $R$), predikát $q$ (pouze atributy ze $S$) a spojovací predikát $m$ (vyžaduje atributy z $R$ i $S$):
+  $$\sigma_{p \land q \land m}(R \bowtie S) = \sigma_{m}[(\sigma_{p}(R)) \bowtie (\sigma_{q}(S))]$$
+
+* **Posun selekce pod sjednocení a rozdíl:**
+  $$\sigma_{p}(R \cup_{sum} S) = \sigma_{p}(R) \cup_{sum} \sigma_{p}(S)$$
+  $$\sigma_{p}(R - S) = \sigma_{p}(R) - S = \sigma_{p}(R) - \sigma_{p}(S)$$
+
+#### B) Včasná projekce (Pushing Projections Down)
+Odstraněním nepotřebných sloupců co nejdříve (ještě před selekcí nebo spojením) se zúží šířka řádků v paměťových bufferech.
+
+* **Posun projekce pod selekci:**
+  Mějme podmnožinu atributů $X \subseteq R$ a predikát $P$, který se odkazuje na množinu atributů $Z$. Projekci lze posunout dolů, pokud zachováme sloupce potřebné pro vyhodnocení selekce ($X \cup Z$):
+  $$\pi_{X}[\sigma_{P}(R)] = \pi_{X}(\sigma_{P}[\pi_{X \cup Z}(R)])$$
+
+* **Posun projekce pod spojení:**
+  Mějme $X \subseteq R$, $Y \subseteq S$ a množinu společných (join) atributů $Z$:
+  $$\pi_{XY}(R \bowtie S) = \pi_{XY}([\pi_{X \cup Z}(R)] \bowtie [\pi_{Y \cup Z}(S)])$$
 
 ---
 
@@ -284,6 +372,23 @@ Rozdělováním se velká logická tabulka rozčlení do menších, nezávisle s
 
 * **Horizontální dělení:** Řádky se distribuují do particií podle klíče (na základě rozsahu hodnot, definovaného seznamu nebo hašování). Hlavní výhodou je **prořezávání particií (Partition Pruning)**, kdy optimalizátor zcela ignoruje particie, které neodpovídají podmínkám v dotazu. *Příklad: Pokud tabulku objednávek rozdělíme horizontálně podle let a dotaz směřuje pouze na prosinec 2025, databáze fyzicky čte pouze partici pro rok 2025.*
 * **Vertikální dělení:** Tabulka se rozděluje podle sloupců. Málo používané nebo široké sloupce se vyčlení do samostatné tabulky (se vztahem 1:1), což zmenší velikost datového bloku pro nejčastější dotazy. *Příklad: Vyčlenění velkého textového sloupce `životopis_pdf` z hlavní tabulky `zaměstnanci` do vedlejší tabulky, aby se zrychlil běžný scan jmen a emailů.*
+
+
+#### B) Vertikální dělení (Vertical Partitioning)
+Rozdělení jedné tabulky na více menších tabulek (vztah 1:1) podle sloupců. Je výhodné, pokud jsou některé sloupce dotazovány výrazně častěji nebo jsou řádově menší než zbytek tabulky.
+
+*Příklad z praxe:*
+*Mobilní operátor eviduje u zákazníka ID, adresu a kredit: `Customer(id, address, credit)`. Kredit se mění a kontroluje mnohokrát denně, zatímco adresa se čte pouze jednou měsíčně při generování faktur. Výhodné je rozdělení na:*
+* `CustAddr(id, address)`
+* `CustCredit(id, credit)`
+*Tabulka `CustCredit` je extrémně malá, zabírá minimum diskových bloků a může být kompletně nahrána v RAM, což dramaticky urychlí její neustálé skenování.*
+
+#### C) Vertikální replikace (Antipartitioning)
+Záměrná replikace několika málo atributů z jedné tabulky do druhé s cílem eliminovat spojení.
+
+*Příklad z praxe:*
+*Burzovní portál má tabulky `StockDetail(stock_id, company)` a `StockPrice(stock_id, date, price)`. Dotazy na aktuální cenu vyžadují drahé spojení. Pokud do `StockDetail` zavedeme redundantní sloupce `price_today` a `price_yesterday`, nejčastější dotazy vyřešíme jediným index scanem bez nutnosti joinu.*
+
 
 <img alt="img.png" src="img/db/hor-ver.png" width="400"/>
 
@@ -296,6 +401,43 @@ Ladění (Query/Schema Tuning) reaguje na situace, kdy automatická optimalizace
 * **Indexy a pokrývající indexy:** Přidávají se chybějící indexy na spojovací atributy nebo sloupce s vysokou selektivitou. Využívá se pokrývající index (Covering Index), který obsahuje všechny sloupce požadované dotazem, takže exekuční plán nemusí vůbec přistupovat k samotné tabulce a čte data přímo z listů indexu.
 * **Přepis dotazů:** Složité poddotazy se často přepisují na klasické operace spojení (`JOIN`), nebo se vynucuje konkrétní prováděcí postup pomocí nápověd pro optimalizátor (**Hints**). *Příklad: Vynucení použití konkrétního indexu pomocí `FORCE INDEX (index_name)` v MySQL, pokud optimalizátor chybně zvolil celostránkový scan.*
 * **Zpětná úprava schématu:** Pokud normalizované schéma kvůli velkému množství joinů neúměrně zpomaluje čtení, přistupuje se k řízené denormalizaci nebo k vytváření materializovaných pohledů.
+
+### Vliv indexů na modifikace dat
+Indexy výrazně urychlují `SELECT`, ale dramaticky zpomalují zápisy (`INSERT`, `DELETE`, `UPDATE`), protože DBMS musí synchronně aktualizovat i datové struktury indexu (např. B+ strom).
+
+*Příklad z praxe:*
+*U tabulky `StarsIn` provádíme dotazy podle herce ($p_1$), podle filmu ($p_2$) a zápisy (Insert). Náklady v počtu I/O operací se mění podle konfigurace indexů:*
+* *Bez indexů: Čtení = 10 I/O (Table Scan), Zápis = 2 I/O.*
+* *Index na herce: Čtení podle herce = 4 I/O, Zápis = 4 I/O.*
+* *Oba indexy: Čtení podle herce = 4 I/O, Čtení podle filmu = 4 I/O, Zápis = 6 I/O.*
+*Zavedení obou indexů se vyplatí pouze tehdy, pokud je frekvence vyhledávání výrazně vyšší než frekvence zápisů ($p_1, p_2 \ge 0.4$).*
+
+### Eliminace zbytečných DISTINCTů
+Použití `DISTINCT` nutí databázi provést drahé řazení nebo hašování (*Unique* / *HashAggregate*) pro odstranění duplicit. Často je však `DISTINCT` v dotazu nadbytečný.
+
+* **Pravidlo privilegovanosti:** Tabulka je privilegovaná, pokud výběr (projection) obsahuje její primární klíč.
+* **Pravidlo dosažitelnosti:** Neprivilegovaná tabulka $R$ "dosáhne" na $S$, pokud je s ní spojena přes rovnost svého primárního klíče.
+* **Věta o duplicitách:** Výsledek dotazu garantovaně neobsahuje duplicity (a `DISTINCT` je tedy zbytečný), pokud je každá tabulka v dotazu privilegovaná, nebo pokud každá neprivilegovaná tabulka dosáhne na nějakou privilegovanou.
+
+*Příklad z praxe:*
+```sql
+SELECT DISTINCT ssnum FROM employee, tech WHERE employee.dept = tech.dept;
+```
+*Protože `ssnum` je primární klíč v `employee` (je privilegovaná) a `dept` je klíč v `tech`, každý zaměstnanec se spojí s nejvýše jedním oddělením. Výsledek duplicity přirozeně neobsahuje a klauzule DISTINCT je nadbytečná.*
+
+### Správné využití indexů v klauzulích WHERE
+Optimalizátory často nedokážou použít index, pokud je indexovaný sloupec obalen funkcí nebo matematickým výrazem:
+
+* **Pomalé (nevyužije index):** `WHERE salary/12 >= 4000;`
+* **Rychlé (využije index):** `WHERE salary >= 48000;`
+* **Pomalé (nevyužije index):** `WHERE SUBSTR(name, 1, 1) = 'G';`
+* **Rychlé (využije index):** `WHERE name LIKE 'G%';`
+
+### Nevhodné použití HAVING
+Klauzule `HAVING` slouží výhradně pro filtrování agregačních výsledků. Pro běžnou filtraci řádků před agregací se musí zásadně používat `WHERE`, což sníží počet řádků vstupujících do drahé operace `GROUP BY`.
+
+* **Špatně:** `SELECT avg(salary), dept FROM employee GROUP BY dept HAVING dept = 'IT';`
+* **Správně:** `SELECT avg(salary), dept FROM employee WHERE dept = 'IT' GROUP BY dept;`
 
 ---
 
