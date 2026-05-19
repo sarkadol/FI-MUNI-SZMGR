@@ -10,39 +10,99 @@
 
 ## Ukládání dat
 
-Fyzické ukládání dat v DBMS přímo určuje výkon celého systému, který je primárně limitován počtem diskových operací (I/O úzké hrdlo).
+Výkon každého databázového systému (DBMS) je primárně limitován rychlostí komunikace se sekundárním úložištěm. Tento jev se označuje jako **I/O úzké hrdlo** (I/O bottleneck), protože operace v operační paměti RAM jsou řádově rychlejší než čtení a zápis na disk. Databáze proto musí být navržena tak, aby minimalizovala počet diskových operací.
 
-### Paměťová hierarchie a HDD
-* **Hierarchie:** Primární paměť (rychlá, drahá, volatilní RAM) vs. sekundární paměť (pomalé, levné, perzistentní HDD/SSD pracující s atomickými $4\text{ KiB}$ bloky).
-* **Mechanické disky (HDD):** Přístupová doba se skládá ze seeku (přesun hlavy, $4\text{-}10\text{ ms}$), rotační latence (čekání na sektor, polovina otáčky) a přenosu. Náhodný přístup je u HDD až $300\times$ pomalejší než sekvenční z důvodu mechanické režie.
+### 1. Paměťová hierarchie a specifika hardwaru
+Aby mohl systém efektivně fungovat, využívá paměťovou hierarchii, kde platí: čím je paměť blíže procesoru, tím je rychlejší, dražší a má menší kapacitu.
 
-### Polovodičové disky (SSD)
-* **Konstrukce:** NAND flash bez pohyblivých částí. Čtení/zápis probíhá po stránkách ($4\text{ KiB}$), mazání pouze po celých blocích ($128$ stránek).
-* **Out-of-place Updates:** Přepis probíhá zápisem na novou stránku; původní se označí za neplatnou. Mazání na pozadí (*Garbage Collection*) způsobuje opotřebení buněk a nežádoucí zesílení zápisu (*Write Amplification*).
+*   **Primární paměť (RAM):** Rychlá, drahá, ale volatilní (při výpadku napájení ztrácí data). Pracuje na úrovni bajtů.
+*   **Sekundární paměť (HDD/SSD):** Pomalá, levná, ale perzistentní (trvalá). Hardwarová vrstva nedokáže efektivně pracovat s jednotlivými bajty, proto komunikace mezi RAM a diskem probíhá vždy v **atomických blocích (stránkách)**, typicky o velikosti $4\text{ KiB}$ až $8\text{ KiB}$.
 
-### RAID a optimalizace
-* **RAID pole:** RAID 0 (proužkování, výkon), RAID 1 (zrcadlení pro logy), RAID 5 (distribuovaná parita, 1 disk výpadek), RAID 6 (dvě parity, 2 disky), RAID 10 (zrcadlené stripování). *Diff-RAID* u SSD zabraňuje simultánnímu selhání záměrným nerovnoměrným opotřebením.
-* **Ladění FS:** Zarovnání velikosti bloku s DB stránkou (eliminuje *Write Amplification*), mount s `noatime`, minimalizace swapování a režim `data=writeback` pro transakční logy.
+#### Mechanické disky (HDD)
+Přístupová doba k datům na HDD je diktována mechanikou a skládá se ze:
+1.  **Seeku:** Fyzický přesun čtecí hlavy nad správnou stopu ($4\text{--}10\text{ ms}$).
+2.  **Rotační latence:** Čekání, než se plotna otočí pod hlavu (polovina otáčky).
+3.  **Samotného přenosu dat.**
+
+Z této konstrukce plyne zásadní pravidlo: **Náhodný přístup (Random I/O) je u HDD až $300\times$ pomalejší než sekvenční přístup (Sequential I/O).** Při sekvenčním čtení se hlava přesune pouze jednou a pak kontinuálně čte celou stopu.
+
+#### Polovodičové disky (SSD)
+NAND Flash paměti sice eliminovaly mechanický přesun hlav, ale přinesly novou asymetrii mezi čtením a zápisem:
+*   **Čtení a zápis** probíhají po **stránkách** (např. $4\text{ KiB}$).
+*   **Mazání** lze provést pouze po celých **blocích** (např. $128$ stránek).
+
+Kvůli tomu nelze data jednoduše přepsat na stejném místě. Používá se strategie **Out-of-place Updates**: při změně dat se nová verze zapíše na čistou stránku a stará stránka se označí za neplatnou. Mazání na pozadí (**Garbage Collection**) pak musí neplatné bloky vyčistit. To vede k přesunům dat, opotřebení buněk a k nežádoucímu **zesílení zápisu (Write Amplification)**, kdy se fyzicky zapíše mnohem více dat, než databáze reálně požadovala.
+
+
+### 2. Spolehlivost a optimalizace na úrovni OS (RAID a FS)
+Pro zvýšení rychlosti I/O operací a zajištění odolnosti proti selhání hardwaru se disky sdružují do logických polí **RAID** (Redundant Array of Independent Disks):
+
+*   **RAID 0 (Striping):** Data se střídavě dělí mezi disky. Zvyšuje výkon (čte se paralelně), ale nemá žádnou redundanci (selhání 1 disku = ztráta všech dat).
+*   **RAID 1 (Mirroring):** Zrcadlení dat 1:1. Výborné pro zápis transakčních logů, poskytuje vysokou bezpečnost.
+*   **RAID 5 (Distributed Parity):** Data i paritní informace jsou distribuovány napříč všemi disky (minimálně 3 disky). Přežije selhání 1 disku. Nabízí dobrý poměr ceny a výkonu pro čtení, zápis je pomalejší kvůli výpočtu parity.
+*   **RAID 6 (Dual Parity):** Podobně jako RAID 5, ale se dvěma paritami. Přežije simultánní výpadek až 2 disků.
+*   **RAID 10 (1+0):** Kombinace zrcadlení a proužkování. Nejvyšší výkon i spolehlivost za cenu vysokých nákladů (vyžaduje dvojnásobný počet disků).
+
+*V praxi se u SSD polí nasazuje navíc mechanismus **Diff-RAID**. Ten záměrně opotřebovává disky v poli nerovnoměrně, aby se předešlo situaci, kdy všechna SSD selžou v tentýž den kvůli dosažení limitu zápisů.*
+
 
 <img alt="img.png" src="img/db/raid.png" width="600"/>
+
+#### Ladění souborového systému (FS) pro potřeby DBMS
+Aby souborový systém operačního systému zbytečně nezpomaloval databázi, provádí se následující optimalizace:
+*   **Zarovnání velikosti bloku:** Velikost stránky databáze se nastaví jako přesný násobek clusteru souborového systému (např. $8\text{ KiB}$ DB stránka na $4\text{ KiB}$ FS blok), což eliminuje dvojené I/O operace a snižuje *Write Amplification*.
+*   **`noatime` mount:** Vypnutí zaznamenávání času posledního přístupu k souboru na úrovni OS. *Bez tohoto nastavení by každý SELECT na databázi generoval skrytý zápis na disk (aktualizaci metadat souboru v OS).*
+*   **Minimalizace swapování:** Paměť RAM vyhrazená pro databázový buffer se v OS uzamkne (např. pomocí `mlock`), aby ji operační systém při nedostatku paměti neodsunul na pomalý disk do swapu.
+
 ---
 
 ## Adresování záznamů
 
-Adresování určuje transformaci logických řádků do binární formy a jejich fyzickou lokalizaci na disku.
+Adresování určuje, jakým způsobem jsou logické datové řádky (záznamy) transformovány do binární podoby a jak je databáze dokáže fyzicky lokalizovat na disku a následně namapovat do operační paměti.
 
-### Reprezentace záznamů a Slotted-Page
-* **Formát:** Pevná délka (konstantní ofsety) nebo proměnlivá délka (hlavička obsahuje Null Bitmap a vektor ofsetů k proměnlivým sloupcům).
-* **Slotted-Page (stránka se sloty):** Adresář slotů `(fyzický ofset, délka)` roste odshora dolů, samotné datové řádky odspoda nahoru. Externí indexy odkazují výhradně na **ID slotu** (nepřímé adresování). To umožňuje fyzicky reorganizovat a setřást volné místo na stránce bez nutnosti aktualizovat indexy.
+### 1. Reprezentace záznamů na stránce
+Záznamy mohou mít pevnou délku (sloupce jako `INT`, `CHAR`) nebo proměnlivou délku (`VARCHAR`, `BLOB`). U proměnlivé délky obsahuje hlavička každého řádku **vektor ofsetů** (ukazatelů na startovní pozice jednotlivých sloupců) a **Null Bitmapu** (indikaci, které sloupce jsou prázdné, aby se pro ně netratilo místo).
 
-### Identifikátory a transformace
-* **Record ID (RID/ROWID):** Logicko-fyzický ukazatel ve tvaru $\text{RID} = \langle \text{File ID}, \text{Page ID}, \text{Slot ID} \rangle$.
-* **Pointer Swizzling:** Při načtení stránky do RAM se diskové adresy stránek ($\text{Page ID}$) nahradí přímými 64bitovými ukazateli v paměti. Při uvolnění stránky na disk probíhá zpětný *Unswizzling*.
 
-### Organizace souborů
-1. **Heap File (hromada):** Rychlý zápis $O(1)$, pomalé vyhledávání $O(N)$ (vyžaduje kompletní průchod).
-2. **Sequential File (sekvenční):** Fyzicky setříděný dle klíče. Rychlé vyhledávání půlením intervalu $O(\log N)$, drahé zápisy.
-3. **Hashed File (hašovaný):** Cílová stránka určena vztahem $h(\text{Klíč}) \bmod M$. Okamžitá shoda v $O(1)$, zcela nepoužitelné pro rozsahové dotazy.
+
+Fyzická organizace uvnitř jedné diskové stránky se standardně řeší architekturou **Slotted-Page (stránka se sloty)**:
+*   Na samotném začátku stránky se nachází **adresář slotů**, který obsahuje dvojice `(fyzický ofset, délka záznamu)`. Tento adresář roste odshora dolů.
+*   Samotné datové řádky se ukládají od konce stránky a rostou **odspoda nahoru**.
+*   Jakmile se adresář slotů potká s datovými řádky, stránka je plná.
+
+Tento design přináší zásadní výhodu: **nepřímé adresování**. Externí struktury (např. indexy) neodkazují na absolutní fyzickou bajtovou adresu řádku na disku, ale výhradně na **ID slotu** na dané stránce. Pokud se řádek uvnitř stránky změní (např. se nafoukne a databáze musí stránku setřást a řádky fyzicky posunout), změní se pouze ofset v adresáři slotů. ID slotu zůstává stejné, takže indexy není potřeba aktualizovat.
+
+### 2. Logické identifikátory a transformace do RAM
+Každý řádek v databázi má svůj jednoznačný fyzický identifikátor **Record ID (RID / ROWID)**. Tento ukazatel má strukturu:
+
+$\text{RID} = \langle \text{File ID}, \text{Page ID}, \text{Slot ID} \rangle$
+
+1.  `File ID`: Určuje, ve kterém souboru na disku je tabulka uložena.
+2.  `Page ID`: Určuje konkrétní blok (stránku) uvnitř tohoto souboru.
+3.  `Slot ID`: Určuje pořadové číslo v adresáři slotů na dané stránce.
+
+#### Pointer Swizzling (Převracení ukazatelů)
+Když databáze potřebuje se záznamem pracovat, načte příslušnou stránku z disku do vyrovnávací paměti v RAM (Buffer Pool). 
+*   Na disku jsou vazby mezi stránkami reprezentovány pomocí diskových adres (`Page ID`). Vyhledávání přes diskové adresy v RAM by ale znamenalo zbytečnou režii (hledání v hash tabulce buffer poolu).
+*   Proto se při načtení stránky do RAM provede **Pointer Swizzling**: diskové adresy se v paměti přímo přepíšou reálnými 64bitovými paměťovými ukazateli (pointry) na sousední objekty v RAM.
+*   Při uvolnění stránky z RAM zpět na disk probíhá zpětný proces (**Unswizzling**), kdy se paměťové pointry převedou zpět na perzistentní `Page ID`.
+
+### 3. Fyzická organizace souborů (File Organization)
+Podle toho, jak jsou stránky se sloty řazeny v souboru za sebou, rozlišujeme tři základní typy organizace:
+
+1.  **Heap File (hromada):** Řádky se ukládají na diskové stránky v takovém pořadí, v jakém přicházejí, na libovolné volné místo.
+    *   *Zápis:* Extrémně rychlý, $O(1)$.
+    *   *Vyhledávání:* Pomalé, $O(N)$ – vyžaduje lineární průchod všech stránek (Full Table Scan).
+    *   *Použití:* Logovací tabulky a staging oblasti.
+
+2.  **Sequential File (sekvenční soubor):** Stránky a řádky jsou fyzicky udržovány v setříděném pořadí podle určitého vyhledávacího klíče.
+    *   *Vyhledávání:* Rychlé, $O(\log N)$ pomocí půlení intervalu (binární vyhledávání) nad bloky.
+    *   *Zápis:* Extrémně drahý. Vložení řádku doprostřed vyžaduje fyzický posun následujících dat nebo tvorbu přetékajících logických řetězců (overflow blocks), což degraduje strukturu.
+
+3.  **Hashed File (hašovaný soubor):** Fyzické umístění stránky na disku je striktně určeno matematickou funkcí: $\text{Číslo stránky} = h(\text{Klíč}) \bmod M$, kde $M$ je pevný počet dostupných stránek (bucketů).
+    *   *Vyhledávání na přesnou shodu:* Okamžité, $O(1)$ v ideálním případě bez kolizí.
+    *   *Rozsahové dotazy:* Zcela nepoužitelné. *Dotaz na hodnoty v rozmezí 10 až 20 by znamenal prohledat náhodně rozházené stránky po celém disku, protože hašovací funkce záměrně likviduje sousednost dat.*
+
 
 ---
 
@@ -141,6 +201,7 @@ Používá se pro data, jejichž objem se v čase mění. Na rozdíl od statick�
 * **Výhody/Nevýhody:** Žádná režie na adresář, paměť roste plynule. Kvůli asynchronnímu štěpení se ale občas nelze vyhnout krátkým overflow řetězcům.
 
 ---
+
 ## Vyhodnocování dotazu, algoritmy, statistiky a odhady nákladů
 
 Zpracování deklarativního SQL dotazu probíhá ve třech základních krocích:
@@ -153,6 +214,7 @@ Zpracování deklarativního SQL dotazu probíhá ve třech základních krocíc
 Fyzický plán tvoří strom operátorů. Spolupráce mezi nimi při předávání dat může být implementována dvěma způsoby:
 * **Materializace (Materialization):** Operátor plně zpracuje svůj vstup, zapíše celý mezivýsledek do dočasné tabulky na disk/do paměti a až poté ho předá nadřazenému operátoru. Generuje vysoké I/O náklady.
 * **Pipelining (Proudové zpracování):** Operátory předávají data průběžně po jednotlivých řádcích (nebo blocích) bez zápisu na disk. Implementuje se pomocí **Iterator Modelu (Volcano architecture)**, kde každý operátor poskytuje rozhraní se třemi metodami: `open()`, `next()` (vrátí jeden řádek nebo EOF) a `close()`. Ušetří obrovské množství I/O operací.
+
 <img alt="img.png" src="img/db/pipelining.png" width="300"/>
 
 ### Algoritmická implementace fyzických operátorů
@@ -162,6 +224,8 @@ Rychlost zpracování kriticky závisí na zvoleném algoritmu pro operace **Spo
 Pokud se data nevejdou do paměti RAM (velikost paměti je $M$ bloků), klasický Quicksort selže. Použije se vícedobé externí třídění:
 1. **Fáze generování běhů (Runs):** Data se načítají po částech o velikosti $M$ bloků do paměti, seřadí se v RAM a zapíšou se na disk jako setříděné sub-soubory (běhy).
 2. **Fáze slévání (Merge):** V každém kroku se paralelně načte začátek $M-1$ běhů do paměti, slévají se do jednoho setříděného proudu a zapisují zpět. Kroky se opakují, dokud nevznikne jediný setříděný soubor.
+
+<img alt="img.png" src="img/db/mergesort.png" width="400"/>
 
 #### B) Algoritmy pro Spojení (Join Operators)
 Mějme vnější relaci $R$ (velikost $B_R$ bloků, $V_R$ řádků) a vnitřní relaci $S$ (velikost $B_S$ bloků, $V_S$ řádků).
@@ -251,7 +315,7 @@ SQL standard definuje 4 úrovně izolace transakcí na základě toho, jakým an
 3. **Repeatable Read:** Zabraňuje předchozím, ale povoluje *Phantom Read* (opakovaný rozsahový dotaz vrátí nové řádky vložené mezitím jinou transakcí).
 4. **Serializable:** Nejvyšší úroveň, transakce se chovají, jako by běžely striktně sériově za sebou.
 
-![img.png](img/db/isaloation-level.png)
+<img alt="img.png" src="img/db/isaloation-level.png" width="500"/>
 
 ---
 
