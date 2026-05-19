@@ -29,7 +29,7 @@ Cloud computing je model umožňující všudypřítomný a pohodlný síťový 
 * **SaaS (Software as a Service):** Poskytování hotových aplikací běžících v cloudové infrastruktuře.
 * **Serverless / FaaS (Function as a Service):** Nejvyšší abstrakce. Kód se spouští pouze na základě události (event-driven). Uživatel neřeší servery ani nečinný výkon. *Problém:* **Cold Start** – prodleva při alokaci zdrojů pro první spuštění funkce.
 
-<img alt="img.png" src="img/iaas-paas.png" width="600"/>
+<img alt="img.png" src="img/cloud/iaas-paas.png" width="600"/>
 
 ---
 ## Infrastruktura jako služba (IaaS)
@@ -101,13 +101,13 @@ V produkčním prostředí, kde běží stovky kontejnerů, je nutná automatiza
 * **Kubernetes (K8s):** Průmyslový standard pro orchestraci. Zajišťuje, aby kontejnery běžely na správných uzlech a měly dostatek zdrojů. *Příklad: E-shop zaznamená náhlý příval zákazníků. Kubernetes automaticky alokuje počet kontejnerů s webovým rozhraním ze 3 na 10, aby web zůstal rychlý.*
 * **Docker Swarm:** Jednodušší nástroj pro orchestraci, integrovaný přímo v Dockeru.
 
-<img alt="img.png" src="img/bytebytego-kontejnery.png" width="700"/>
+<img alt="img.png" src="img/cloud/bytebytego-kontejnery.png" width="700"/>
 
 ### Srovnání mechanismů nasazení aplikací
 
 Na základě architektury vrstvení rozlišujeme čtyři základní přístupy k provozu aplikací. Hlavním rozdílem je míra izolace a efektivita využití systémových zdrojů.
 
-<img alt="img.png" src="img/nasazeni.png" width="900"/>
+<img alt="img.png" src="img/cloud/nasazeni.png" width="900"/>
 
 #### 1. Bare Metal (Tradiční model)
 Aplikace běží přímo na operačním systému, který je nainstalován na fyzickém serveru.
@@ -226,7 +226,7 @@ Propojování **více běžných strojů** do jednoho logického celku (**cluste
 | **Cena** | Nelineární (high-end HW je drahý) | Lineární (běžný "commodity" HW) |
 | **Administrace** | Snadná (správa jedné instance) | Náročná (správa clusteru a sítě) |
 
-<img alt="img.png" src="img/hor-ver-scaling.png" width="500"/>
+<img alt="img.png" src="img/cloud/hor-ver-scaling.png" width="500"/>
 
 ### Další pojmy související se škálováním
 
@@ -246,13 +246,13 @@ Propojování **více běžných strojů** do jednoho logického celku (**cluste
 * Serverless computing (FaaS)
 * Cloud-native technologie a mikro-služby 
   
-<img alt="img.png" src="img/bytebytego-cloud-services.png" width="600"/>
+<img alt="img.png" src="img/cloud/bytebytego-cloud-services.png" width="600"/>
 
 ## Současné technologie a poskytovatelé cloudových služeb
 
 Trhu s veřejným cloudem dominují tři hlavní poskytovatelé (tzv. "The Big Three"), které doplňují specializovaní hráči jako Oracle. Každý z nich nabízí ekvivalentní služby pro výpočet, úložiště, sítě a databáze.
 
-<img alt="img.png" src="img/cloud-providers.png" width="600"/>
+<img alt="img.png" src="img/cloud/cloud-providers.png" width="600"/>
 
 ### Hlavní poskytovatelé na trhu
 1.  **Amazon Web Services (AWS):** Průkopník a aktuální leader trhu. Nabízí nejširší portfolio služeb a největší komunitu.
@@ -462,7 +462,7 @@ _Praktické příklady využití sloupcových databází_
 * **Google Cloud:** _Google Cloud Bigtable, Google BigQuery._
 * **Open-source:** _Apache Cassandra, Apache HBase._
 
-<img alt="img.png" src="img/bytebytego-nosql.png" width="700"/>
+<img alt="img.png" src="img/cloud/bytebytego-nosql.png" width="700"/>
 
 
 

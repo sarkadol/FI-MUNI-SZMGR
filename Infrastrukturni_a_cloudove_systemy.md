@@ -39,7 +39,7 @@ Moderní datové centrum (DC) je navrženo pro maximální hustotu výkonu, efek
 * **SDN (Software Defined Networking):** Logické oddělení řídicí roviny (Control Plane) od datové (Data Plane), což umožňuje programovou konfiguraci sítě v cloudu bez manuálních zásahů do HW.
 * **Disagregace:** Trend oddělování CPU, RAM a úložiště do samostatných fondů propojených ultra-rychlou sítí, což umožňuje efektivnější využití zdrojů.
   
-<img alt="img.png" src="img/spine-leaf-arch.png" width="400"/>
+<img alt="img.png" src="img/infra/spine-leaf-arch.png" width="400"/>
 
 ---
 
@@ -72,7 +72,7 @@ Výběr závisí na tom, zda potřebujete spočítat složitou simulaci (HPC), p
 
 Zjednodušeně řečeno: PBS řeší výpočetní úlohu, OpenStack hardware a Kubernetes běžící aplikaci.
 
-<img alt="img.png" src="img/job-lifecycle.png" width="500"/>
+<img alt="img.png" src="img/infra/job-lifecycle.png" width="500"/>
 
 ---
 
@@ -100,7 +100,7 @@ Platforma pro budování privátních i veřejných cloudů a správa virtualiza
     * **Cinder:** Poskytuje blokové úložiště (virtuální pevné disky), které lze za běhu připojovat k VM.
 * **Využití:** Podnikové IT systémy, vývojová prostředí, hosting webových služeb.
  
-<img alt="img.png" src="img/openstack-architecture.png" width="600"/>
+<img alt="img.png" src="img/infra/openstack-architecture.png" width="600"/>
 
 ---
 
@@ -168,7 +168,7 @@ Masivně paralelní úlohy jsou takové, které lze rozdělit na tisíce nezávi
 <details>
   <summary>Obrázek - CPU, GPU, TPU architektura </summary>
   
-  <img alt="img.png" src="img/cpu-gpu-tpu.png" width="800"/>
+  <img alt="img.png" src="img/infra/cpu-gpu-tpu.png" width="800"/>
 
 </details>
 
@@ -199,7 +199,7 @@ Moderní škálovatelný software využívá specifické vzory (Patterns) pro di
 <details>
   <summary>Obrázek - Architektura mikroslužeb</summary>
   
-  <img alt="img.png" src="img/scalable-principles.png" width="700"/>
+  <img alt="img.png" src="img/infra/scalable-principles.png" width="700"/>
 
 </details>
 
@@ -222,7 +222,7 @@ Soubor 12 principů pro vývoj a nasazení škálovatelných, udržitelných a p
 <details>
   <summary>Obrázek - 12-factor app</summary>
   
-  <img alt="img.png" src="img/12-factor.png" width="600"/>
+  <img alt="img.png" src="img/infra/12-factor.png" width="600"/>
 
 </details>
 
@@ -245,7 +245,7 @@ Data se v čase přirozeně "ochlazují", což vyžaduje jejich přesun mezi rů
     * *Technologie:* **Páskové knihovny (Tape)**, levný Cloud Storage (Glacier).
     * *Úroveň:* **Tier 3** (Archive).
 
-<img alt="img.png" src="img/data-temp.png" width="500"/>
+<img alt="img.png" src="img/infra/data-temp.png" width="500"/>
 
 
 * Klíčové metriky a vlastnosti
@@ -257,7 +257,7 @@ Data se v čase přirozeně "ochlazují", což vyžaduje jejich přesun mezi rů
 <details>
   <summary>Obrázek - Memory and Sotrage</summary>
   
-  <img alt="img.png" src="img/memory-storage.png" width="450"/>
+  <img alt="img.png" src="img/infra/memory-storage.png" width="450"/>
 </details>
 
 
@@ -269,7 +269,7 @@ Způsob, jakým jsou úložiště fyzicky zapojena a jak s nimi aplikace komunik
     * **File Storage:** Data organizována v hierarchické struktuře (složky/soubory). Snadné sdílení a čitelnost pro člověka. Standard pro **clusterové sdílení** (NFS, SMB).
     * **Object Storage:** Data uložena jako plochý seznam "objektů" s unikátním ID a bohatými metadaty. Extrémně škálovatelné (miliardy souborů), dostupné přes **HTTP/REST API (S3, Ceph)**. Ideální pro nestrukturovaná data (videa, logy, archivy).
 
-<img alt="img.png" src="img/storage-type.png" width="400"/>
+<img alt="img.png" src="img/infra/storage-type.png" width="400"/>
 
 * **Síťová infrastruktura:**
     * **DAS:** Disky přímo v serveru (nízká latence, nesdílené).
@@ -354,7 +354,7 @@ Evoluce IaC, kde je **Git jediným zdrojem pravdy** pro stav infrastruktury.
 <details>
   <summary>Obrázek - DevOps vs. SRE vs. Platform Engineering</summary>
   
-  <img alt="img.png" src="img/devopprs-sre.png" width="600"/>
+  <img alt="img.png" src="img/infra/devopprs-sre.png" width="600"/>
   
   * **DevOps:** Kulturní spojení Dev a Ops v rámci jednoho týmu.
   * **SRE:** Dedikovaný tým zajišťující spolehlivost napříč produkty pomocí standardů.
@@ -391,7 +391,7 @@ Mechanismus umožňující uživateli přihlásit se pouze jednou a získat př�
 * **Přínos:** Zvyšuje bezpečnost (uživatel zadává heslo jen na jednom důvěryhodném místě) a uživatelský komfort.
 * **Princip:** Výměna bezpečnostních tokenů mezi poskytovatelem identity a koncovou službou.
 
-<img alt="img.png" src="sso.png" width="300"/>
+<img alt="img.png" src="img/infra/sso.png" width="300"/>
 
 ### Authentication and Authorization Infrastructure (AAI)
 Komplexní rámec pro správu identit a přístupů v rozsáhlých distribuovaných prostředích.
