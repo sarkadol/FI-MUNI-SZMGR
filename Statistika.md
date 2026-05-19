@@ -19,7 +19,7 @@ Bodový odhad je jediné číslo, které slouží jako nejlepší aproximace nez
 * **Konzistence:** S rostoucím rozsahem výběru ($n$) se odhad přibližuje skutečné hodnotě.
 * **Efektivita:** Odhad má co nejmenší rozptyl (je "přesný").
 
-### Centrální limitní věta (CLV):**
+### Centrální limitní věta (CLV):
 Je klíčový pilíř statistiky. Říká, že rozdělení výběrového průměru se s rostoucím rozsahem výběru ($n \to \infty$) blíží **normálnímu rozdělení**, a to i v případě, že původní data (populace) normální rozdělení nemají. 
 * **V praxi:** Díky CLV můžeme u velkých výběrů (obvykle $n > 30$) používat parametrické testy a intervaly spolehlivosti založené na normálním rozdělení, i když data nejsou dokonale symetrická.
 
@@ -43,7 +43,7 @@ Parametr populace je fixní (ne náhodný), náhodný je samotný interval.
 2.  **Velikosti výběru ($n$):** Čím více dat, tím užší (přesnější) interval.
 3.  **Hladině spolehlivosti:** Pokud chceme 99% jistotu, interval musí být širší než pro 95% jistotu.
 
-![img.png](img/conf-interval.png)---
+![img.png](img/statistika/conf-interval.png)---
 
 ### 1.3 Testování statistických hypotéz
 Proces rozhodování o platnosti určitého předpokladu (hypotézy) o populaci na základě dat z výběru.
@@ -83,7 +83,7 @@ $H_0$: Předpokládá, že všechny průměry skupin jsou stejné. $$\mu_i = \do
 
 $H_1$: Alespoň jeden průměr skupiny je odlišný. $$\exists\, i,j \in \{1,\dots,k\},\ i \neq j:\ \mu_i \neq \mu_j$$
 
-<img width="434" height="289" alt="image" src="img/anova.png"  />
+<img width="434" height="289" alt="image" src="img/statistika/anova.png"  />
 
 Předpoklady ANOVA
 1) **Nezávislost výběrů**  Jednotlivá pozorování musí být na sobě nezávislá. Pokud nejsou, mění se rozdělení testové statistiky i p-hodnota → výsledky nejsou spolehlivé.
@@ -98,7 +98,7 @@ _Například mám 3 různé druhy hnojiva a 2 různé typy půdy, a výnos polí
  - bez interakce předpokládáme, že vliv jednoho faktoru je stejný bez ohledu na úroveň druhého faktoru  _Například hnojivo A zvyšuje výnos vždy o +2 kg bez ohledu na typ půdy_
  - s interakcí připouštíme, že efekt jednoho faktoru závisí na úrovni druhého faktoru. _Hnojivo A je nejlepší na jílovité půdě, ale na písčité půdě je lepší hnojivo B._
 
-<img width="1000"  alt="image" src="img/anova2faktory.png"  />
+<img width="1000"  alt="image" src="img/statistika/anova2faktory.png"  />
 
 ### Rozklad variability a F-test
 
@@ -152,7 +152,7 @@ Porovnává dvě nezávislé skupiny bez předpokladu normality. Intuitivně ov�
 ### Kruskal-Wallisův test
 Kruskal–Wallisův test je neparametrická alternativa k jednofaktorové ANOVA pro tři a více nezávislých skupin. _Například mám 4 odrůdy brambor, ale hmotnosti trsů jsou výrazně nenormální a s outliery. Chci zjistit, zda se odrůdy liší._
 
-<img width="600" alt="image" src="img/non-parametric-cheat-sheet1.jpg"  />
+<img width="600" alt="image" src="img/statistika/non-parametric-cheat-sheet1.jpg"  />
 
 Rozšíření: Jednotlivé hypotézy a testové statistiky
 
@@ -184,7 +184,7 @@ $$
 - $X_{i1}, X_{i2}, \dots, X_{ip}$ jsou hodnoty vysvětlujících proměnných,
 - $\varepsilon_i$ je náhodná chyba.
 
-<img width="600" alt="image" src="img/mnoho-regrese.png" />
+<img width="600" alt="image" src="img/statistika/mnoho-regrese.png" />
 
 _Graf: hmotnost člověka ~ výška a pohlaví_
 
@@ -270,7 +270,7 @@ PCA se používá hlavně tehdy, když máme mnoho proměnných a chceme:
 _např. mám 10 měření tělesných proporcí člověka, která spolu silně souvisejí, a chci je nahradit 2–3 hlavními komponentami_
 
 
-<img width="400" alt="image" src="img/pca-priklad.png" />
+<img width="400" alt="image" src="img/statistika/pca-priklad.png" />
 
 _Redukce dimenzí ze 3D na 2D_
 
@@ -282,7 +282,7 @@ PCA hledá nové osy v prostoru dat tak, aby:
 
 První hlavní komponenta tedy zachycuje největší možnou část informace obsažené v datech, další komponenty zachycují zbývající variabilitu.
 
-<img width="300" alt="image" src="img/pca.png" />
+<img width="300" alt="image" src="img/statistika/pca.png" />
 
 _Optimální a neoptimální báze_
 
@@ -356,7 +356,7 @@ Počet ponechaných komponent se volí tak, aby se zachovala co největší čá
 - **Kaiserovo pravidlo** – ponechat komponenty s vlastním číslem větším než 1,
 - **scree plot** (sutinový graf) – graf vlastních čísel, hledá se „zlom“, za kterým už další komponenty přidávají málo informace.
 
-<img width="300" alt="image" src="img/pca-scree.png" />
+<img width="300" alt="image" src="img/statistika/pca-scree.png" />
 
 _Scree plot_
 
