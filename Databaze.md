@@ -36,7 +36,7 @@ Kvůli tomu nelze data jednoduše přepsat na stejném místě. Používá se st
 
 <img alt="img.png" src="img/db/mem-hir.png" width="700"/>
 
-### 2. Spolehlivost a optimalizace na úrovni OS (RAID a FS)
+### 2. Spolehlivost a optimalizace na úrovni OS (RAID)
 Pro zvýšení rychlosti I/O operací a zajištění odolnosti proti selhání hardwaru se disky sdružují do logických polí **RAID** (Redundant Array of Independent Disks):
 
 *   **RAID 0 (Striping):** Data se střídavě dělí mezi disky. Zvyšuje výkon (čte se paralelně), ale nemá žádnou redundanci (selhání 1 disku = ztráta všech dat).
@@ -48,12 +48,6 @@ Pro zvýšení rychlosti I/O operací a zajištění odolnosti proti selhání h
 *V praxi se u SSD polí nasazuje navíc mechanismus **Diff-RAID**. Ten záměrně opotřebovává disky v poli nerovnoměrně, aby se předešlo situaci, kdy všechna SSD selžou v tentýž den kvůli dosažení limitu zápisů.*
 
 <img alt="img.png" src="img/db/raid.png" width="600"/>
-
-#### Ladění souborového systému (FS) pro potřeby DBMS
-Aby souborový systém operačního systému zbytečně nezpomaloval databázi, provádí se následující optimalizace:
-*   **Zarovnání velikosti bloku:** Velikost stránky databáze se nastaví jako přesný násobek clusteru souborového systému (např. $8\text{ KiB}$ DB stránka na $4\text{ KiB}$ FS blok), což eliminuje dvojené I/O operace a snižuje *Write Amplification*.
-*   **`noatime` mount:** Vypnutí zaznamenávání času posledního přístupu k souboru na úrovni OS. *Bez tohoto nastavení by každý SELECT na databázi generoval skrytý zápis na disk (aktualizaci metadat souboru v OS).*
-*   **Minimalizace swapování:** Paměť RAM vyhrazená pro databázový buffer se v OS uzamkne (např. pomocí `mlock`), aby ji operační systém při nedostatku paměti neodsunul na pomalý disk do swapu.
 
 ---
 
@@ -71,6 +65,8 @@ Fyzická organizace uvnitř jedné diskové stránky se standardně řeší arch
 
 Tento design přináší zásadní výhodu: **nepřímé adresování**. Externí struktury (např. indexy) neodkazují na absolutní fyzickou bajtovou adresu řádku na disku, ale výhradně na **ID slotu** na dané stránce. Pokud se řádek uvnitř stránky změní (např. se nafoukne a databáze musí stránku setřást a řádky fyzicky posunout), změní se pouze ofset v adresáři slotů. ID slotu zůstává stejné, takže indexy není potřeba aktualizovat.
 
+<img alt="img.png" src="img/db/slotted-page.png" width="700"/>
+
 ### 2. Logické identifikátory a transformace do RAM
 Každý řádek v databázi má svůj jednoznačný fyzický identifikátor **Record ID (RID / ROWID)**. Tento ukazatel má strukturu:
 
@@ -79,12 +75,6 @@ $\text{RID} = \langle \text{File ID}, \text{Page ID}, \text{Slot ID} \rangle$
 1.  `File ID`: Určuje, ve kterém souboru na disku je tabulka uložena.
 2.  `Page ID`: Určuje konkrétní blok (stránku) uvnitř tohoto souboru.
 3.  `Slot ID`: Určuje pořadové číslo v adresáři slotů na dané stránce.
-
-#### Pointer Swizzling (Převracení ukazatelů)
-Když databáze potřebuje se záznamem pracovat, načte příslušnou stránku z disku do vyrovnávací paměti v RAM (Buffer Pool). 
-*   Na disku jsou vazby mezi stránkami reprezentovány pomocí diskových adres (`Page ID`). Vyhledávání přes diskové adresy v RAM by ale znamenalo zbytečnou režii (hledání v hash tabulce buffer poolu).
-*   Proto se při načtení stránky do RAM provede **Pointer Swizzling**: diskové adresy se v paměti přímo přepíšou reálnými 64bitovými paměťovými ukazateli (pointry) na sousední objekty v RAM.
-*   Při uvolnění stránky z RAM zpět na disk probíhá zpětný proces (**Unswizzling**), kdy se paměťové pointry převedou zpět na perzistentní `Page ID`.
 
 ### 3. Fyzická organizace souborů (File Organization)
 Podle toho, jak jsou stránky se sloty řazeny v souboru za sebou, rozlišujeme tři základní typy organizace:
@@ -121,15 +111,21 @@ Index je pomocná datová struktura (kolekce dvojic `[klíč, ukazatel]`), kter�
 * **Index v indexu (Vnořený):** Strom první úrovně obsahuje v listech ukazatele na samostatné vnořené indexy druhé úrovně. Je efektivní pro dotazy na oba atributy nebo pouze na první atribut, ale nelze jej použít pro dotaz čistě na druhý atribut.
 * **Zřetězení hodnot (Concatenation / Složený B+ strom):** Hodnoty klíčů se spojí do jednoho složeného klíče (např. `Příjmení + Jméno`) a indexují se společně. *Příklad: Index nad `(Příjmení, Jméno)` zafunguje pro dotaz na `WHERE Příjmení='Novák'`, ale nepomůže pro dotaz na `WHERE Jméno='Jan'` kvůli uspořádání zleva doprava.*
 
+<img alt="img.png" src="img/db/index-in-index.png" width="300"/>
+
 ### Dělené hašování (Partitioned Hashing)
 * **Princip:** Pro vyhledávání nad více klíči se použije jedna společná výsledná adresa bloku. Ta vznikne tak, že se spojí bitové výstupy samostatných hašovacích funkcí pro jednotlivé atributy.
 * **Příklad:** *Atribut `Dept` má funkci $h_1$ a `Salary` funkci $h_2$. Výsledná adresa vznikne spojením jejich bitů (např. bity z $h_1$ tvoří začátek adresy, bity z $h_2$ konec).*
 * **Vlastnosti dotazování:** Pokud dotaz specifikuje všechny atributy, určí se jedna přesná adresa bucketu. Pokud specifikuje pouze jeden, zbývající bity adresy jsou neznámé a databáze musí prohledat všechny adresy odpovídající známému bitovému vzoru.
 
+<img alt="img.png" src="img/db/part-hash.png" width="200"/>
+
 ### Mřížkový index (Grid Index)
 * **Princip:** Prostor dat je rozdělen do vícedimenzionální mřížky (matice), kde každá osa odpovídá jednomu atributu. Hodnoty na osách mohou být definovány i jako intervaly (tzv. binning). Každá buňka mřížky ukazuje na příslušný datový bucket (případně s využitím indirection/ukazatelů).
 * **Vlastnosti dotazování:** Velmi efektivní pro dotazy na přesnou shodu i pro rozsahové dotazy (`range queries`), které v mřížce vyříznou celou obdélníkovou oblast buněk.
 * **Nevýhody:** Rozměry mřížky musí být fixní. Při nerovnoměrném rozdělení dat hrozí plýtvání místem (prázdné buňky) nebo přeplnění omezené kapacity buněk.
+
+<img alt="img.png" src="img/db/grid.png" width="200"/>
 
 ### Pokročilé / AI indexy
 * **Vektorové indexy (Vector Indexes):** Klíčové pro AI (vyhledávání v embeddings, RAG systémy). Používají se struktury jako **HNSW** (Hierarchical Navigable Small World) grafy nebo **IVF** (Inverted File) indexy pro rychlé přibližné hledání nejbližších sousedů (ANN – Approximate Nearest Neighbor) ve vícedimenzionálních prostorech.
@@ -148,32 +144,7 @@ Index je pomocná datová struktura (kolekce dvojic `[klíč, ukazatel]`), kter�
 
 Speciální databázový index, který přítomnost či nepřítomnost hodnoty reprezentuje pomocí bitových polí (sekvencí jedniček a nul) namísto klasických ukazatelů na řádky.
 
-### Příklad
-Máme tabulku se 4 řádky a dvěma sloupci (`Pohlaví` a `Město`).
-
-| ID řádku | Jméno | Pohlaví | Město |
-| :--- | :--- | :--- | :--- |
-| **1** | Anna | Žena | Praha |
-| **2** | Petr | Muž | Brno |
-| **3** | Jana | Žena | Brno |
-| **4** | Tomáš | Muž | Praha |
-
-Pro tyto sloupce vytvoří databáze následující bitmapové indexy (vektory):
-
-*   **Pohlaví = Muž:** `0 1 0 1` (hodnota je na 2. a 4. řádku)
-*   **Pohlaví = Žena:** `1 0 1 0` (hodnota je na 1. a 3. řádku)
-*   **Město = Praha:** `1 0 0 1` (hodnota je na 1. a 4. řádku)
-*   **Město = Brno:** `0 1 1 0` (hodnota je na 2. a 3. řádku)
-
-Dotaz: *Hledáme zaměstnance, kteří jsou **Muži AND z Prahy**.*
-Databáze vezme příslušné vektory a provede bitovou operaci `AND` přímo v procesoru:
-
-```text
-Vektor (Muž):  0 1 0 1
-Vektor (Praha): 1 0 0 1
------------------------
-Výsledek (AND): 0 0 0 1  -> Podmínku splňuje pouze 4. řádek (Tomáš).
-```
+<img alt="img.png" src="img/db/bitmap.png" width="200"/>
 
 ### Hlavní výhody
 * **Bitové operace:** Vyhledávání kombinovaných podmínek (`AND`, `OR`, `NOT`) je extrémně rychlé, protože procesor tyto operace provádí přímo na hardwarové úrovni (např. spojením vektorů pro pohlaví a město).
@@ -184,6 +155,12 @@ Výsledek (AND): 0 0 0 1  -> Podmínku splňuje pouze 4. řádek (Tomáš).
 ### Nevýhody
 * **Vysoká kardinalita:** Naprosto nevhodné pro unikátní data jako rodná čísla, e-maily nebo ID, kde by index neúměrně narostl.
 * **Časté zápisy (OLTP):** Zcela nevhodné pro transakční systémy s častým vkládáním a úpravou dat (`INSERT`, `UPDATE`), protože modifikace jednoho bitu často zamyká celý datový blok (vektor) a blokuje ostatní operace souběhu (lock contention).
+
+### Komprese bitmapových indexů (Run-Length Encoding – RLE)
+Bitmapové vektory jsou často velmi řídké (obsahují dlouhé sekvence samých nul) nebo naopak husté (sekvence samých jedniček). Pro minimalizaci diskového prostoru a zrychlení přenosu do RAM se komprimují pomocí metody RLE.
+
+* **Princip:** Namísto ukládání každého bitu samostatně se zaznamená pouze hodnota bitu a délka jeho nepřerušeného opakování (run). *Příklad: Sekvence 200 nul následovaná 50 jedničkami se neuloží jako 250 jednotlivých bitů, ale jako dvojice (0, 200) a (1, 50).*
+* **Výhoda pro exekuci:** Pokročilé bitmapové kodeky (např. *WAH – Word Aligned Hybrid* nebo *EWAH*) umožňují provádět procesorové bitové operace (`AND`, `OR`) přímo nad těmito komprimovanými daty bez nutnosti jejich předchozího dekomprimování v paměti.</textarea>
 
 ---
 
@@ -198,10 +175,14 @@ Používá se pro data, jejichž objem se v čase mění. Na rozdíl od statick�
     * Je-li $j = i$, **velikost adresáře se zdvojnásobí** (přidá se další bit pro indexaci, globální hloubka $i$ se inkrementuje) a až pak se bucket rozštěpí.
 * **Výhody/Nevýhody:** Vysoce efektivní využití místa, vyhledání záznamu vyžaduje maximálně 2 diskové operace (adresář + bucket). Nevýhodou je, že adresář může narůst natolik, že se nevejde do paměti RAM.
 
+<img alt="img.png" src="img/db/ext-hash.png" width="700"/>
+
 ### 2. Lineární hašování (Linear Hashing)
 * **Princip:** **Nepoužívá adresář.** Počet bucketů roste lineárně (přidáváním jednoho po druhém). Pro adresaci se využívá $i$ nejnižších (koncových) bitů adresy. Rozhodování o štěpení se řídí celkovým zaplněním prostoru (faktorem zaplnění, např. překročení 80 %).
 * **Štěpení:** Když nastane trigger pro štěpení, rozštěpí se konkrétní bucket určený interním ukazatelem pointeru $P$, **který se ale může lišit od bucketu, kam se právě zapisovalo** (proto mohou vzniknout dočasné overflow bloky). Pointer $P$ se posune o jedna dále. Jakmile se postupně rozštěpí všechny buckety v dané fázi, zvýší se počet bitů $i$ pro adresaci, pointer $P$ skočí na začátek (na 0) a proces běžní nanovo.
 * **Výhody/Nevýhody:** Žádná režie na adresář, paměť roste plynule. Kvůli asynchronnímu štěpení se ale občas nelze vyhnout krátkým overflow řetězcům.
+
+<img alt="img.png" src="img/db/lin-hash.png" width="700"/>
 
 ---
 
@@ -218,9 +199,9 @@ Zpracování SQL dotazu probíhá ve 3 hlavních krocích:
 SELECT title FROM StarsIn WHERE starName IN (SELECT name FROM MovieStar WHERE birthdate = 1960);
 ```
 *Vytvoří optimalizátor počáteční logický plán:*
-$$\Pi_{\text{title}} [ \sigma_{\text{starName}=\text{name} \land \text{birthdate}=1960} (\text{StarsIn} \times \text{MovieStar}) ]$$
-*Který následně vylepší transformací kartézského součinu na efektivnější přirozené spojení (Natural Join):*
-$$\Pi_{\text{title}} [ \text{StarsIn} \bowtie \sigma_{\text{birthdate}=1960}(\text{MovieStar}) ]$$
+$\Pi_{\text{title}} [ \sigma_{\text{starName}=\text{name} \land \text{birthdate}=1960} (\text{StarsIn} \times \text{MovieStar}) ]$
+*Který následně vylepší transformací kartézského součinu na efektivnější Natural Join:*
+$\Pi_{\text{title}} [ \text{StarsIn} \bowtie \sigma_{\text{birthdate}=1960}(\text{MovieStar}) ]$
 
 <img alt="img.png" src="img/db/query-process-schema.png" width="300"/>
 
@@ -230,9 +211,7 @@ $$\Pi_{\text{title}} [ \text{StarsIn} \bowtie \sigma_{\text{birthdate}=1960}(\te
 
 <img alt="img.png" src="img/db/pipelining.png" width="300"/>
 
----
-
-### Algoritmická implementace fyzických operátorů
+### Algoritmy
 
 #### A) Externí třídění (External Sort-Merge)
 Používá se, pokud se tříděná data nevejdou do paměti RAM ($M$ bloků).
@@ -241,7 +220,7 @@ Používá se, pokud se tříděná data nevejdou do paměti RAM ($M$ bloků).
 
 <img alt="img.png" src="img/db/mergesort.png" width="400"/>
 
-#### B) Algoritmy pro Spojení (Join Operators)
+#### B) Algoritmy pro Join (Join Operators)
 Mějme vnější relaci $R_1$ a vnitřní relaci $R_2$.
 1. **Nested-Loop Join (Vnořené cykly):**
    * *Block Nested-Loop:* Pro každý blok $R_1$ v paměti se sekvenčně projde celá relace $R_2$ blok po bloku.
@@ -280,7 +259,7 @@ Při předpokladu uniformního rozdělení dat se velikost mezivýsledků odhadu
 * **Disjunkce (OR) nezávislých podmínek:**
   $$sf(C_1 \lor C_2) = sf(C_1) + sf(C_2) - (sf(C_1) \cdot sf(C_2))$$
 
-* **Přirozené spojení ($W = R_1 \bowtie R_2$) přes společný atribut $A$:**
+* **Natural Join ($W = R_1 \bowtie R_2$) přes společný atribut $A$:**
   $$T(W) = \frac{T(R_1) \cdot T(R_2)}{\max\{V(R_1, A), V(R_2, A)\}}$$
 
 * **Odhad počtu unikátních hodnot v mezivýsledku $U$:**
@@ -326,7 +305,7 @@ Logické transformace přepisují počáteční relačně-algebraický strom dot
 ### 1. Komutativita a asociativita (Změna pořadí)
 Pořadí vyhodnocování relací není pro konečný výsledek podstatné, protože všechny atributy jsou zachovány. Optimalizátor proto může měnit strukturu stromu tak, aby drahé operace (např. spojení velkých tabulek) proběhly co nejpozději.
 
-* **Přirozené spojení (Natural Join):**
+* **Natural Join:**
   $$R \bowtie S = S \bowtie R$$
   $$(R \bowtie S) \bowtie T = R \bowtie (S \bowtie T)$$
 
@@ -427,10 +406,7 @@ Indexy výrazně urychlují `SELECT`, ale dramaticky zpomalují zápisy (`INSERT
 * *Oba indexy: Čtení podle herce = 4 I/O, Čtení podle filmu = 4 I/O, Zápis = 6 I/O.*
 *Zavedení obou indexů se vyplatí pouze tehdy, pokud je frekvence vyhledávání výrazně vyšší než frekvence zápisů ($p_1, p_2 \ge 0.4$).*
 
-### 2. Speciální typy indexů (Reversed-key Index)
-Oracle specialita pro zvýšení propustnosti při masivním paralelním vkládání řádků (typicky automaticky generované sekvence jako ID objednávek). Hodnoty klíčů se v indexu uloží pozpátku (např. 12345 se uloží jako 54321 a 12346 jako 64321). Tím se zápisy rozptýlí do různých listových bloků B+ stromu a předejde se kolizím zápisů na jednom "horkém" bloku (hot block contention).
-
-### 3. Eliminace zbytečných DISTINCTů
+### 2. Eliminace zbytečných DISTINCTů
 Použití `DISTINCT` nutí databázi provést drahé řazení nebo hašování (*Unique* / *HashAggregate*) pro odstranění duplicit. Často je však `DISTINCT` v dotazu nadbytečný.
 
 * **Pravidlo privilegovanosti:** Tabulka je privilegovaná, pokud výběr (projection) obsahuje její primární klíč.
@@ -443,7 +419,7 @@ SELECT DISTINCT ssnum FROM employee, tech WHERE employee.dept = tech.dept;
 ```
 *Protože `ssnum` je primární klíč v `employee` (je privilegovaná) a `dept` je klíč v `tech`, každý zaměstnanec se spojí s nejvýše jedním oddělením. Výsledek duplicity přirozeně neobsahuje a klauzule DISTINCT je nadbytečná.*
 
-### 4. Správné využití indexů v klauzulích WHERE
+### 3. Správné využití indexů v klauzulích WHERE
 Optimalizátory často nedokážou použít index, pokud je indexovaný sloupec obalen funkcí nebo matematickým výrazem:
 * **Pomalé (nevyužije index):** `WHERE salary/12 >= 4000;`
 * **Rychlé (využije index):** `WHERE salary >= 48000;`
@@ -454,17 +430,6 @@ Optimalizátory často nedokážou použít index, pokud je indexovaný sloupec 
 Klauzule `HAVING` slouží výhradně pro filtrování agregačních výsledků. Pro běžnou filtraci řádků před agregací se musí zásadně používat `WHERE`, což sníží počet řádků vstupujících do drahé operace `GROUP BY`.
 * **Špatně:** `SELECT avg(salary), dept FROM employee GROUP BY dept HAVING dept = 'IT';`
 * **Správně:** `SELECT avg(salary), dept FROM employee WHERE dept = 'IT' GROUP BY dept;`
-
-### 6. Přepis poddotazů (Subquery Rewriting)
-Optimální vyhodnocení vnořených poddotazů je pro optimalizátory obtížné. Doporučuje se nahrazovat je explicitními `JOIN` operacemi nebo dočasnými tabulkami. Je však nutné dávat pozor na záludnosti:
-
-* **The Infamous COUNT Bug (Nechvalně známá chyba s COUNT):**
-  Při přepisu poddotazu s agregací `COUNT` do `JOIN` přes dočasnou tabulku může dojít ke skryté ztrátě dat. 
-  *Mějme vyhledání zaměstnanců, jejichž počet spolupracovníků odpovídá počtu lidí v jejich technickém oddělení. Zaměstnanec Helene, která nepracuje v žádném technickém oddělení, má v původním dotazu počet lidí v oddělení roven $COUNT(\emptyset) = 0$. Pokud má 0 spolupracovníků, původní podmínkou projde. Při přepisu na dočasnou tabulku s GROUP BY přes technická oddělení se ale Helene z filtru zcela vytratí (v dočasné tabulce její oddělení neexistuje, takže JOIN ji odfiltruje).*
-
-* **Anti-joiny a záludnosti s NULL (NOT IN vs. NOT EXISTS):**
-  Při hledání prvků, které neexistují ve druhé tabulce (např. hotely bez pokojů), se často používá `NOT IN` nebo `NOT EXISTS`.
-  * **Chování s NULL:** Pokud poddotaz v `NOT IN` vrátí byť jedinou hodnotu `NULL` (např. pokoj s neexistujícím ID hotelu), pak celý dotaz `NOT IN` vrátí **prázdnou množinu** (protože podmínka se vnitřně přepisuje jako řetězec `AND id != x`, kde porovnání s NULL dává `UNKNOWN` a zneplatní celý filtr). `NOT EXISTS` se s hodnotami `NULL` vypořádá správně a je proto pro anti-joiny doporučován jako bezpečnější.
 
 ---
 
