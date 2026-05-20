@@ -9,9 +9,15 @@ povinné pro studium dle kontrolní šablony 2022/2023 nebo novější
 
 ## Principy podobnostního hledání
 
-Tradiční databázové systémy pracují s exaktním vyhledáváním (Exact Match) nad strukturovanými daty, která lze lineárně uspořádat. S nástupem nestrukturovaných multimediálních dat (obrázky, audio, video, textové embeddingy) se však paradigma mění na vyhledávání podle podobnosti. Základním matematickým konceptem pro exaktní formalizaci tohoto problému je **metrický prostor**.
+Tradiční databázové systémy pracují s exaktním vyhledáváním (Exact Match) nad strukturovanými daty, 
+která lze lineárně uspořádat. 
+S nástupem nestrukturovaných multimediálních dat (obrázky, audio, video, textové embeddingy) se však 
+paradigma mění na vyhledávání podle podobnosti. 
+Základním matematickým konceptem pro exaktní formalizaci tohoto problému je **metrický prostor**.
 
-### Metrický prostor
+
+
+## Metrický prostor
 Metrický prostor je uspořádaná dvojice $(M, d)$, kde $M$ reprezentuje univerzum objektů (doménu) a $d$ je metrika neboli vzdálenostní funkce $d: M \times M \rightarrow \mathbb{R}$. Tato funkce každé dvojici objektů přiřazuje reálné číslo vyjadřující jejich míru odlišnosti (čím menší hodnota, tím větší podobnost).
 
 Aby byla funkce $d$ regulérní metrikou, musí pro libovolné objekty $x, y, z \in M$ striktně splňovat následující **čtyři axiomy**:
@@ -38,14 +44,14 @@ Pokud funkce nesplňuje axiom identity (může nastat $d(x, y) = 0$ pro $x \neq 
 
 ---
 
-### Extrakce popisovačů (Feature Extraction)
+## Extrakce popisovačů (Feature Extraction)
 Objekty reálného světa jsou pro přímé matematické porovnání příliš komplexní a nestrukturované. Proto nastupuje fáze **extrakce příznaků**, která transformuje surový objekt na kompaktní matematickou reprezentaci – **popisovač (feature descriptor / feature vector)**.
 
 Tento proces může být:
 1. **Založený na exaktních algoritmech (Hand-crafted features):** Např. barevné histogramy obrázků, textury, nebo frekvenční spektra u audia.
 2. **Založený na hlubokém učení (Deep Learning):** Využití neuronových sítí (např. konvolučních sítí či transformátorů jako CLIP), kde je objekt promítnut do vícerozměrného vektorového prostoru, tzv. **embedding prostoru**.
 
-#### Vztah s člověkem vnímanou podobností a Sémantická propast
+### Vztah s člověkem vnímanou podobností a Sémantická propast
 Hlavní výzvou podobnostního vyhledávání je **sémantická propast (Semantic Gap)**. Jde o rozdíl mezi tím, jak data reprezentuje počítač (nízkoúrovňové informace, např. matice RGB pixelů obrázku), a tím, jak je vnímá lidský uživatel (vysokoúrovňové koncepty, emoce, kontext – např. "šťastný pes na louce").
 
 * **Cíl extrakce:** Dosáhnout stavu, kdy matematická blízkost popisovačů v metrickém prostoru věrně koreluje s kognitivní (sémantickou) podobností vnímání člověka.
@@ -103,9 +109,11 @@ Zvolí se dva pivoti $p_1, p_2 \in X$. Prostor se rozdělí pomyslnou nadrovinou
 
 Tento přístup využívá například **GHT (Generalized Hyperplane Tree)** nebo dynamický, diskově orientovaný **M-Tree**.
 
+<img alt="img.png" src="img/podobnostni_hledani/partitioning.png" width="400"/>
+
 ---
 
-### Filtrování dat (Pivoting) a prořezávání vyhledávacího prostoru
+## Filtrování dat (Pivoting) a prořezávání vyhledávacího prostoru
 **Pivoting** je technika eliminace kandidátů bez nutnosti počítat jejich reálnou vzdálenost k dotazu $q$. Je plně závislá na platnosti **trojúhelníkové nerovnosti**.
 
 Mějme dotaz $q$, vyhledávací poloměr $r$ a předpočítaného pivota $p$. Vzdálenosti mezi pivotem $p$ a všemi datovými objekty $x$ (tedy hodnoty $d(p, x)$) jsou exaktně spočteny během fáze budování indexu a uloženy v paměti/na disku. Při provádění dotazu spočítáme pouze jedinou vzdálenost: $d(q, p)$.
@@ -118,3 +126,70 @@ Chceme-li ověřit, zda objekt $x$ může být součástí výsledku rozsahovéh
 $$\text{Pokud } |d(p, x) - d(q, p)| > r, \text{ pak zaručeně platí } d(q, x) > r.$$
 
 * **Důsledek:** Pokud je tato podmínka splněna, objekt $x$ (případně celý podstrom objektů, který je ohraničen příslušnou metrickou koulí kolem pivota) můžeme okamžitě **vyřadit (prořezat)** z dalšího zpracování. Výpočet vzdálenosti $d(q, x)$ se zcela přeskočí.
+
+V závislosti na tom, jaké informace o vzdálenostech máme předem spočítané a jaké objekty v nerovnostech kombinujeme, rozlišujeme konkrétní **prořezávací pravidla (Pruning Rules)**:
+
+### A) Object-Pivot Distance Constraint (Vztah objekt-pivot)
+Základní pravidlo využívající předpočítanou vzdálenost mezi datovým objektem $x$ a fixním pivotem $p$. 
+* **Princip:** Využívá přímo výše uvedenou absolutní hodnotu rozdílu. Pokud je spodní odhad vzdálenosti $|d(x, p) - d(q, p)|$ větší než poloměr dotazu $r$, objekt $x$ je bezpečně eliminován.
+* **Využití:** Klíčové pro algoritmy typu AESA / LAESA a lineární tabulkové indexy (Pivot Tables), kde má každý objekt v databázi uložené vzdálenosti k pevné sadě globálních pivotů.
+
+### B) Range-Pivot Distance Constraint (Vztah region-pivot / obalové koule)
+Aplikuje se v hierarchických strukturách (např. **M-Tree**), kde uzly nereprezentují jednotlivé objekty, ale celé podprostory – metrické koule (Ball Regions). Každý podprostor je definován svým pivotem $p$ a poloměrem pokrytí $r_p$ (což je maximální vzdálenost od $p$ k jakémukoliv objektu uvnitř tohoto podstromu, tedy $\forall x \in \text{podstrom}(p): d(x, p) \leq r_p$).
+* **Podmínka prořezání:** Celý podstrom pod uzlem $p$ lze prořezat, pokud platí:
+  $$d(q, p) - r_p > r$$
+* **Důsledek:** Pokud je dotaz $q$ se svým poloměrem $r$ tak daleko od pivota $p$, že ani při započítání maximálního poloměru regionu $r_p$ do něj nemůže dosáhnout, prořeže se **celý podstrom najednou** (ušetří se tisíce výpočtů vzdáleností).
+
+### C) Pivot-Pivot Distance Constraint (Vztah mezi pivoty)
+Využívá předpočítané vzdálenosti mezi samotnými pivoty navzájem ($d(p_1, p_2)$). To je užitečné v hierarchických strukturách, kde jsou pivoti organizováni nad sebou nebo vedle sebe.
+* **Princip:** Pokud známe vzdálenost mezi lokálním pivotem $p_1$ a nadřazeným pivotem $p_2$, dokážeme pomocí trojúhelníkové nerovnosti a odhadu polohy dotazu vůči $p_2$ eliminovat celý region okolo $p_1$, aniž bychom vůbec museli spočítat vzdálenost $d(q, p_1)$.
+
+### D) Double-Pivot Distance Constraint (Vztah dvou pivotů k objektu)
+Pokročilé pravidlo, které zpřesňuje spodní odhad vzdálenosti zkombinováním informací od **dvou různých pivotů** ($p_1$ a $p_2$) vůči jednomu objektu $x$.
+* **Princip:** Využívá fakt, že poloha objektu je v prostoru sevřena průsečíky více metrických skořepin. Spodní odhad vzdálenosti $d(q, x)$ se konstruuje kombinací $|d(q, p_1) - d(x, p_1)|$ a $|d(q, p_2) - d(x, p_2)|$. Pokud libovolný z těchto odhadů (nebo jejich geometrická kombinace) selže v překročení limitu $r$, objekt vypadává. Používá se pro maximalizaci prořezávacího efektu za cenu uložení více dat.
+
+### E) Pivot Filtering (Algoritmus vyhodnocení dotazu)
+Souhrnný proces exekuce dotazu nad pivotovými strukturami (např. LAESA). Probíhá ve dvou fázích:
+1. **Fáze filtrování (Filtering State):** Postupně se bere jeden pivot za druhým a počítá se $d(q, p)$. Okamžitě se aplikují pravidla (Object-Pivot) nad tabulkou předpočítaných vzdáleností. Množina potenciálních kandidátů se drasticky zužuje. V této fázi se pracuje pouze s levnými skalárními operacemi (rozdíly reálných čísel).
+2. **Fáze ověřování (Refinement State):** Pro objekty, které prošly filtrem a nebyly prořezány (tzv. kandidáti), se musí spočítat reálná, drahá metrická vzdálenost $d(q, x)$. Teprve ty, které projdou tímto exaktním testem, tvoří finální výsledek.
+
+<img alt="img.png" src="img/podobnostni_hledani/pivoty.png" width="500"/>
+
+## Srovnání s tradičními indexy (B+ trees)
+
+Abychom hloubkově porozuměli limitům vyhledávání, je nutné provést strukturální a geometrickou komparaci mezi klasickými strukturami z relačních databází (typicky B+ stromy) a moderními metrickými či vektorovými indexy.
+
+| Vlastnost | Tradiční indexy (B+ Tree) | Podobnostní indexy (Metrické / Vektorové) |
+| :--- | :--- | :--- |
+| **Dimenze dat** | Strictly 1D (jednorozměrná data – čísla, data, krátké řetězce). | High-dimensional (desítky, stovky až tisíce dimenzí). |
+| **Uspořádání domény** | **Totální uspořádání** (Total Ordering). Pro každé dva klíče $a, b$ lze exaktně určit vztah $a < b$, $a = b$, nebo $a > b$. | Žádné přirozené uspořádání. K dispozici je pouze **relativní vzdálenost** mezi dvojicemi objektů (vzdálenostní matice). |
+| **Typ vyhledávání** | Exaktní shoda (Exact Match), intervalové/rozsahové dotazy na jedné ose. | Podobnostní dotazy (Range Query, $k$-NN, R$k$-NN, Similarity Join). |
+| **Geometrie regionů** | Disjunktní, ostře ohraničené a navazující intervaly na jednorozměrné přímce. | Překrývající se vícerozměrné regiony (metrické koule nebo hyperplány v prostoru). |
+| **Korektnost / Přesnost** | Vždy 100% deterministické a exaktní. | Buď exaktní (za cenu vysokých nákladů), nebo aproximované (**ANN** – Approximate Nearest Neighbor). |
+| **Prokletí dimenzionality** | Neexistuje (prostor roste lineárně s počtem záznamů). | **Kritický faktor.** Způsobuje geometrickou degradaci indexu a růst překryvů. |
+| **Výpočetní náročnost** | Velmi nízká (skalární porovnání čísel procesorem na úrovni instrukcí). | Extrémně vysoká (výpočet metriky nad velkými vektory, např. odmocniny, sumace). |
+
+---
+
+### Proč B+ Tree strukturálně selhává pro podobnostní vyhledávání?
+
+#### 1. Absence lineárního uspořádání (No Total Ordering)
+B+ Tree staví svou logaritmickou složitost vyhledávání $\mathcal{O}(\log N)$ na schopnosti binárně či vícecestně dělit data podle znamének *menší než* / *větší než*. Vícerozměrný prostor (např. 512-dimenzionální embedding obrázku) však nelze přirozeně seřadit na jednorozměrnou přímku, aniž by došlo k naprostému zničení informace o prostorové blízkosti bodů (tzv. sousedství). 
+
+Jakékoliv pokusy o transformaci více dimenzí do jedné (např. mapování prostoru pomocí Space Filling Curves, jako je Z-order nebo Hilbertova křivka) fungují uspokojivě pouze do dimenze 2 až 3. Se stoupající dimenzí se toto zobrazení stává sémanticky chaotickým a objekty, které jsou v reálném prostoru těsně vedle sebe, skončí na jednorozměrné přímce kilometry daleko od sebe. B+ strom pak nedokáže efektivně prořezávat větve.
+
+#### 2. Problém překrývání regionů (Region Overlap)
+V jednorozměrném světě B+ stromu jsou dělicí body (klíče vnitřních uzlů) exaktní a podprostory (intervaly) jsou vůči sobě striktně **disjunktní**. Vyhledávací algoritmus při sestupu stromem vždy přesně ví, do kterého jediného uzlu má pokračovat.
+
+U metrických prostorů jsou regiony definovány pomocí obalových koulí (Ball Regions) nebo nadrovin. Kvůli variabilitě dat a absenci ortogonálních os vykazují tyto regiony v indexech (např. v M-Tree) vysokou míru vzájemného geometrického **překryvu (overlap)**. Pokud dotaz $q$ se svým poloměrem vyhledávání $r$ zasáhne do oblasti, kde se překrývá více metrických koulí různých uzlů, vyhledávací algoritmus je nucen expandovat a prohledat **všechny tyto paralelní větve stromu**. Z logaritmického vyhledávání se tak stává prohledávání grafu.
+
+#### 3. Geometrické efekty vysokých dimenzí (Prokletí dimenzionality)
+S rostoucí dimenzionalitou ($n \to \infty$) dochází v prostorech k paradoxnímu jevu – **koncentraci mír vzdálenosti** (Distance Concentration). Rozdíl mezi vzdáleností k nejbližšímu objektu a vzdáleností k nejvzdálenějšímu objektu se limitně blíží nule:
+
+$$\lim_{n \to \infty} \frac{D_{\max} - D_{\min}}{D_{\min}} = 0$$
+
+Zjednodušeně řečeno: ve vysoké dimenzi jsou všechny objekty od sebe přibližně stejně daleko a leží na hyperpovrchu prostoru. 
+* Pro indexování to má fatální důsledek – obalové koule uzlů musí enormně zvětšit svůj poloměr $r_p$, aby vůbec dokázaly pojmout datové objekty. 
+* Tím se index zaplní obřími, překrývajícími se regiony. Jakýkoliv dotaz $q$ s nenulovým poloměrem pak protne téměř 100 % všech regionů ve stromu. 
+
+Indexová struktura v tomto bodě kompletně kolabuje a vyhodnocení dotazu degraduje na **sekvenční sken (Sequential Scan)** celé databáze. Ten je navíc v případě metrického stromu paradoxně *pomalejší* než naivní brute-force vyhledávání, protože systém musí platit masivní režijní náklady na správu, alokaci a procházení uzlů stromové struktury.
