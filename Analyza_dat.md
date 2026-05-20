@@ -85,6 +85,30 @@ Dimenzionální modelování rozděluje data do dvou typů tabulek, které mají
 
 <img alt="img.png" src="img/analyza/priklad fact-dim.png" width="300"/>
 
+### Typy tabulek faktů (podle granularity a chování)
+Úroveň detailu (granularita) přímo definuje, jak se bude tabulka faktů chovat při nahrávání a jaké typy analýz umožní.
+
+1.  **Transaction Fact Tables (Transakční fakta):**
+    *   Nejčastější typ. Jeden řádek odpovídá jedné konkrétní události v čase (např. jeden nákup, jedno pípnutí položky na pokladně, jeden bankovní převod).
+    *   Tabulka neustále roste do délky, staré záznamy se nikdy neaktualizují.
+2.  **Periodic Snapshot Fact Tables (Periodické snímky):**
+    *   Jeden řádek představuje agregovaný stav za jasně definované časové období (např. denní uzávěrka prodejny, stav účtu na konci měsíce, měsíční přehled docházky).
+    *   Umožňuje snadno sledovat trendy a výkonnost v čase bez nutnosti sčítat miliony jednotlivých transakcí.
+3.  **Accumulating Snapshot Fact Tables (Kumulativní snímky):**
+    *   Jeden řádek reprezentuje celý životní cyklus určité entity nebo procesu, který má jasný začátek a konec (např. vyřízení objednávky od přijetí, přes expedici až po doručení).
+    *   Tabulka obsahuje více datových sloupců pro jednotlivé milníky. Na rozdíl od předchozích typů se zde existující řádky v průběhu času **aktualizují** (doplňují se nová časová razítka a stavy, jak proces postupuje).
+
+### Speciální typy dimenzí
+**Degenerovaná dimenze (Degenerate Dimension):**
+*   Jedná se o dimenzionální atribut (textový nebo identifikační), který nemá žádné další popisné vlastnosti, a proto nemá vlastní tabulku dimenzí. Je uložen **přímo v tabulce faktů**.
+*   *Typický příklad:* Číslo faktury, číslo objednávky, ID tiketu.
+*   *Význam:* Umožňuje seskupovat řádky v tabulce faktů, které k sobě patří (víme, které položky byly na jedné faktuře), bez nutnosti vytvářet prázdnou tabulku dimenze, která by obsahovala pouze jeden sloupec.
+
+**Junk dimenze (Odpadková / Kombinovaná dimenze):**
+*   Do DWH často proudí množství drobných stavových indikátorů, flagů a kódů (např. `Platba_Kartou (Y/N)`, `Doruceno (Y/N)`, `Typ_Dopravy (Zásilkovna/PPL/Pošta)`).
+*   Kdybychom pro každý flag vytvořili samostatnou dimenzi, tabulka faktů by byla přehlcena cizími klíči (tzv. *fact table proliferation*).
+*   *Řešení:* Vytvoří se jedna společná "Junk" tabulka, která obsahuje **všechny existující kombinace** těchto flagů. Tabulka faktů pak odkazuje pouze na jeden cizí klíč v této Junk dimenzi.
+
 ### Správa změn v dimenzích (SCD)
 Zatímco tabulky faktů historii nemění a pouze stabilně ukládají záznamy o událostech tak, jak se staly, atributy v tabulkách dimenzí se v průběhu času vyvíjejí. V provozních OLTP systémech se historie málokdy uchovává – když se zákazník přestěhuje, jednoduše se přepíše jeho adresa novou. V datovém skladu se však tato situace musí v rámci dimenzí striktně řešit ze dvou zásadních důvodů:
 
@@ -102,6 +126,7 @@ Pro řízení těchto scénářů se v tabulkách dimenzí implementují **Pomal
 
 
 <img alt="img.png" src="img/analyza/scd.png" width="300"/>
+
 
 ### Implementace: Hvězdné schéma (Star Schema)
 * Centrální tabulka faktů je přímo propojena s tabulkami dimenzí pomocí relací `1:N`.
@@ -131,6 +156,20 @@ V moderní praxi datových skladů a Business Intelligence jednoznačně převa�
 
 <img alt="img.png" src="img/analyza/cube-opareationa.png" width="500"/>
 
+Zatímco datová kostka je logický koncept, její fyzická implementace v databázi se zásadně liší podle zvolené technologie.
+
+*   **MOLAP (Multidimensional OLAP):**
+    *   **Princip:** Data jsou uložena ve speciálních, proprietárních vícerozměrných polích (polích kostek). Všechny agregace a výpočty jsou **předpočítány** a uloženy na disk během fáze sestavení (build) kostky.
+    *   **Výhody:** Extrémní rychlost odezvy analytických dotazů (vše je připraveno).
+    *   **Nevýhody:** Dlouhá doba nahrávání a procesování dat. Špatná škálovatelnost při obřích objemech dat (data se do kostky nevejdou, kostka je příliš "řídká").
+*   **ROLAP (Relational OLAP):**
+    *   **Princip:** Datová kostka fyzicky neexistuje. Data zůstávají uložena v klasické relační databázi (typicky ve struktuře Star Schema). BI nástroj pouze posílá komplexní SQL dotazy (s funkcemi jako `SUM`, `GROUP BY`) přímo do databáze za běhu.
+    *   **Výhody:** Dokáže zpracovat obrovské (multi-terabajtové) objemy dat. Není potřeba žádný speciální multidimenzionální storage.
+    *   **Nevýhody:** Rychlost dotazů závisí na indexech a výkonu relační databáze; složité výpočty mohou za běhu systém výrazně zpomalit.
+*   **HOLAP (Hybrid OLAP):**
+    *   **Princip:** Kombinuje oba přístupy. Detailní atomická data (např. jednotlivé transakce) zůstávají uložena v relační databázi (ROLAP přístup), ale vysoké byznys agregace (např. sumy za měsíce a produktové kategorie) jsou předpočítány a uloženy v rychlé multidimenzionální struktuře (MOLAP přístup).
+    *   **Výhody:** Poskytuje optimální kompromis – rychlé reportování hlavních manažerských přehledů v kombinaci s možností proklikat se (*drill-down*) do nejmenšího detailu v transakční databázi.
+
 ---
 
 ## Proces extrakce, transformace a nahrávání dat (ETL)
@@ -154,6 +193,19 @@ ETL představuje páteřní proces integrace dat z různých zdrojů do DWH a tv
 * *Optimalizace výkonu při nahrávání:* Využití hromadného nahrávání (**Bulk Load**) namísto standardních `INSERT` příkazů po jednotlivých řádcích.
     * Dočasné vypnutí nebo dropování indexů a integritních omezení (constraints) před nahráváním a jejich následné znovuvytvoření (rebuild) po dokončení importu.
     * Výpočet pre-agregací a aktualizace materializovaných pohledů.
+
+### ETL vs. ELT
+Tradiční přístup se s nástupem moderních cloudových technologií posunul od transformace dat před jejich nahráním k transformaci až uvnitř cílového úložiště.
+
+*   **ETL (Extract, Transform, Load):**
+    *   **Proces:** Data jsou extrahována ze zdrojů, přenesena na dedikovaný ETL server (integrační engine), kde proběhnou veškeré transformace, čištění a byznys logika, a až poté jsou zapsána do DWH.
+    *   **Vlastnosti:** Vyšší nároky na výpočetní výkon ETL hardwaru. Propustnost sítě a výkon ETL serveru bývají úzkým hrdlem.
+    *   **Použití:** Klasické on-premise datové sklady (např. MS SSIS, Oracle Data Integrator).
+
+*   **ELT (Extract, Load, Transform):**
+    *   **Proces:** Data jsou v surové podobě extrahována a okamžitě nahrána do cílového úložiště (často do transientní/staging vrstvy v cloudu). Veškeré transformace, čištění a modelování se spouštějí až uvnitř DWH pomocí SQL dotazů.
+    *   **Vlastnosti:** Plně využívá masivní distribuovaný výpočetní výkon moderních cloudových databází. Architektura je flexibilnější – surová data jsou v DWH k dispozici pro případné zpětné přetransformování.
+    *   **Použití:** Moderní cloudová architektura (Snowflake, BigQuery, AWS Redshift) ve spojení s nástroji jako dbt (data build tool).
 
 ---
 
