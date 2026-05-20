@@ -15,6 +15,25 @@ S nástupem nestrukturovaných multimediálních dat (obrázky, audio, video, te
 paradigma mění na vyhledávání podle podobnosti. 
 Základním matematickým konceptem pro exaktní formalizaci tohoto problému je **metrický prostor**.
 
+<img alt="img.png" src="img/podobnostni_hledani/vektory-ilusrace.png" width="400"/>
+
+### Formální definice problému podobnostního hledání
+* **Vstupní komponenty:**
+    * $M$: Univerzum (doména) všech možných objektů.
+    * $X$: Databáze reálných uložených objektů, přičemž platí $X \subseteq M$.
+    * $d$: Vzdálenostní funkce (metrika) měřící míru odlišnosti mezi objekty ($d: M \times M \rightarrow \mathbb{R}$).
+    * $q$: Dotazový objekt (query object), kde $q \in M$.
+* **Cíl vyhledávání:** Nalézt podmnožinu objektů z databáze $X$, které vykazují minimální vzdálenost (maximální podobnost) k dotazovému objektu $q$.
+
+### Kategorizace vyhodnocení dotazů z hlediska přesnosti
+* **Exaktní vyhledávání (Exact / Precise Search):** Garantuje 100% přesnost výsledků (Recall = 1).
+    * Vrátí exaktně všechny objekty, které splňují matematickou definici daného dotazu.
+    * Index slouží pouze k urychlení výpočtu, výsledek je shodný se sekvenčním skenováním.
+
+* **Aproximované vyhledávání (Approximate Search - ANN):**
+    * Obětuje část přesnosti výměnou za výrazné zrychlení vyhledávání a snížení I/O nákladů.
+    * Používá se v situacích, kdy pro uživatele není kritické najít absolutně nejbližší sousedy, ale stačí objekty „dostatečně blízké“.
+    * *Důvody zavedení:* Extrémní rozsah datových sad a negativní dopady prokletí dimenzionality na exaktní indexy.
 
 
 ## Metrický prostor
@@ -28,9 +47,12 @@ Aby byla funkce $d$ regulérní metrikou, musí pro libovolné objekty $x, y, z 
 
 **Klíčový detail:** Trojúhelníková nerovnost je zcela fundamentální vlastnost, na které stojí veškeré metrické indexování. Umožňuje nám odvozovat spodní a horní odhady vzdáleností mezi objekty, aniž bychom tyto vzdálenosti museli reálně měřit, což slouží jako základ pro prořezávání (pruning) vyhledávacího prostoru.
 
-Pokud funkce nesplňuje axiom identity (může nastat $d(x, y) = 0$ pro $x \neq y$), nazývá se **pseudometrika**. Pokud nesplňuje trojúhelníkovou nerovnost (např. často používaná Kosinová vzdálenost), nejedná se o metriku a standardní metrické indexy nad ní nelze korektně sestavit.
+### Varianty metrických prostorů při oslabení axiomů
+* **Pseudometrika:** Nesplňuje axiom identity ve směru $\Leftarrow$. Platí $d(x, y) = 0 \Leftarrow x = y$, ale může nastat $d(x, y) = 0$ i pro $x \neq y$ (dva různé objekty mají nulovou vzdálenost).
+* **Kvazimetrika:** Nesplňuje axiom symetrie, tedy $d(x, y) \neq d(y, x)$ (např. vzdálenost v dopravní síti s jednosměrnými ulicemi).
+* **Semimetrika:** Nesplňuje trojúhelníkovou nerovnost. Nad semimetrickým prostorem nelze stavět standardní metrické indexy, protože nelze provádět prořezávání prostoru.
 
-#### Často používané vzdálenostní funkce:
+### Často používané vzdálenostní funkce:
 * **Minkowského vzdálenost ($L_p$ metriky):** Definuje rodinu metrik v lineárních prostorech $\mathbb{R}^n$:
     $$d(x, y) = \left( \sum_{i=1}^{n} |x_i - y_i|^p \right)^{1/p}$$
     * $p=1$: Manhattan (City-block) vzdálenost ($L_1$)
@@ -110,6 +132,17 @@ Zvolí se dva pivoti $p_1, p_2 \in X$. Prostor se rozdělí pomyslnou nadrovinou
 Tento přístup využívá například **GHT (Generalized Hyperplane Tree)** nebo dynamický, diskově orientovaný **M-Tree**.
 
 <img alt="img.png" src="img/podobnostni_hledani/partitioning.png" width="400"/>
+
+### Konceptuální rozdíly v principech dělení dat
+* **Space Partitioning (Dělení prostoru):** * Rozděluje samotný topologický prostor na pevně dané oblasti bez ohledu na přítomnost či polohu reálných datových objektů.
+    * Výsledné regiony jsou striktně **disjunktní** (nepřekrývají se).
+    * Regiony mohou zůstat zcela prázdné, pokud v dané části prostoru neleží žádná data.
+    * *Příklad:* K-D strom, Quadtree.
+
+* **Data Partitioning (Dělení dat):** * Rozděluje množinu konkrétních existujících datových objektů do hierarchických shluků na základě jejich vzájemných vzdáleností.
+    * Výsledné obalové regiony (např. metrické koule) se v prostoru velmi často **geometricky překrývají** (overlap).
+    * Regiony se dynamicky přizpůsobují distribuci dat a nikdy nejsou prázdné.
+    * *Příklad:* M-Tree, R-Tree.
 
 ---
 
