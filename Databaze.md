@@ -19,6 +19,8 @@ Aby mohl systém efektivně fungovat, využívá paměťovou hierarchii, kde pla
 * **Primární paměť (RAM):** Rychlá, drahá, ale volatilní (při výpadku napájení ztrácí data). Pracuje na úrovni bajtů.
 * **Sekundární paměť (HDD/SSD):** Pomalá, levná, ale perzistentní (trvalá). Hardwarová vrstva nedokáže efektivně pracovat s jednotlivými bajty, proto komunikace mezi RAM a diskem probíhá vždy v **atomických blocích (stránkách)**, typicky o velikosti $4\text{ KiB}$ až $8\text{ KiB}$.
 
+<img alt="img.png" src="img/db/mem-hir.png" width="700"/>
+
 #### Mechanické disky (HDD)
 Přístupová doba k datům na HDD je diktována mechanikou a skládá se ze:
 1. **Seeku:** Fyzický přesun čtecí hlavy nad správnou stopu ($4-10\text{ ms}$).
@@ -34,7 +36,7 @@ NAND Flash paměti sice eliminovaly mechanický přesun hlav, ale přinesly novo
 
 Kvůli tomu nelze data jednoduše přepsat na stejném místě. Používá se strategie **Out-of-place Updates**: při změně dat se nová verze zapíše na čistou stránku a stará stránka se označí za neplatnou. Mazání na pozadí (**Garbage Collection**) pak musí neplatné bloky vyčistit. To vede k přesunům dat, opotřebení buněk a k nežádoucímu **zesílení zápisu (Write Amplification)**, kdy se fyzicky zapíše mnohem více dat, než databáze reálně požadovala.
 
-<img alt="img.png" src="img/db/mem-hir.png" width="700"/>
+
 
 ### 2. Spolehlivost a optimalizace na úrovni OS (RAID)
 Pro zvýšení rychlosti I/O operací a zajištění odolnosti proti selhání hardwaru se disky sdružují do logických polí **RAID** (Redundant Array of Independent Disks):
@@ -48,6 +50,11 @@ Pro zvýšení rychlosti I/O operací a zajištění odolnosti proti selhání h
 *V praxi se u SSD polí nasazuje navíc mechanismus **Diff-RAID**. Ten záměrně opotřebovává disky v poli nerovnoměrně, aby se předešlo situaci, kdy všechna SSD selžou v tentýž den kvůli dosažení limitu zápisů.*
 
 <img alt="img.png" src="img/db/raid.png" width="600"/>
+
+Samotný RAID pro maximální výkon transakčního systému nestačí. Zásadní roli hraje fyzické rozmístění souborů:
+
+1. **Vyhrazený disk pro logování (Dedicated Disk):** Transakční log se musí striktně ukládat na fyzicky samostatný disk/pole odděleně od datových souborů. Záznamy do logu se zapisují čistě sekvenčně. Pokud by log sdílel disk s databázovými daty, čtecí hlavy (u HDD) by neustále přebíhaly mezi náhodným čtením dat a sekvenčním zápisem logu, což dramaticky degraduje propustnost (throughput).
+2. **Vliv Cache řadiče (Controller Cache):** Hardwarový RAID řadič vybavený vlastní cache pamětí (např. se záložní baterií) dokáže stírat negativní dopady špatně navržené diskové konfigurace. Pokud cache řadiče chybí, uložení logu na dedikovaný disk přináší okamžité zvýšení propustnosti systému. Pokud řadič dostatečně velkou cache má, I/O operace se optimalizují přímo v ní a rozdíl mezi sdíleným a separovaným diskem se stává minimálním.
 
 ---
 
@@ -105,11 +112,13 @@ Index je pomocná datová struktura (kolekce dvojic `[klíč, ukazatel]`), kter�
 <img alt="img.png" src="img/db/hash.png" width="400"/>
 <img alt="img.png" src="img/db/btree.png" width="400"/>
 
-### Klasické přístupy (Složené indexy)
-* **Index na jeden atribut + filtrace:** Vyhledá se podle jednoho atributu a nalezené záznamy se následně dofiltrují podle druhé podmínky.
-* **Kombinace samostatných indexů:** Každý index vrátí vlastní seznam ukazatelů (bucketů), které se následně protnou (průnik seznamů).
-* **Index v indexu (Vnořený):** Strom první úrovně obsahuje v listech ukazatele na samostatné vnořené indexy druhé úrovně. Je efektivní pro dotazy na oba atributy nebo pouze na první atribut, ale nelze jej použít pro dotaz čistě na druhý atribut.
-* **Zřetězení hodnot (Concatenation / Složený B+ strom):** Hodnoty klíčů se spojí do jednoho složeného klíče (např. `Příjmení + Jméno`) a indexují se společně. *Příklad: Index nad `(Příjmení, Jméno)` zafunguje pro dotaz na `WHERE Příjmení='Novák'`, ale nepomůže pro dotaz na `WHERE Jméno='Jan'` kvůli uspořádání zleva doprava.*
+### Indexování více atributů (Multi-attribute indexing)
+Při vyhledávání dat podle kombinace několika různých sloupců (např. `WHERE Jméno = 'Jan' AND Věk = 30`) musí databázový systém zvolit strategii, jak efektivně omezit prohledávaný prostor bez nutnosti skenovat celou tabulku. V praxi se využívají následující přístupy:
+
+* **Index na jeden atribut + filtrace:** Databáze použije standardní jednorozměrný index na ten sloupec, který vyhodnotí jako selektivnější. Vyhledá odpovídající záznamy a zbývající podmínky na nich aplikuje až formou dodatečného dofiltrování v paměti.
+* **Kombinace samostatných indexů (Index Intersection):** Pokud existují dva nezávislé indexy (jeden pro první a druhý pro druhý atribut), databáze paralelně vyhledá ukazatele (RID) z obou indexů a následně provede průnik těchto seznamů (množinovou operaci `AND`).
+* **Vnořený index (Index-in-Index):** Hierarchická struktura, kde strom první úrovně obsahuje ve svých listech namísto přímých ukazatelů na data celé samostatné vnořené indexy druhé úrovně. Tento přístup je efektivní pro dotazy na oba atributy současně nebo pouze na první atribut, ale je zcela nepoužitelný pro dotaz směřující čistě na druhý atribut.
+* **Složený index (Zřetězení hodnot / Composite Index):** Hodnoty vybraných atributů se spojí do jednoho složeného klíče (např. `Příjmení + Jméno`) a indexují se společně v jediném B+ stromu. Tento index funguje efektivně pro dotazy na všechny zaindexované sloupce nebo na jejich levou podmnožinu. *Příklad: Index nad `(Příjmení, Jméno)` skvěle zafunguje pro dotaz `WHERE Příjmení = 'Novák'`, ale nepomůže pro samostatný dotaz `WHERE Jméno = 'Jan'`, protože uspořádání dat ve stromu probíhá striktně zleva doprava.*
 
 <img alt="img.png" src="img/db/index-in-index.png" width="300"/>
 
@@ -125,18 +134,20 @@ Index je pomocná datová struktura (kolekce dvojic `[klíč, ukazatel]`), kter�
 * **Vlastnosti dotazování:** Velmi efektivní pro dotazy na přesnou shodu i pro rozsahové dotazy (`range queries`), které v mřížce vyříznou celou obdélníkovou oblast buněk.
 * **Nevýhody:** Rozměry mřížky musí být fixní. Při nerovnoměrném rozdělení dat hrozí plýtvání místem (prázdné buňky) nebo přeplnění omezené kapacity buněk.
 
-<img alt="img.png" src="img/db/grid.png" width="200"/>
+<img alt="img.png" src="img/db/grid.png" width="300"/>
 
 ### Pokročilé / AI indexy
 * **Vektorové indexy (Vector Indexes):** Klíčové pro AI (vyhledávání v embeddings, RAG systémy). Používají se struktury jako **HNSW** (Hierarchical Navigable Small World) grafy nebo **IVF** (Inverted File) indexy pro rychlé přibližné hledání nejbližších sousedů (ANN – Approximate Nearest Neighbor) ve vícedimenzionálních prostorech.
 
 ### Obecná pravidla pro návrh indexů (Guidelines)
-* **Dobrá selektivita:** Indexovat by se měly sloupce, kde podmínku splňuje jen malý zlomek řádků z tabulky.
-* **Krátké atributy:** Kratší hodnoty atributů zvyšují větvení stromu (fan-out).
-* **Cizí klíče:** Indexy jsou preferovány na join atributy (propojování tabulek).
-* **Více vs. jeden:** Často je lepší mít více indexů na jeden atribut než jeden velký multi-atributový index.
-* **Aktualizace a velikost:** Vysoce aktualizované tabulky by měly mít málo indexů; pro miniaturní tabulky nemá smysl tvořit indexy vůbec.
-* **Pokrývající index (Covering Index):** Pokud index obsahuje všechny sloupce požadované dotazem, odpověď se přečte přímo z indexu a k samotným záznamům v tabulce se vůbec nepřistupuje.
+Správný návrh indexů vyžaduje rovnováhu mezi zrychlením čtení a zpomalením zápisových operací. Při jejich tvorbě je vhodné se řídit těmito pravidly:
+
+* **Vysoká selektivita:** Indexovat sloupce, kde se hodnoty málokdy opakují a podmínka v dotazu vybere jen malé procento řádků z tabulky. U sloupců s nízkou selektivitou (např. pohlaví) nemá index smysl, protože databáze raději zvolí sekvenční čtení celé tabulky.
+* **Krátké datové typy:** Preferovat indexy nad rozsahově malými sloupci (např. `INT` místo širokého `VARCHAR`). Menší datový typ klíče zvyšuje větvení stromu (fan-out), což snižuje jeho celkovou výšku a minimalizuje počet diskových I/O operací pro vyhledání řádku.
+* **Cizí klíče:** Primárně indexovat atributy, přes které se tabulky propojují (join atributy). Databáze při provádění operací `JOIN` potřebuje v připojené tabulce bleskově vyhledávat párové řádky, což bez indexu vede k drastickému propadu výkonu.
+* **Složené vs. samostatné indexy:** Často je výhodnější vytvořit více menších indexů na jednotlivé sloupce než jeden robustní multi-atributový index. Samostatné indexy dokáže optimalizátor flexibilně kombinovat a protnout pro různé typy dotazů.
+* **Zohlednění zápisů a velikosti:** U miniaturních tabulek indexy netvořit, full table scan je v nich efektivnější. Stejně tak je nutné omezit počet indexů u vysoce aktualizovaných tabulek, protože každá modifikace dat (`INSERT`, `UPDATE`, `DELETE`) vynucuje synchronní přepočet všech indexových struktur.
+* **Pokrývající index (Covering Index):** Pokud index obsahuje všechny sloupce požadované dotazem, odpověď se přečte přímo z jeho vnitřní struktury. Databáze v takovém případě zcela vynechá drahý přístup k samotným datovým záznamům na disku.
 
 ---
 
@@ -159,8 +170,27 @@ Speciální databázový index, který přítomnost či nepřítomnost hodnoty r
 ### Komprese bitmapových indexů (Run-Length Encoding – RLE)
 Bitmapové vektory jsou často velmi řídké (obsahují dlouhé sekvence samých nul) nebo naopak husté (sekvence samých jedniček). Pro minimalizaci diskového prostoru a zrychlení přenosu do RAM se komprimují pomocí metody RLE.
 
-* **Princip:** Namísto ukládání každého bitu samostatně se zaznamená pouze hodnota bitu a délka jeho nepřerušeného opakování (run). *Příklad: Sekvence 200 nul následovaná 50 jedničkami se neuloží jako 250 jednotlivých bitů, ale jako dvojice (0, 200) a (1, 50).*
-* **Výhoda pro exekuci:** Pokročilé bitmapové kodeky (např. *WAH – Word Aligned Hybrid* nebo *EWAH*) umožňují provádět procesorové bitové operace (`AND`, `OR`) přímo nad těmito komprimovanými daty bez nutnosti jejich předchozího dekomprimování v paměti.</textarea>
+* **Princip:** Namísto ukládání každého bitu samostatně se zaznamená pouze délka nepřerušeného opakování (run) stejných hodnot.
+* **Příklad bytové komprese (24 bitů):** * Mějme sekvenci bitů: `0000 0000 0000 0110 0010 0000`
+    * Algoritmus spočítá po sobě jdoucí úseky zakončené jedničkou:
+        * 13× nula, 1× jedna (převod na dekadické číslo $13\text{d} \rightarrow 1101\text{b}$)
+        * 0× nula, 1× jedna (převod na dekadické číslo $0\text{d} \rightarrow 0\text{b}$)
+        * 3× nula, 1× jedna (převod na dekadické číslo $3\text{d} \rightarrow 11\text{b}$)
+        * zbývajících 5× nula na konci není zakončeno jedničkou, proto se ignoruje.
+    * Výsledný RLE kód tvoří sekvenci bloků, kde každý blok obsahuje délku binárního čísla (v prefixovém kódu) následovanou samotným binárním číslem:
+        * Kód: `11101101001011`
+
+*Aby parser dokázal výsledný proud bitů (`11101101001011`) vůbec přečíst a správně rozdělit zpět na jednotlivá čísla (13, 0, 3), musí každé číslo dostat informaci o tom, kolik bitů zabírá.* 
+*To se dělá zápisem délky v unární soustavě (počet jedniček zakončený nulou) těsně před samotnou hodnotu:*
+* *Číslo `1101` má délku 4 bity $\rightarrow$ unárně jako **11110** (čtyři jedničky a nula).*
+* *Číslo `0` má délku 1 bit $\rightarrow$ zakóduje se jako **0** (nula jedniček a nula).*
+* *Číslo `11` má délku 2 bity $\rightarrow$ zakóduje se jako **110** (dvě jedničky a nula).*
+
+Výsledný řetězec pak vznikne spojením těchto dvojic `[délka][hodnota]`:
+`[1110][1101]` + `[0][0]` + `[11][11]` $\rightarrow$ `11101101001011`
+
+* **Výhoda pro exekuci:** Pokročilé bitmapové kodeky (např. *WAH – Word Aligned Hybrid* nebo *EWAH*) umožňují provádět procesorové bitové operace (`AND`, `OR`) přímo nad těmito komprimovanými daty bez nutnosti jejich předchozího dekomprimování v paměti.
+
 
 ---
 
@@ -206,14 +236,22 @@ $\Pi_{\text{title}} [ \text{StarsIn} \bowtie \sigma_{\text{birthdate}=1960}(\tex
 <img alt="img.png" src="img/db/query-process-schema.png" width="300"/>
 
 ### Předávání dat mezi operátory
-* **Materializace (Materialization):** Operátor zapíše celý mezivýsledek do dočasné tabulky na disk/do paměti a až pak ho předá dál. Vysoké I/O náklady.
-* **Pipelining (Proudové zpracování):** Operátory předávají data průběžně po jednotlivých řádcích bez zápisu na disk (Iterator Model / Volcano architecture s metodami `open()`, `next()`, `close()`).
+Při vykonávání SQL dotazu musí databázový procesor předávat mezivýsledky z jednoho operátoru (např. filtr) do druhého (např. spojení). Způsob tohoto předávání zásadně ovlivňuje rychlost a spotřebu paměti:
+
+* **Pipelining (Proudové zpracování):** Operátory předávají data průběžně po jednotlivých řádcích (nebo malých blocích) přímo v RAM bez zápisu na disk. Je to výchozí a nejrychlejší stav, protože uživatel dostává první výsledky okamžitě.
+* **Materializace (Materialization):** Operátor musí kompletně zpracovat a spočítat **všechny** řádky, zapsat tento celkový mezivýsledek do dočasné tabulky (v paměti nebo na disku) a teprve poté jej jako celek předat nadřazenému operátoru. Tento přístup generuje vysoké I/O náklady a blokuje proudové zpracování.
+
+#### Příklady operací vynucujících materializaci (Pipeline Breakers):
+Některé operátory z logiky věci nemohou poslat první řádek dál, dokud neuvidí úplně všechna data. V ten moment musí databáze data materializovat:
+1. **`ORDER BY` (Třídění):** Systém nemůže vrátit „první nejmenší řádek“, dokud neprojde, neporovná a neseřadí úplně všechny řádky z předchozího kroku.
+2. **`GROUP BY` a agregace (`SUM`, `AVG`, `COUNT`):** Nelze spočítat výsledný průměr nebo sumu pro danou skupinu, dokud nejsou načteny a sečteny všechny odpovídající záznamy.
+3. **`Hash Join` (Spojení tabulek):** Tento typ spojení musí nejprve kompletně načíst celou jednu tabulku, postavit z ní v paměti hashovací tabulku (fáze materializace) a teprve poté do ní může začít proudově porovnávat řádky z druhé tabulky.
 
 <img alt="img.png" src="img/db/pipelining.png" width="300"/>
 
 ### Algoritmy
 
-#### A) Externí třídění (External Sort-Merge)
+#### A) Externí třídění (External Merge Sort)
 Používá se, pokud se tříděná data nevejdou do paměti RAM ($M$ bloků).
 1. **Fáze generování běhů (Runs):** Data se načtou po částech o velikosti $M$ bloků do RAM, seřadí se a zapíšou na disk jako setříděné běhy.
 2. **Fáze slévání (Merge):** V paměti se alokuje $M-1$ bloků pro vstupní proudy a $1$ pro výstup. Data se paralelně slévají do jednoho setříděného souboru.
@@ -221,14 +259,21 @@ Používá se, pokud se tříděná data nevejdou do paměti RAM ($M$ bloků).
 <img alt="img.png" src="img/db/mergesort.png" width="400"/>
 
 #### B) Algoritmy pro Join (Join Operators)
-Mějme vnější relaci $R_1$ a vnitřní relaci $R_2$.
+Při spojování dvou tabulek (v relační algebře nazývaných **relace**) definuje optimalizátor jednu tabulku jako **vnější ($R_1$)** a druhou jako **vnitřní ($R_2$)**. Podle velikosti tabulek a přítomnosti indexů databáze zvolí jeden ze tří fyzických algoritmů:
+
 1. **Nested-Loop Join (Vnořené cykly):**
-   * *Block Nested-Loop:* Pro každý blok $R_1$ v paměti se sekvenčně projde celá relace $R_2$ blok po bloku.
-   * *Indexed Nested-Loop:* Pokud má $R_2$ index nad spojovacím atributem, prohledává se přímo index pro každý řádek z $R_1$. Efektivní pro malou vnější relaci.
-2. **Sort-Merge Join:** Obě relace se nejprve setřídí podle spojovacího atributu a následně se procházejí paralelně jedním společným průchodem.
+    * Funguje na principu dvou vnořených programovacích cyklů (pro každý řádek z vnější tabulky prohledej vnitřní tabulku).
+    * **Block Nested-Loop:** Pro každý diskový blok tabulky $R_1$ načtený do paměti se sekvenčně projde celá tabulka $R_2$ blok po bloku. Tím se drasticky snižuje počet opakovaných čtení vnitřní tabulky z disku.
+    * **Indexed Nested-Loop:** Pokud má vnitřní tabulka $R_2$ vybudovaný index nad spojovacím sloupcem, neprochází se celá. Pro každý řádek z vnější tabulky $R_1$ se shoda bleskově vyhledá přímo přes tento index. Tento přístup je extrémně efektivní, pokud je vnější tabulka $R_1$ malá.
+2. **Sort-Merge Join:**
+    * Obě tabulky se nejprve samostatně setřídí podle spojovacího sloupce (pokorud již setříděné nejsou, např. z indexu).
+    * Následně se obě setříděné struktury procházejí v paměti paralelně vedle sebe jedním společným lineárním průchodem, při kterém se rovnou propojují shodné hodnoty.
 3. **Hash Join:**
-   * *Build fáze:* Nad menší relací se v RAM vybuduje hašovací tabulka podle spojovacího klíče.
-   * *Probe fáze:* Větší relace se sekvenčně čte a pro každý řádek se hašováním klíče okamžitě ověřuje shoda.
+    * Nejpoužívanější algoritmus pro velké tabulky bez indexů. Skládá se ze dvou fází:
+    * **Build fáze:** Databáze vezme rozsahově menší tabulku a v paměti RAM nad ní vybuduje provizorní hashovací tabulku podle spojovacího klíče.
+    * **Probe fáze:** Následně sekvenčně čte větší tabulku, u každého jejího řádku prožene spojovací klíč hashovací funkcí a okamžitě zjišťuje, zda v připravené hashovací tabulce existuje shoda.
+
+<img alt="img.png" src="img/db/generated-joins-diagram.png" width="500"/>
 
 ### Statistiky a odhady nákladů
 
@@ -241,29 +286,29 @@ CBO vyjadřuje cenu prováděcího plánu v arbitrárních jednotkách (odhad po
 * **Histogramy:** Rozdělení četnosti hodnot pro zachycení datového zešikmení (skew).
 
 ### Matematické odhady velikosti výsledku
-
-Při předpokladu uniformního rozdělení dat se velikost mezivýsledků odhaduje pomocí faktoru selektivity ($sf$):
+Při předpokladu rovnoměrného (uniformního) rozdělení dat se velikost mezivýsledků odhaduje pomocí faktoru selektivity ($sf$), který udává podíl řádků splňujících danou podmínku.
 
 * **Kartézský součin ($W = R_1 \times R_2$):**
-  $$T(W) = T(R_1) \cdot T(R_2)$$
-
+    * Nejhorší možný scénář; spojí se každý řádek s každým. Výsledný počet řádků je čistým součinem velikostí obou tabulek.
+    * $$T(W) = T(R_1) \cdot T(R_2)$$
 * **Selekce – Rovnost** ($\sigma_{A = \text{val}}(R)$):
-  $$sf = \frac{1}{V(R, A)} \quad \implies \quad T(W) = \frac{T(R)}{V(R, A)}$$
-
+    * Pravděpodobnost, že řádek obsahuje konkrétní hodnotu, je převrácená hodnota počtu unikátních hodnot daného atributu.
+    * $$sf = \frac{1}{V(R, A)} \quad \implies \quad T(W) = \frac{T(R)}{V(R, A)}$$
 * **Selekce – Rozsah** ($\sigma_{A \ge \text{val}}(R)$):
-  $$sf = \frac{\text{Max} - \text{val} + 1}{\text{Max} - \text{Min} + 1}$$
-
+    * Počítá poměr délky požadovaného intervalu (od zadané hodnoty po maximum) vůči celkovému rozsahu hodnot (od minima po maximum) v tabulce.
+    * $$sf = \frac{\text{Max} - \text{val} + 1}{\text{Max} - \text{Min} + 1}$$
 * **Konjunkce (AND) nezávislých podmínek:**
-  $$sf(C_1 \land C_2) = sf(C_1) \cdot sf(C_2)$$
-
+    * Pro nezávislé jevy se výsledná pravděpodobnost rovná součinu dílčích pravděpodobností; filtry se vzájemně násobí a výsledek se drasticky zmenšuje.
+    * $$sf(C_1 \land C_2) = sf(C_1) \cdot sf(C_2)$$
 * **Disjunkce (OR) nezávislých podmínek:**
-  $$sf(C_1 \lor C_2) = sf(C_1) + sf(C_2) - (sf(C_1) \cdot sf(C_2))$$
-
-* **Natural Join ($W = R_1 \bowtie R_2$) přes společný atribut $A$:**
-  $$T(W) = \frac{T(R_1) \cdot T(R_2)}{\max\{V(R_1, A), V(R_2, A)\}}$$
-
-* **Odhad počtu unikátních hodnot v mezivýsledku $U$:**
-  $$V(U, A) = \min\{V(R, A), T(U)\}$$
+    * Princip inkluze a exkluze. Pravděpodobnosti obou jevů se sečtou, ale je nutné odečíst jejich průnik (součin), aby se řádky splňující obě podmínky nezapočítaly dvakrát.
+    * $$sf(C_1 \lor C_2) = sf(C_1) + sf(C_2) - (sf(C_1) \cdot sf(C_2))$$
+* **Natural Join** ($W = R_1 \bowtie R_2$) **přes společný atribut** $A$:
+    * Odhaduje velikost propojení dvou tabulek. Vychází z předpokladu, že každý řádek z tabulky s menším počtem unikátních hodnot najde v průměru alespoň jeden protějšek ve druhé tabulce.
+    * $$T(W) = \frac{T(R_1) \cdot T(R_2)}{\max\{V(R_1, A), V(R_2, A)\}}$$
+* **Odhad počtu unikátních hodnot v mezivýsledku** $U$:
+    * Počet unikátních hodnot po filtraci/spojení nemůže překročit původní počet unikátních hodnot v tabulce a zároveň nemůže být větší než celkový počet řádků v samotném mezivýsledku.
+    * $$V(U, A) = \min\{V(R, A), T(U)\}$$
 
 ---
 
