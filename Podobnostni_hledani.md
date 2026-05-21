@@ -17,7 +17,8 @@ Základním matematickým konceptem pro exaktní formalizaci tohoto problému je
 
 <img alt="img.png" src="img/podobnostni_hledani/vektory-ilusrace.png" width="400"/>
 
-### Formální definice problému podobnostního hledání
+### Formální model podobnostního hledání
+Pro exaktní popis prvků a cílů vyhledávacího procesu definujeme následující systém:
 * **Vstupní komponenty:**
     * $M$: Univerzum (doména) všech možných objektů.
     * $X$: Databáze reálných uložených objektů, přičemž platí $X \subseteq M$.
@@ -25,7 +26,7 @@ Základním matematickým konceptem pro exaktní formalizaci tohoto problému je
     * $q$: Dotazový objekt (query object), kde $q \in M$.
 * **Cíl vyhledávání:** Nalézt podmnožinu objektů z databáze $X$, které vykazují minimální vzdálenost (maximální podobnost) k dotazovému objektu $q$.
 
-### Kategorizace vyhodnocení dotazů z hlediska přesnosti
+Při vyhodnocení dotazů rozlišujeme dva základní přístupy podle toho, zda je prioritou stoprocentní přesnost výsledků, nebo rychlost výpočtu:
 * **Exaktní vyhledávání (Exact / Precise Search):** Garantuje 100% přesnost výsledků (Recall = 1).
     * Vrátí exaktně všechny objekty, které splňují matematickou definici daného dotazu.
     * Index slouží pouze k urychlení výpočtu, výsledek je shodný se sekvenčním skenováním.
@@ -52,7 +53,24 @@ Aby byla funkce $d$ regulérní metrikou, musí pro libovolné objekty $x, y, z 
 * **Kvazimetrika:** Nesplňuje axiom symetrie, tedy $d(x, y) \neq d(y, x)$ (např. vzdálenost v dopravní síti s jednosměrnými ulicemi).
 * **Semimetrika:** Nesplňuje trojúhelníkovou nerovnost. Nad semimetrickým prostorem nelze stavět standardní metrické indexy, protože nelze provádět prořezávání prostoru.
 
-### Často používané vzdálenostní funkce:
+
+### Koncepční srovnání: Metrický vs. Vektorový prostor
+V praxi se nejčastěji setkáváme s vícerozměrnými vektory (např. embeddingy), avšak z matematického a indexačního hlediska jde o zásadní rozdíl v abstrakci.
+Každý normovaný vektorový prostor (kde umíme měřit délku vektoru) je metrickým prostorem, ale zdaleka ne každý metrický prostor je prostorem vektorovým.
+
+* **Vektorový prostor (Lineární):** Je striktně definován kartézskými souřadnicemi a systémem os (např. vektor $[1.2, -0.4]$). Známe absolutní pozici bodů, objekty lze sčítat, násobit skalárem a existuje zde počátek souřadnic $[0,0,\dots,0]$.
+* **Metrický prostor:** Je mnohem obecnější koncept. **Neexistují zde žádné osy, souřadnice ani počátek a objekty nelze sčítat.** Jediné, co máme k dispozici, je vzdálenostní funkce $d(x,y)$, která pro libovolnou dvojici objektů vrátí reálné číslo.
+
+#### Čistě metrické (ne-vektorové) prostory:
+V podobnostním vyhledávání existují obrovské rodiny dat, které nemají povahu bodů v prostoru, ale splňují axiomy metriky, takže nad nimi lze stavět indexy (např. M-Tree):
+1. **Řetězce a texty (String Spaces):** Objekty jsou slova či texty a metrikou je *Levenshteinova (Edit) vzdálenost* (počet editačních operací).
+2. **Množinová data (Set Spaces):** Objekty jsou nákupní košíky nebo seznamy zájmů a metrikou je *Jaccardova vzdálenost* měřící míru jejich překryvu.
+3. **Grafy a sítě (Graph Spaces):** Objekty jsou uzly (např. v sociální nebo silniční síti) a metrikou je *nejkratší cesta v grafu*.
+
+**Důsledek pro indexování:** Zatímco vektorový index (např. K-D strom) může prostor rozseknout v půlce podle fixní osy (např. $X > 5$), čistě metrický index (např. M-Tree) toto udělat nedokáže, protože osy nemá. Musí proto zvolit reálný objekt z databáze jako **pivot $p$** a prostor dělit relativně vůči němu (např. pomocí metrických koulí).
+
+### Vzdálenostní funkce
+Volba konkrétní metriky závisí na povaze indexovaných dat a sémantickém významu, který odráží člověkem vnímanou podobnost. Mezi standardně využívané funkce patří:
 * **Minkowského vzdálenost ($L_p$ metriky):** Definuje rodinu metrik v lineárních prostorech $\mathbb{R}^n$:
     $$d(x, y) = \left( \sum_{i=1}^{n} |x_i - y_i|^p \right)^{1/p}$$
     * $p=1$: Manhattan (City-block) vzdálenost ($L_1$)
@@ -73,6 +91,8 @@ Tento proces může být:
 1. **Založený na exaktních algoritmech (Hand-crafted features):** Např. barevné histogramy obrázků, textury, nebo frekvenční spektra u audia.
 2. **Založený na hlubokém učení (Deep Learning):** Využití neuronových sítí (např. konvolučních sítí či transformátorů jako CLIP), kde je objekt promítnut do vícerozměrného vektorového prostoru, tzv. **embedding prostoru**.
 
+<img alt="img.png" src="img/podobnostni_hledani/features-ai-gen.png" width="600"/>
+
 ### Vztah s člověkem vnímanou podobností a Sémantická propast
 Hlavní výzvou podobnostního vyhledávání je **sémantická propast (Semantic Gap)**. Jde o rozdíl mezi tím, jak data reprezentuje počítač (nízkoúrovňové informace, např. matice RGB pixelů obrázku), a tím, jak je vnímá lidský uživatel (vysokoúrovňové koncepty, emoce, kontext – např. "šťastný pes na louce").
 
@@ -82,9 +102,10 @@ Hlavní výzvou podobnostního vyhledávání je **sémantická propast (Semanti
 ---
 
 ### Typy dotazů a jejich definice
-Při zadání databáze (množiny objektů) $X \subseteq M$ a dotazového objektu $q \in M$ (query object) rozlišujeme dva základní typy podobnostních dotazů:
+Při zadání databáze (množiny objektů) $X \subseteq M$ a dotazového objektu $q \in M$ (query object) 
+rozlišujeme typy podobnostních dotazů:
 
-<img alt="img.png" src="img/podobnostni_hledani/typy-dotazu.png" width="600"/>
+<img alt="img.png" src="img/podobnostni_hledani/typy-dotazu.png" width="700"/>
 
 #### 1. Range Query (Rozsahový dotaz)
 Vrátí všechny objekty z databáze $X$, jejichž vzdálenost od dotazu $q$ je menší nebo rovna specifikovanému poloměru vyhledávání $r$ ($r \geq 0$).
@@ -112,10 +133,10 @@ $$X \bowtie_{\mu} Y = \{ (x, y) \in X \times Y \mid d(x, y) \leq \mu \}$$
 
 ## 2. Principy indexování
 
-Sekvenční procházení databáze (Sequential Scan / Brute Force) vyžaduje spočítat vzdálenost $d(q, x)$ pro každý objekt $x \in X$. Jelikož je výpočet metriky $d$ výpočetně nesmírně drahý (zejména u komplexních nebo high-dimensional popisovačů), je sekvenční skenování pro velké datové sady nepoužitelné ($\mathcal{O}(N)$). Cílem indexování je organizovat data tak, aby bylo možné velkou část prostoru při vyhledávání bezpečně ignorovat.
+Sekvenční procházení databáze (Sequential Scan / Brute Force) vyžaduje spočítat vzdálenost $d(q, x)$ pro každý objekt $x \in X$. Jelikož je výpočet metriky $d$ výpočetně nesmírně drahý (zejména u komplexních nebo high-dimensional popisovačů), je sekvenční skenování pro velké datové sady nepoužitelné ( $\mathcal{O}(N)$ ). Cílem indexování je organizovat data tak, aby bylo možné velkou část prostoru při vyhledávání bezpečně ignorovat.
 
 ### Dělení dat (Data Partitioning)
-Metrické indexy rozdělují datový prostor na dílčí regiony (podprostory) reprezentované uzly stromové struktury. K tomuto dělení se využívají vybrané objekty zvané **pivoti (reference points)**. Na rozdíl od vektorových prostorů (kde lze dělit prostor fixními souřadnicovými osami) v čistě metrickém prostoru můžeme měřit pouze vzdálenosti mezi objekty. Existují dva základní principy dělení dat:
+Metrické indexy rozdělují datový prostor na dílčí regiony (podprostory) reprezentované uzly stromové struktury. K tomuto dělení se využívají vybrané objekty zvané **pivoty (reference points)**. Na rozdíl od vektorových prostorů (kde lze dělit prostor fixními souřadnicovými osami) v čistě metrickém prostoru můžeme měřit pouze vzdálenosti mezi objekty. Existují dva základní principy dělení dat:
 
 #### A) Ball Partitioning (Dělení do metrických koulí)
 Zvolí se jeden pivot $p \in X$ a určí se dělící poloměr $r_m$ (zpravidla medián vzdáleností všech objektů k tomuto pivotu). Data se rozdělí do dvou disjunktních podmnožin:
@@ -125,7 +146,7 @@ Zvolí se jeden pivot $p \in X$ a určí se dělící poloměr $r_m$ (zpravidla 
 Tento princip tvoří základ hierarchických struktur jako je **VP-Tree (Vantage Point Tree)** nebo **Multi Vantage Point Tree (MVPT)**. Uzly si ukládají pivot $p$ a poloměr $r_m$.
 
 #### B) Generalized Hyperplane Partitioning (Dělení zobecněnou nadrovinou)
-Zvolí se dva pivoti $p_1, p_2 \in X$. Prostor se rozdělí pomyslnou nadrovinou, která se nachází přesně uprostřed mezi těmito dvěma body. Každý objekt je přiřazen k tomu pivotu, ke kterému má blíž:
+Zvolí se dva pivoty $p_1, p_2 \in X$. Prostor se rozdělí pomyslnou nadrovinou, která se nachází přesně uprostřed mezi těmito dvěma body. Každý objekt je přiřazen k tomu pivotu, ke kterému má blíž:
 * **Region pivotu $p_1$:** $X_{left} = \{ x \in X \mid d(p_1, x) \leq d(p_2, x) \}$
 * **Region pivotu $p_2$:** $X_{right} = \{ x \in X \mid d(p_1, x) > d(p_2, x) \}$
 
@@ -133,13 +154,14 @@ Tento přístup využívá například **GHT (Generalized Hyperplane Tree)** neb
 
 <img alt="img.png" src="img/podobnostni_hledani/partitioning.png" width="400"/>
 
+
 ### Konceptuální rozdíly v principech dělení dat
-* **Space Partitioning (Dělení prostoru):** * Rozděluje samotný topologický prostor na pevně dané oblasti bez ohledu na přítomnost či polohu reálných datových objektů.
+* **Space Partitioning (Dělení prostoru):** Rozděluje samotný topologický prostor na pevně dané oblasti bez ohledu na přítomnost či polohu reálných datových objektů.
     * Výsledné regiony jsou striktně **disjunktní** (nepřekrývají se).
     * Regiony mohou zůstat zcela prázdné, pokud v dané části prostoru neleží žádná data.
     * *Příklad:* K-D strom, Quadtree.
 
-* **Data Partitioning (Dělení dat):** * Rozděluje množinu konkrétních existujících datových objektů do hierarchických shluků na základě jejich vzájemných vzdáleností.
+* **Data Partitioning (Dělení dat):** Rozděluje množinu konkrétních existujících datových objektů do hierarchických shluků na základě jejich vzájemných vzdáleností.
     * Výsledné obalové regiony (např. metrické koule) se v prostoru velmi často **geometricky překrývají** (overlap).
     * Regiony se dynamicky přizpůsobují distribuci dat a nikdy nejsou prázdné.
     * *Příklad:* M-Tree, R-Tree.
@@ -149,12 +171,12 @@ Tento přístup využívá například **GHT (Generalized Hyperplane Tree)** neb
 ## Filtrování dat (Pivoting) a prořezávání vyhledávacího prostoru
 **Pivoting** je technika eliminace kandidátů bez nutnosti počítat jejich reálnou vzdálenost k dotazu $q$. Je plně závislá na platnosti **trojúhelníkové nerovnosti**.
 
-Mějme dotaz $q$, vyhledávací poloměr $r$ a předpočítaného pivota $p$. Vzdálenosti mezi pivotem $p$ a všemi datovými objekty $x$ (tedy hodnoty $d(p, x)$) jsou exaktně spočteny během fáze budování indexu a uloženy v paměti/na disku. Při provádění dotazu spočítáme pouze jedinou vzdálenost: $d(q, p)$.
+Mějme dotaz $q$, vyhledávací poloměr $r$ a předpočítaného pivota $p$. Vzdálenosti mezi pivotem $p$ a všemi datovými objekty $x$ (tedy hodnoty $d(p, x)$ ) jsou exaktně spočteny během fáze budování indexu a uloženy v paměti/na disku. Při provádění dotazu spočítáme pouze jedinou vzdálenost: $d(q, p)$.
 
 Z trojúhelníkové nerovnosti přímo vyplývá vztah:
 $$|d(p, x) - d(q, p)| \leq d(q, x)$$
 
-Chceme-li ověřit, zda objekt $x$ může být součástí výsledku rozsahového dotazu (tedy zda potenciálně platí $d(q, x) \leq r$), aplikujeme **prořezávací podmínku (Pruning Condition)**:
+Chceme-li ověřit, zda objekt $x$ může být součástí výsledku rozsahového dotazu (tedy zda potenciálně platí $d(q, x) \leq r$ ), aplikujeme **prořezávací podmínku (Pruning Condition)**:
 
 $$\text{Pokud } |d(p, x) - d(q, p)| > r, \text{ pak zaručeně platí } d(q, x) > r.$$
 
@@ -174,7 +196,7 @@ Aplikuje se v hierarchických strukturách (např. **M-Tree**), kde uzly nerepre
 * **Důsledek:** Pokud je dotaz $q$ se svým poloměrem $r$ tak daleko od pivota $p$, že ani při započítání maximálního poloměru regionu $r_p$ do něj nemůže dosáhnout, prořeže se **celý podstrom najednou** (ušetří se tisíce výpočtů vzdáleností).
 
 ### C) Pivot-Pivot Distance Constraint (Vztah mezi pivoty)
-Využívá předpočítané vzdálenosti mezi samotnými pivoty navzájem ($d(p_1, p_2)$). To je užitečné v hierarchických strukturách, kde jsou pivoti organizováni nad sebou nebo vedle sebe.
+Využívá předpočítané vzdálenosti mezi samotnými pivoty navzájem ($d(p_1, p_2)$). To je užitečné v hierarchických strukturách, kde jsou pivoty organizováni nad sebou nebo vedle sebe.
 * **Princip:** Pokud známe vzdálenost mezi lokálním pivotem $p_1$ a nadřazeným pivotem $p_2$, dokážeme pomocí trojúhelníkové nerovnosti a odhadu polohy dotazu vůči $p_2$ eliminovat celý region okolo $p_1$, aniž bychom vůbec museli spočítat vzdálenost $d(q, p_1)$.
 
 ### D) Double-Pivot Distance Constraint (Vztah dvou pivotů k objektu)
@@ -192,15 +214,15 @@ Souhrnný proces exekuce dotazu nad pivotovými strukturami (např. LAESA). Prob
 
 Abychom hloubkově porozuměli limitům vyhledávání, je nutné provést strukturální a geometrickou komparaci mezi klasickými strukturami z relačních databází (typicky B+ stromy) a moderními metrickými či vektorovými indexy.
 
-| Vlastnost | Tradiční indexy (B+ Tree) | Podobnostní indexy (Metrické / Vektorové) |
-| :--- | :--- | :--- |
-| **Dimenze dat** | Strictly 1D (jednorozměrná data – čísla, data, krátké řetězce). | High-dimensional (desítky, stovky až tisíce dimenzí). |
+| Vlastnost | Tradiční indexy (B+ Tree) | Podobnostní indexy (Metrické / Vektorové)                                                                               |
+| :--- | :--- |:------------------------------------------------------------------------------------------------------------------------|
+| **Dimenze dat** | Strictly 1D (jednorozměrná data – čísla, data, krátké řetězce). | High-dimensional (desítky, stovky až tisíce dimenzí).                                                                   |
 | **Uspořádání domény** | **Totální uspořádání** (Total Ordering). Pro každé dva klíče $a, b$ lze exaktně určit vztah $a < b$, $a = b$, nebo $a > b$. | Žádné přirozené uspořádání. K dispozici je pouze **relativní vzdálenost** mezi dvojicemi objektů (vzdálenostní matice). |
-| **Typ vyhledávání** | Exaktní shoda (Exact Match), intervalové/rozsahové dotazy na jedné ose. | Podobnostní dotazy (Range Query, $k$-NN, R$k$-NN, Similarity Join). |
-| **Geometrie regionů** | Disjunktní, ostře ohraničené a navazující intervaly na jednorozměrné přímce. | Překrývající se vícerozměrné regiony (metrické koule nebo hyperplány v prostoru). |
-| **Korektnost / Přesnost** | Vždy 100% deterministické a exaktní. | Buď exaktní (za cenu vysokých nákladů), nebo aproximované (**ANN** – Approximate Nearest Neighbor). |
-| **Prokletí dimenzionality** | Neexistuje (prostor roste lineárně s počtem záznamů). | **Kritický faktor.** Způsobuje geometrickou degradaci indexu a růst překryvů. |
-| **Výpočetní náročnost** | Velmi nízká (skalární porovnání čísel procesorem na úrovni instrukcí). | Extrémně vysoká (výpočet metriky nad velkými vektory, např. odmocniny, sumace). |
+| **Typ vyhledávání** | Exaktní shoda (Exact Match), intervalové/rozsahové dotazy na jedné ose. | Podobnostní dotazy (Range Query, $k$-NN, Rk-NN, Similarity Join).                                                       |
+| **Geometrie regionů** | Disjunktní, ostře ohraničené a navazující intervaly na jednorozměrné přímce. | Překrývající se vícerozměrné regiony (metrické koule nebo hyperplány v prostoru).                                       |
+| **Korektnost / Přesnost** | Vždy 100% deterministické a exaktní. | Buď exaktní (za cenu vysokých nákladů), nebo aproximované (**ANN** – Approximate Nearest Neighbor).                     |
+| **Prokletí dimenzionality** | Neexistuje (prostor roste lineárně s počtem záznamů). | **Kritický faktor.** Způsobuje geometrickou degradaci indexu a růst překryvů.                                           |
+| **Výpočetní náročnost** | Velmi nízká (skalární porovnání čísel procesorem na úrovni instrukcí). | Extrémně vysoká (výpočet metriky nad velkými vektory, např. odmocniny, sumace).                                         |
 
 ---
 
@@ -216,7 +238,7 @@ V jednorozměrném světě B+ stromu jsou dělicí body (klíče vnitřních uzl
 
 U metrických prostorů jsou regiony definovány pomocí obalových koulí (Ball Regions) nebo nadrovin. Kvůli variabilitě dat a absenci ortogonálních os vykazují tyto regiony v indexech (např. v M-Tree) vysokou míru vzájemného geometrického **překryvu (overlap)**. Pokud dotaz $q$ se svým poloměrem vyhledávání $r$ zasáhne do oblasti, kde se překrývá více metrických koulí různých uzlů, vyhledávací algoritmus je nucen expandovat a prohledat **všechny tyto paralelní větve stromu**. Z logaritmického vyhledávání se tak stává prohledávání grafu.
 
-#### 3. Geometrické efekty vysokých dimenzí (Prokletí dimenzionality)
+#### 3. Geometrické efekty vysokých dimenzí (Prokletí dimenzionality, Curse of Dimensionality)
 S rostoucí dimenzionalitou ($n \to \infty$) dochází v prostorech k paradoxnímu jevu – **koncentraci mír vzdálenosti** (Distance Concentration). Rozdíl mezi vzdáleností k nejbližšímu objektu a vzdáleností k nejvzdálenějšímu objektu se limitně blíží nule:
 
 $$\lim_{n \to \infty} \frac{D_{\max} - D_{\min}}{D_{\min}} = 0$$
@@ -226,3 +248,20 @@ Zjednodušeně řečeno: ve vysoké dimenzi jsou všechny objekty od sebe přibl
 * Tím se index zaplní obřími, překrývajícími se regiony. Jakýkoliv dotaz $q$ s nenulovým poloměrem pak protne téměř 100 % všech regionů ve stromu. 
 
 Indexová struktura v tomto bodě kompletně kolabuje a vyhodnocení dotazu degraduje na **sekvenční sken (Sequential Scan)** celé databáze. Ten je navíc v případě metrického stromu paradoxně *pomalejší* než naivní brute-force vyhledávání, protože systém musí platit masivní režijní náklady na správu, alokaci a procházení uzlů stromové struktury.
+
+### Řešení a opatření proti prokletí dimenzionality
+
+Snížení negativních dopadů vysoké dimenze na indexovací struktury se řeší ve dvou rovinách:
+
+#### 1. Redukce dimenzionality (Dimensionality Reduction)
+Cílem je transformovat high-dimensional prostor do prostoru s nižším počtem dimenzí (tzv. *intrinsic dimensionality*) při zachování co největšího množství sémantické informace a původních vzdáleností.
+* **Lineární metody (PCA - Principal Component Analysis):** Najde osy největšího rozptylu dat a projektuje vektory do tohoto nového podprostoru. Méně významné dimenze se zahodí.
+* **Nelineární metody a embeddingy (Autoenkodéry / UMAP / t-SNE):** Využití neuronových sítí k nelineárnímu stlačení dat. Autoenkodéry dokáží zakódovat komplexní vztahy do velmi kompaktního vektoru (např. z 1024 na 64 dimenzí).
+* **Náhodná projekce (Johnson-Lindenstrauss lemma):** Matematická věta garantující, že pokud promítneme body z extrémně vysoké dimenze do náhodně zvoleného podprostoru s dostatečným (avšak výrazně nižším) počtem dimenzí, relativní vzdálenosti mezi body zůstanou s malou chybou zachovány.
+
+#### 2. Aproximované vyhledávání nejbližších sousedů (ANN - Approximate Nearest Neighbor)
+Namísto hledání absolutně přesného výsledku (který v high-dim kolabuje na sekvenční sken) indexy garantují nalezení *dostatečně blízkých* sousedů s vysokou pravděpodobností. Tím se dramaticky sníží I/O náklady a počet výpočtů vzdáleností.
+* **Vektorové kvantování (Product Quantization - PQ):** Rozdělí vícerozměrný vektor na několik menších podvektorů a každý z nich reprezentuje pouze identifikátorem (centroidem) z předem natrénovaného číselníku (codebook). Vzdálenosti se pak počítají extrémně rychle pomocí lookup tabulek v paměti.
+* **Grafové indexy (HNSW - Hierarchical Navigable Small World):** Současný state-of-the-art. Data se propojí do hierarchické sítě (grafu), kde horní vrstvy umožňují "dlouhé skoky" v prostoru a spodní vrstvy slouží k lokálnímu dohledání. Efektivně tím obchází geometrické kolapsy stromových struktur.
+* **Lokalizované hashování (LSH - Locality-Sensitive Hashing):** Používá speciální hashovací funkce navržené tak, aby pro blízké objekty v prostoru generovaly stejný hash (kolizi) s vysokou pravděpodobností. Vyhledávání pak probíhá v konstantním čase prohledáním konkrétních hashovacích věder (buckets).
+
