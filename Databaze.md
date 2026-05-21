@@ -11,13 +11,15 @@
 
 ## Ukládání dat
 
-Výkon každého databázového systému (DBMS) je primárně limitován rychlostí komunikace se sekundárním úložištěm. Tento jev se označuje jako **I/O úzké hrdlo** (I/O bottleneck), protože operace v operační paměti RAM jsou řádově rychlejší než čtení a zápis na disk. Databáze proto musí být navržena tak, aby minimalizovala počet diskových operací.
+Výkon každého databázového systému (DBMS) je primárně limitován rychlostí komunikace se sekundárním úložištěm. Tento jev se označuje jako **I/O úzké hrdlo** (Input/Output bottleneck), protože operace v operační paměti RAM jsou řádově rychlejší než čtení a zápis na disk. Databáze proto musí být navržena tak, aby minimalizovala počet diskových operací.
 
 ### 1. Paměťová hierarchie a specifika hardwaru
 Aby mohl systém efektivně fungovat, využívá paměťovou hierarchii, kde platí: čím je paměť blíže procesoru, tím je rychlejší, dražší a má menší kapacitu.
 
 * **Primární paměť (RAM):** Rychlá, drahá, ale volatilní (při výpadku napájení ztrácí data). Pracuje na úrovni bajtů.
 * **Sekundární paměť (HDD/SSD):** Pomalá, levná, ale perzistentní (trvalá). Hardwarová vrstva nedokáže efektivně pracovat s jednotlivými bajty, proto komunikace mezi RAM a diskem probíhá vždy v **atomických blocích (stránkách)**, typicky o velikosti $4\text{ KiB}$ až $8\text{ KiB}$.
+
+<img alt="img.png" src="img/db/mem-hir.png" width="700"/>
 
 #### Mechanické disky (HDD)
 Přístupová doba k datům na HDD je diktována mechanikou a skládá se ze:
@@ -34,7 +36,7 @@ NAND Flash paměti sice eliminovaly mechanický přesun hlav, ale přinesly novo
 
 Kvůli tomu nelze data jednoduše přepsat na stejném místě. Používá se strategie **Out-of-place Updates**: při změně dat se nová verze zapíše na čistou stránku a stará stránka se označí za neplatnou. Mazání na pozadí (**Garbage Collection**) pak musí neplatné bloky vyčistit. To vede k přesunům dat, opotřebení buněk a k nežádoucímu **zesílení zápisu (Write Amplification)**, kdy se fyzicky zapíše mnohem více dat, než databáze reálně požadovala.
 
-<img alt="img.png" src="img/db/mem-hir.png" width="700"/>
+
 
 ### 2. Spolehlivost a optimalizace na úrovni OS (RAID)
 Pro zvýšení rychlosti I/O operací a zajištění odolnosti proti selhání hardwaru se disky sdružují do logických polí **RAID** (Redundant Array of Independent Disks):
@@ -48,6 +50,11 @@ Pro zvýšení rychlosti I/O operací a zajištění odolnosti proti selhání h
 *V praxi se u SSD polí nasazuje navíc mechanismus **Diff-RAID**. Ten záměrně opotřebovává disky v poli nerovnoměrně, aby se předešlo situaci, kdy všechna SSD selžou v tentýž den kvůli dosažení limitu zápisů.*
 
 <img alt="img.png" src="img/db/raid.png" width="600"/>
+
+Samotný RAID pro maximální výkon transakčního systému nestačí. Zásadní roli hraje fyzické rozmístění souborů:
+
+1. **Vyhrazený disk pro logování (Dedicated Disk):** Transakční log se musí striktně ukládat na fyzicky samostatný disk/pole odděleně od datových souborů. Záznamy do logu se zapisují čistě sekvenčně. Pokud by log sdílel disk s databázovými daty, čtecí hlavy (u HDD) by neustále přebíhaly mezi náhodným čtením dat a sekvenčním zápisem logu, což dramaticky degraduje propustnost (throughput).
+2. **Vliv Cache řadiče (Controller Cache):** Hardwarový RAID řadič vybavený vlastní cache pamětí (např. se záložní baterií) dokáže stírat negativní dopady špatně navržené diskové konfigurace. Pokud cache řadiče chybí, uložení logu na dedikovaný disk přináší okamžité zvýšení propustnosti systému. Pokud řadič dostatečně velkou cache má, I/O operace se optimalizují přímo v ní a rozdíl mezi sdíleným a separovaným diskem se stává minimálním.
 
 ---
 
@@ -99,23 +106,25 @@ Podle toho, jak jsou stránky se sloty řazeny v souboru za sebou, rozlišujeme 
 Index je pomocná datová struktura (kolekce dvojic `[klíč, ukazatel]`), která slouží k výraznému zrychlení přístupu k datům bez nutnosti sekvenčního procházení celé tabulky (Table Scan).
 
 ### Základní jednorozměrné indexy
-* **B+ strom:** Standard pro relační DB. Vyvážený strom, kde jsou všechny datové ukazatele výhradně v listech a listy jsou obousměrně zřetězené. Výborný pro bodové i rozsahové dotazy (komplexita vyhledávání, vkládání i mazání je $O(\log N)$).
+* **B+ strom:** Standard pro relační DB. Vyvážený strom, kde jsou všechny datové ukazatele výhradně v listech a listy jsou obousměrně zřetězené. Výborný pro bodové i rozsahové dotazy (komplexita vyhledávání, vkládání i mazání je $O(\log N)$ ).
 * **Hash index:** Mapuje klíč na adresu pomocí hašovací funkce. Rychlost $O(1)$, ale nepodporuje rozsahy.
 
 <img alt="img.png" src="img/db/hash.png" width="400"/>
 <img alt="img.png" src="img/db/btree.png" width="400"/>
 
-### Klasické přístupy (Složené indexy)
-* **Index na jeden atribut + filtrace:** Vyhledá se podle jednoho atributu a nalezené záznamy se následně dofiltrují podle druhé podmínky.
-* **Kombinace samostatných indexů:** Každý index vrátí vlastní seznam ukazatelů (bucketů), které se následně protnou (průnik seznamů).
-* **Index v indexu (Vnořený):** Strom první úrovně obsahuje v listech ukazatele na samostatné vnořené indexy druhé úrovně. Je efektivní pro dotazy na oba atributy nebo pouze na první atribut, ale nelze jej použít pro dotaz čistě na druhý atribut.
-* **Zřetězení hodnot (Concatenation / Složený B+ strom):** Hodnoty klíčů se spojí do jednoho složeného klíče (např. `Příjmení + Jméno`) a indexují se společně. *Příklad: Index nad `(Příjmení, Jméno)` zafunguje pro dotaz na `WHERE Příjmení='Novák'`, ale nepomůže pro dotaz na `WHERE Jméno='Jan'` kvůli uspořádání zleva doprava.*
+### Indexování více atributů (Multi-attribute indexing)
+Při vyhledávání dat podle kombinace několika různých sloupců (např. `WHERE Jméno = 'Jan' AND Věk = 30`) musí databázový systém zvolit strategii, jak efektivně omezit prohledávaný prostor bez nutnosti skenovat celou tabulku. V praxi se využívají následující přístupy:
+
+* **Index na jeden atribut + filtrace:** Databáze použije standardní jednorozměrný index na ten sloupec, který vyhodnotí jako selektivnější. Vyhledá odpovídající záznamy a zbývající podmínky na nich aplikuje až formou dodatečného dofiltrování v paměti.
+* **Kombinace samostatných indexů (Index Intersection):** Pokud existují dva nezávislé indexy (jeden pro první a druhý pro druhý atribut), databáze paralelně vyhledá ukazatele (RID) z obou indexů a následně provede průnik těchto seznamů (množinovou operaci `AND`).
+* **Vnořený index (Index-in-Index):** Hierarchická struktura, kde strom první úrovně obsahuje ve svých listech namísto přímých ukazatelů na data celé samostatné vnořené indexy druhé úrovně. Tento přístup je efektivní pro dotazy na oba atributy současně nebo pouze na první atribut, ale je zcela nepoužitelný pro dotaz směřující čistě na druhý atribut.
+* **Složený index (Zřetězení hodnot / Composite Index):** Hodnoty vybraných atributů se spojí do jednoho složeného klíče (např. `Příjmení + Jméno`) a indexují se společně v jediném B+ stromu. Tento index funguje efektivně pro dotazy na všechny zaindexované sloupce nebo na jejich levou podmnožinu. *Příklad: Index nad `(Příjmení, Jméno)` skvěle zafunguje pro dotaz `WHERE Příjmení = 'Novák'`, ale nepomůže pro samostatný dotaz `WHERE Jméno = 'Jan'`, protože uspořádání dat ve stromu probíhá striktně zleva doprava.*
 
 <img alt="img.png" src="img/db/index-in-index.png" width="300"/>
 
 ### Dělené hašování (Partitioned Hashing)
 * **Princip:** Pro vyhledávání nad více klíči se použije jedna společná výsledná adresa bloku. Ta vznikne tak, že se spojí bitové výstupy samostatných hašovacích funkcí pro jednotlivé atributy.
-* **Příklad:** *Atribut `Dept` má funkci $h_1$ a `Salary` funkci $h_2$. Výsledná adresa vznikne spojením jejich bitů (např. bity z $h_1$ tvoří začátek adresy, bity z $h_2$ konec).*
+* **Příklad:** Atribut `Dept` má funkci $h_1$ a `Salary` funkci $h_2$. Výsledná adresa vznikne spojením jejich bitů (např. bity z $h_1$ tvoří začátek adresy, bity z $h_2$ konec).
 * **Vlastnosti dotazování:** Pokud dotaz specifikuje všechny atributy, určí se jedna přesná adresa bucketu. Pokud specifikuje pouze jeden, zbývající bity adresy jsou neznámé a databáze musí prohledat všechny adresy odpovídající známému bitovému vzoru.
 
 <img alt="img.png" src="img/db/part-hash.png" width="200"/>
@@ -125,18 +134,20 @@ Index je pomocná datová struktura (kolekce dvojic `[klíč, ukazatel]`), kter�
 * **Vlastnosti dotazování:** Velmi efektivní pro dotazy na přesnou shodu i pro rozsahové dotazy (`range queries`), které v mřížce vyříznou celou obdélníkovou oblast buněk.
 * **Nevýhody:** Rozměry mřížky musí být fixní. Při nerovnoměrném rozdělení dat hrozí plýtvání místem (prázdné buňky) nebo přeplnění omezené kapacity buněk.
 
-<img alt="img.png" src="img/db/grid.png" width="200"/>
+<img alt="img.png" src="img/db/grid.png" width="300"/>
 
 ### Pokročilé / AI indexy
 * **Vektorové indexy (Vector Indexes):** Klíčové pro AI (vyhledávání v embeddings, RAG systémy). Používají se struktury jako **HNSW** (Hierarchical Navigable Small World) grafy nebo **IVF** (Inverted File) indexy pro rychlé přibližné hledání nejbližších sousedů (ANN – Approximate Nearest Neighbor) ve vícedimenzionálních prostorech.
 
 ### Obecná pravidla pro návrh indexů (Guidelines)
-* **Dobrá selektivita:** Indexovat by se měly sloupce, kde podmínku splňuje jen malý zlomek řádků z tabulky.
-* **Krátké atributy:** Kratší hodnoty atributů zvyšují větvení stromu (fan-out).
-* **Cizí klíče:** Indexy jsou preferovány na join atributy (propojování tabulek).
-* **Více vs. jeden:** Často je lepší mít více indexů na jeden atribut než jeden velký multi-atributový index.
-* **Aktualizace a velikost:** Vysoce aktualizované tabulky by měly mít málo indexů; pro miniaturní tabulky nemá smysl tvořit indexy vůbec.
-* **Pokrývající index (Covering Index):** Pokud index obsahuje všechny sloupce požadované dotazem, odpověď se přečte přímo z indexu a k samotným záznamům v tabulce se vůbec nepřistupuje.
+Správný návrh indexů vyžaduje rovnováhu mezi zrychlením čtení a zpomalením zápisových operací. Při jejich tvorbě je vhodné se řídit těmito pravidly:
+
+* **Vysoká selektivita:** Indexovat sloupce, kde se hodnoty málokdy opakují a podmínka v dotazu vybere jen malé procento řádků z tabulky. U sloupců s nízkou selektivitou (např. pohlaví) nemá index smysl, protože databáze raději zvolí sekvenční čtení celé tabulky.
+* **Krátké datové typy:** Preferovat indexy nad rozsahově malými sloupci (např. `INT` místo širokého `VARCHAR`). Menší datový typ klíče zvyšuje větvení stromu (fan-out), což snižuje jeho celkovou výšku a minimalizuje počet diskových I/O operací pro vyhledání řádku.
+* **Cizí klíče:** Primárně indexovat atributy, přes které se tabulky propojují (join atributy). Databáze při provádění operací `JOIN` potřebuje v připojené tabulce bleskově vyhledávat párové řádky, což bez indexu vede k drastickému propadu výkonu.
+* **Složené vs. samostatné indexy:** Často je výhodnější vytvořit více menších indexů na jednotlivé sloupce než jeden robustní multi-atributový index. Samostatné indexy dokáže optimalizátor flexibilně kombinovat a protnout pro různé typy dotazů.
+* **Zohlednění zápisů a velikosti:** U miniaturních tabulek indexy netvořit, full table scan je v nich efektivnější. Stejně tak je nutné omezit počet indexů u vysoce aktualizovaných tabulek, protože každá modifikace dat (`INSERT`, `UPDATE`, `DELETE`) vynucuje synchronní přepočet všech indexových struktur.
+* **Pokrývající index (Covering Index):** Pokud index obsahuje všechny sloupce požadované dotazem, odpověď se přečte přímo z jeho vnitřní struktury. Databáze v takovém případě zcela vynechá drahý přístup k samotným datovým záznamům na disku.
 
 ---
 
@@ -159,8 +170,27 @@ Speciální databázový index, který přítomnost či nepřítomnost hodnoty r
 ### Komprese bitmapových indexů (Run-Length Encoding – RLE)
 Bitmapové vektory jsou často velmi řídké (obsahují dlouhé sekvence samých nul) nebo naopak husté (sekvence samých jedniček). Pro minimalizaci diskového prostoru a zrychlení přenosu do RAM se komprimují pomocí metody RLE.
 
-* **Princip:** Namísto ukládání každého bitu samostatně se zaznamená pouze hodnota bitu a délka jeho nepřerušeného opakování (run). *Příklad: Sekvence 200 nul následovaná 50 jedničkami se neuloží jako 250 jednotlivých bitů, ale jako dvojice (0, 200) a (1, 50).*
-* **Výhoda pro exekuci:** Pokročilé bitmapové kodeky (např. *WAH – Word Aligned Hybrid* nebo *EWAH*) umožňují provádět procesorové bitové operace (`AND`, `OR`) přímo nad těmito komprimovanými daty bez nutnosti jejich předchozího dekomprimování v paměti.</textarea>
+* **Princip:** Namísto ukládání každého bitu samostatně se zaznamená pouze délka nepřerušeného opakování (run) stejných hodnot.
+* **Příklad bytové komprese (24 bitů):** * Mějme sekvenci bitů: `0000 0000 0000 0110 0010 0000`
+    * Algoritmus spočítá po sobě jdoucí úseky zakončené jedničkou:
+        * 13× nula, 1× jedna (převod na dekadické číslo $13\text{d} \rightarrow 1101\text{b}$)
+        * 0× nula, 1× jedna (převod na dekadické číslo $0\text{d} \rightarrow 0\text{b}$)
+        * 3× nula, 1× jedna (převod na dekadické číslo $3\text{d} \rightarrow 11\text{b}$)
+        * zbývajících 5× nula na konci není zakončeno jedničkou, proto se ignoruje.
+    * Výsledný RLE kód tvoří sekvenci bloků, kde každý blok obsahuje délku binárního čísla (v prefixovém kódu) následovanou samotným binárním číslem:
+        * Kód: `11101101001011`
+
+*Aby parser dokázal výsledný proud bitů (`11101101001011`) vůbec přečíst a správně rozdělit zpět na jednotlivá čísla (13, 0, 3), musí každé číslo dostat informaci o tom, kolik bitů zabírá.* 
+*To se dělá zápisem délky v unární soustavě (počet jedniček zakončený nulou) těsně před samotnou hodnotu:*
+* *Číslo `1101` má délku 4 bity $\rightarrow$ unárně jako **11110** (čtyři jedničky a nula).*
+* *Číslo `0` má délku 1 bit $\rightarrow$ zakóduje se jako **0** (nula jedniček a nula).*
+* *Číslo `11` má délku 2 bity $\rightarrow$ zakóduje se jako **110** (dvě jedničky a nula).*
+
+Výsledný řetězec pak vznikne spojením těchto dvojic `[délka][hodnota]`:
+`[1110][1101]` + `[0][0]` + `[11][11]` $\rightarrow$ `11101101001011`
+
+* **Výhoda pro exekuci:** Pokročilé bitmapové kodeky (např. *WAH – Word Aligned Hybrid* nebo *EWAH*) umožňují provádět procesorové bitové operace (`AND`, `OR`) přímo nad těmito komprimovanými daty bez nutnosti jejich předchozího dekomprimování v paměti.
+
 
 ---
 
@@ -206,14 +236,22 @@ $\Pi_{\text{title}} [ \text{StarsIn} \bowtie \sigma_{\text{birthdate}=1960}(\tex
 <img alt="img.png" src="img/db/query-process-schema.png" width="300"/>
 
 ### Předávání dat mezi operátory
-* **Materializace (Materialization):** Operátor zapíše celý mezivýsledek do dočasné tabulky na disk/do paměti a až pak ho předá dál. Vysoké I/O náklady.
-* **Pipelining (Proudové zpracování):** Operátory předávají data průběžně po jednotlivých řádcích bez zápisu na disk (Iterator Model / Volcano architecture s metodami `open()`, `next()`, `close()`).
+Při vykonávání SQL dotazu musí databázový procesor předávat mezivýsledky z jednoho operátoru (např. filtr) do druhého (např. spojení). Způsob tohoto předávání zásadně ovlivňuje rychlost a spotřebu paměti:
+
+* **Pipelining (Proudové zpracování):** Operátory předávají data průběžně po jednotlivých řádcích (nebo malých blocích) přímo v RAM bez zápisu na disk. Je to výchozí a nejrychlejší stav, protože uživatel dostává první výsledky okamžitě.
+* **Materializace (Materialization):** Operátor musí kompletně zpracovat a spočítat **všechny** řádky, zapsat tento celkový mezivýsledek do dočasné tabulky (v paměti nebo na disku) a teprve poté jej jako celek předat nadřazenému operátoru. Tento přístup generuje vysoké I/O náklady a blokuje proudové zpracování.
+
+#### Příklady operací vynucujících materializaci (Pipeline Breakers):
+Některé operátory z logiky věci nemohou poslat první řádek dál, dokud neuvidí úplně všechna data. V ten moment musí databáze data materializovat:
+1. **`ORDER BY` (Třídění):** Systém nemůže vrátit „první nejmenší řádek“, dokud neprojde, neporovná a neseřadí úplně všechny řádky z předchozího kroku.
+2. **`GROUP BY` a agregace (`SUM`, `AVG`, `COUNT`):** Nelze spočítat výsledný průměr nebo sumu pro danou skupinu, dokud nejsou načteny a sečteny všechny odpovídající záznamy.
+3. **`Hash Join` (Spojení tabulek):** Tento typ spojení musí nejprve kompletně načíst celou jednu tabulku, postavit z ní v paměti hashovací tabulku (fáze materializace) a teprve poté do ní může začít proudově porovnávat řádky z druhé tabulky.
 
 <img alt="img.png" src="img/db/pipelining.png" width="300"/>
 
 ### Algoritmy
 
-#### A) Externí třídění (External Sort-Merge)
+#### A) Externí třídění (External Merge Sort)
 Používá se, pokud se tříděná data nevejdou do paměti RAM ($M$ bloků).
 1. **Fáze generování běhů (Runs):** Data se načtou po částech o velikosti $M$ bloků do RAM, seřadí se a zapíšou na disk jako setříděné běhy.
 2. **Fáze slévání (Merge):** V paměti se alokuje $M-1$ bloků pro vstupní proudy a $1$ pro výstup. Data se paralelně slévají do jednoho setříděného souboru.
@@ -221,14 +259,21 @@ Používá se, pokud se tříděná data nevejdou do paměti RAM ($M$ bloků).
 <img alt="img.png" src="img/db/mergesort.png" width="400"/>
 
 #### B) Algoritmy pro Join (Join Operators)
-Mějme vnější relaci $R_1$ a vnitřní relaci $R_2$.
+Při spojování dvou tabulek (v relační algebře nazývaných **relace**) definuje optimalizátor jednu tabulku jako **vnější ($R_1$)** a druhou jako **vnitřní ($R_2$)**. Podle velikosti tabulek a přítomnosti indexů databáze zvolí jeden ze tří fyzických algoritmů:
+
 1. **Nested-Loop Join (Vnořené cykly):**
-   * *Block Nested-Loop:* Pro každý blok $R_1$ v paměti se sekvenčně projde celá relace $R_2$ blok po bloku.
-   * *Indexed Nested-Loop:* Pokud má $R_2$ index nad spojovacím atributem, prohledává se přímo index pro každý řádek z $R_1$. Efektivní pro malou vnější relaci.
-2. **Sort-Merge Join:** Obě relace se nejprve setřídí podle spojovacího atributu a následně se procházejí paralelně jedním společným průchodem.
+    * Funguje na principu dvou vnořených programovacích cyklů (pro každý řádek z vnější tabulky prohledej vnitřní tabulku).
+    * **Block Nested-Loop:** Pro každý diskový blok tabulky $R_1$ načtený do paměti se sekvenčně projde celá tabulka $R_2$ blok po bloku. Tím se drasticky snižuje počet opakovaných čtení vnitřní tabulky z disku.
+    * **Indexed Nested-Loop:** Pokud má vnitřní tabulka $R_2$ vybudovaný index nad spojovacím sloupcem, neprochází se celá. Pro každý řádek z vnější tabulky $R_1$ se shoda bleskově vyhledá přímo přes tento index. Tento přístup je extrémně efektivní, pokud je vnější tabulka $R_1$ malá.
+2. **Sort-Merge Join:**
+    * Obě tabulky se nejprve samostatně setřídí podle spojovacího sloupce (pokorud již setříděné nejsou, např. z indexu).
+    * Následně se obě setříděné struktury procházejí v paměti paralelně vedle sebe jedním společným lineárním průchodem, při kterém se rovnou propojují shodné hodnoty.
 3. **Hash Join:**
-   * *Build fáze:* Nad menší relací se v RAM vybuduje hašovací tabulka podle spojovacího klíče.
-   * *Probe fáze:* Větší relace se sekvenčně čte a pro každý řádek se hašováním klíče okamžitě ověřuje shoda.
+    * Nejpoužívanější algoritmus pro velké tabulky bez indexů. Skládá se ze dvou fází:
+    * **Build fáze:** Databáze vezme rozsahově menší tabulku a v paměti RAM nad ní vybuduje provizorní hashovací tabulku podle spojovacího klíče.
+    * **Probe fáze:** Následně sekvenčně čte větší tabulku, u každého jejího řádku prožene spojovací klíč hashovací funkcí a okamžitě zjišťuje, zda v připravené hashovací tabulce existuje shoda.
+
+<img alt="img.png" src="img/db/generated-joins-diagram.png" width="500"/>
 
 ### Statistiky a odhady nákladů
 
@@ -241,29 +286,29 @@ CBO vyjadřuje cenu prováděcího plánu v arbitrárních jednotkách (odhad po
 * **Histogramy:** Rozdělení četnosti hodnot pro zachycení datového zešikmení (skew).
 
 ### Matematické odhady velikosti výsledku
-
-Při předpokladu uniformního rozdělení dat se velikost mezivýsledků odhaduje pomocí faktoru selektivity ($sf$):
+Při předpokladu rovnoměrného (uniformního) rozdělení dat se velikost mezivýsledků odhaduje pomocí faktoru selektivity ($sf$), který udává podíl řádků splňujících danou podmínku.
 
 * **Kartézský součin ($W = R_1 \times R_2$):**
-  $$T(W) = T(R_1) \cdot T(R_2)$$
-
-* **Selekce – Rovnost ($\sigma_{A = \text{val}}(R)$):**
-  $$sf = \frac{1}{V(R, A)} \quad \implies \quad T(W) = \frac{T(R)}{V(R, A)}$$
-
-* **Selekce – Rozsah ($\sigma_{A \ge \text{val}}(R)$):**
-  $$sf = \frac{\text{Max} - \text{val} + 1}{\text{Max} - \text{Min} + 1}$$
-
+    * Nejhorší možný scénář; spojí se každý řádek s každým. Výsledný počet řádků je čistým součinem velikostí obou tabulek.
+    * $$T(W) = T(R_1) \cdot T(R_2)$$
+* **Selekce – Rovnost** ($\sigma_{A = \text{val}}(R)$):
+    * Pravděpodobnost, že řádek obsahuje konkrétní hodnotu, je převrácená hodnota počtu unikátních hodnot daného atributu.
+    * $$sf = \frac{1}{V(R, A)} \quad \implies \quad T(W) = \frac{T(R)}{V(R, A)}$$
+* **Selekce – Rozsah** ($\sigma_{A \ge \text{val}}(R)$):
+    * Počítá poměr délky požadovaného intervalu (od zadané hodnoty po maximum) vůči celkovému rozsahu hodnot (od minima po maximum) v tabulce.
+    * $$sf = \frac{\text{Max} - \text{val} + 1}{\text{Max} - \text{Min} + 1}$$
 * **Konjunkce (AND) nezávislých podmínek:**
-  $$sf(C_1 \land C_2) = sf(C_1) \cdot sf(C_2)$$
-
+    * Pro nezávislé jevy se výsledná pravděpodobnost rovná součinu dílčích pravděpodobností; filtry se vzájemně násobí a výsledek se drasticky zmenšuje.
+    * $$sf(C_1 \land C_2) = sf(C_1) \cdot sf(C_2)$$
 * **Disjunkce (OR) nezávislých podmínek:**
-  $$sf(C_1 \lor C_2) = sf(C_1) + sf(C_2) - (sf(C_1) \cdot sf(C_2))$$
-
-* **Natural Join ($W = R_1 \bowtie R_2$) přes společný atribut $A$:**
-  $$T(W) = \frac{T(R_1) \cdot T(R_2)}{\max\{V(R_1, A), V(R_2, A)\}}$$
-
-* **Odhad počtu unikátních hodnot v mezivýsledku $U$:**
-  $$V(U, A) = \min\{V(R, A), T(U)\}$$
+    * Princip inkluze a exkluze. Pravděpodobnosti obou jevů se sečtou, ale je nutné odečíst jejich průnik (součin), aby se řádky splňující obě podmínky nezapočítaly dvakrát.
+    * $$sf(C_1 \lor C_2) = sf(C_1) + sf(C_2) - (sf(C_1) \cdot sf(C_2))$$
+* **Natural Join** ($W = R_1 \bowtie R_2$) **přes společný atribut** $A$:
+    * Odhaduje velikost propojení dvou tabulek. Vychází z předpokladu, že každý řádek z tabulky s menším počtem unikátních hodnot najde v průměru alespoň jeden protějšek ve druhé tabulce.
+    * $$T(W) = \frac{T(R_1) \cdot T(R_2)}{\max\{V(R_1, A), V(R_2, A)\}}$$
+* **Odhad počtu unikátních hodnot v mezivýsledku** $U$:
+    * Počet unikátních hodnot po filtraci/spojení nemůže překročit původní počet unikátních hodnot v tabulce a zároveň nemůže být větší než celkový počet řádků v samotném mezivýsledku.
+    * $$V(U, A) = \min\{V(R, A), T(U)\}$$
 
 ---
 
@@ -277,7 +322,7 @@ Volba správného schématu představuje trade-off mezi úsporou místa (ochrano
 * **Normalizace (1NF, 2NF, 3NF, BCNF):** Každá funkční závislost $X \rightarrow A$ vyžaduje, aby $X$ byl superklíč. Zabraňuje redundanci a šetří místo na disku, ale vynucuje si drahé spojování tabulek (`JOIN`).
 * **Denormalizace:** Záměrné porušení normálních forem pro zrychlení kritických dotazů (eliminace `JOIN`ů za cenu redundance a složitějších zápisů).
 
-*Příklad z praxe (TPC-H):*
+*Příklad z praxe:*
 *Chceme najít položky od evropských dodavatelů. Normalizovaný dotaz spojuje 4 tabulky:*
 ```sql
 SELECT i_orderkey, r_name FROM item, supplier, nation, region
@@ -306,32 +351,41 @@ Logické transformace přepisují počáteční relačně-algebraický strom dot
 Pořadí vyhodnocování relací není pro konečný výsledek podstatné, protože všechny atributy jsou zachovány. Optimalizátor proto může měnit strukturu stromu tak, aby drahé operace (např. spojení velkých tabulek) proběhly co nejpozději.
 
 * **Natural Join:**
-  $$R \bowtie S = S \bowtie R$$
-  $$(R \bowtie S) \bowtie T = R \bowtie (S \bowtie T)$$
+    * **Komutativita:** Na pořadí spojovaných relací nezáleží; spojení relace $R$ s relací $S$ vrátí stejný výsledek jako spojení $S$ s $R$. Optimalizátor toho využívá k tomu, aby jako vnější relaci (vlevo) zvolil tu menší z nich.
+    * $$R \bowtie S = S \bowtie R$$
+    * **Asociativita:** Při spojování tří a více relací nezáleží na tom, které dvě spojíme jako první. To umožňuje optimalizátoru prioritně spojit ty relace, jejichž mezivýsledek bude nejmenší, a ušetřit tak paměť.
+    * $$(R \bowtie S) \bowtie T = R \bowtie (S \bowtie T)$$
 
 * **Kartézský součin (Cross Product):**
-  $$R \times S = S \times R$$
-  $$(R \times S) \times T = R \times (S \times T)$$
+  *   **Komutativita:** Generování všech možných kombinací řádků mezi $R$ a $S$ dává shodný výsledek bez ohledu na to, která tabulka je uvedena jako první.
+  * $$R \times S = S \times R$$
+  * **Asociativita:** Nezáleží na tom, zda nejprve vytvoříme kombinace pro $R \times S$ a k nim přidáme $T$, nebo nejdříve zkombinujeme $S \times T$. Výsledná multimnožina řádků bude identická.
+  * $$(R \times S) \times T = R \times (S \times T)$$
 
 * **Sjednocení (Union):**
-  $$R \cup S = S \cup R$$
-  $$(R \cup S) \cup T = R \cup (S \cup T)$$
+  * **Komutativita:** Sloučení řádků z relace $R$ a $S$ do jedné tabulky vrátí stejný soubor dat, ať už začneme vkládáním řádků z $R$ nebo z $S$. 
+  * $$R \cup S = S \cup R$$
+  * **Asociativita:** Pokud sjednocujeme tři relace, můžeme k výsledku sjednocení $R \cup S$ přidat relaci $T$, nebo k relaci $R$ přidat hotové sjednocení $S \cup T$. Výsledek bude vždy obsahovat všechny záznamy ze všech tří zdrojů.
+  * $$(R \cup S) \cup T = R \cup (S \cup T)$$
+
 
 ### 2. Pravidla pro Selekci ($\sigma$)
 Selekce filtruje řádky. Lze ji rozkládat na kaskády nezávislých podmínek, což umožňuje přesouvat konkrétní jednodušší filtry hlouběji do stromu.
 
 * **Kaskádové větvení (splitting AND):**
-  $$\sigma_{p_1 \land p_2}(R) = \sigma_{p_1}[\sigma_{p_2}(R)]$$
+    * **Princip:** Složenou podmínku spojenou operátorem `AND` lze rozdělit na sérii samostatných selekcí prováděných za sebou. Výhodou je, že jednodušší dílčí filtry může optimalizátor posunout hlouběji do stromu blíž k samotným datům.
+    * $$\sigma_{p_1 \land p_2}(R) = \sigma_{p_1}[\sigma_{p_2}(R)]$$
 
 * **Rozklad disjunkce (splitting OR):**
-  Při práci s multimnožinami (bags) v SQL se pro rozklad disjunktivních predikátů využívá sjednocení typu $MAX$ pro zachování správného počtu duplicit:
-  $$\sigma_{p_1 \lor p_2}(R) = \sigma_{p_1}(R) \cup_{max} \sigma_{p_2}(R)$$
+    * **Princip:** Podmínku spojenou operátorem `OR` lze transformovat na sjednocení dvou samostatných dotazů. Použití varianty $\cup_{max}$ (sjednocení multimnožin) zaručuje, že pokud řádek splňuje obě podmínky zároveň, objeví se ve výsledku s takovou četností, jakou měl v původní tabulce (nedojde k duplikaci).
+    * $$\sigma_{p_1 \lor p_2}(R) = \sigma_{p_1}(R) \cup_{max} \sigma_{p_2}(R)$$
 
 ### 3. Pravidla pro Projekci ($\pi$)
 Projekce redukuje sloupce. Kaskádové projekce umožňují ignorovat vnější (nadbytečné) projekce, pokud jsou vnitřní projekce jejich nadmnožinou.
 
 * **Kaskádové projekce (předpoklad $X \subseteq Y$):**
-  $$\pi_{X}(\pi_{Y}(R)) = \pi_{X}(R)$$
+    * **Princip:** Pokud provádíme více projekcí za sebou, rozhodující je pouze ta úplně vnější (poslední vykonaná). Všechny mezilehlé projekce lze ignorovat za předpokladu, že vnitřní projekce předává dál alespoň takovou množinu sloupců $Y$, jakou požaduje vnější projekce $X$.
+    * $$\pi_{X}(\pi_{Y}(R)) = \pi_{X}(R)$$
 
 ### 4. Kombinace operátorů (Heuristiky pro optimalizaci)
 
@@ -339,27 +393,28 @@ Projekce redukuje sloupce. Kaskádové projekce umožňují ignorovat vnější 
 Přesunutí selekce pod operátor spojení ($\bowtie$) drasticky snižuje počet řádků vstupujících do drahé join operace.
 
 * **Základní posun selekce pod spojení:**
-  Mějme predikát $p$, který se odkazuje pouze na atributy z tabulky $R$. Pak platí:
-  $$\sigma_{p}(R \bowtie S) = [\sigma_{p}(R)] \bowtie S$$
+    * **Princip:** Pokud se filtrační podmínka $p$ týká výhradně atributů z tabulky $R$, je výhodnější tabulku $R$ vyfiltrovat ještě předtím, než vstoupí do spojení s tabulkou $S$. Do paměťově náročného joinu tak putuje výrazně méně řádků.
+    * $$\sigma_{p}(R \bowtie S) = [\sigma_{p}(R)] \bowtie S$$
 
 * **Komplexní posun selekce pod spojení:**
-  Mějme predikát $p$ (obsahuje pouze atributy z $R$), predikát $q$ (pouze atributy ze $S$) a spojovací predikát $m$ (vyžaduje atributy z $R$ i $S$):
-  $$\sigma_{p \land q \land m}(R \bowtie S) = \sigma_{m}[(\sigma_{p}(R)) \bowtie (\sigma_{q}(S))]$$
+    * **Princip:** Složitý filtr obsahující podmínky pro obě tabulky i samotné spojení se nejprve rozloží (pomocí kaskádového větvení). Filtry patřící čistě k tabulce $R$ ($p$) a čistě k tabulce $S$ ($q$) se propadnou přímo ke zdrojům, zatímco propojovací podmínka $m$ se vyhodnotí až nad výsledným spojením zmenšených tabulek.
+    * $$\sigma_{p \land q \land m}(R \bowtie S) = \sigma_{m}[(\sigma_{p}(R)) \bowtie (\sigma_{q}(S))]$$
 
 * **Posun selekce pod sjednocení a rozdíl:**
-  $$\sigma_{p}(R \cup_{sum} S) = \sigma_{p}(R) \cup_{sum} \sigma_{p}(S)$$
-  $$\sigma_{p}(R - S) = \sigma_{p}(R) - S = \sigma_{p}(R) - \sigma_{p}(S)$$
+    * **Princip:** U sjednocení a rozdílu se filtrace aplikuje na obě vstupní relace samostatně ještě před provedením operace. Tím se sníží objem dat, která se musí na disku či v paměti slévat nebo porovnávat. U rozdílu stačí zúžit levou stranu, ale filtrace obou stran je bezpečný a efektivní standard.
+    * $$\sigma_{p}(R \cup_{sum} S) = \sigma_{p}(R) \cup_{sum} \sigma_{p}(S)$$
+    * $$\sigma_{p}(R - S) = \sigma_{p}(R) - S = \sigma_{p}(R) - \sigma_{p}(S)$$
 
 #### B) Včasná projekce (Pushing Projections Down)
 Odstraněním nepotřebných sloupců co nejdříve (ještě před selekcí nebo spojením) se zúží šířka řádků v paměťových bufferech.
 
 * **Posun projekce pod selekci:**
-  Mějme podmnožinu atributů $X \subseteq R$ a predikát $P$, který se odkazuje na množinu atributů $Z$. Projekci lze posunout dolů, pokud zachováme sloupce potřebné pro vyhodnocení selekce ($X \cup Z$):
-  $$\pi_{X}[\sigma_{P}(R)] = \pi_{X}(\sigma_{P}[\pi_{X \cup Z}(R)])$$
+    * **Princip:** Sloupce, které ve výsledku nechceme ($X$), můžeme odříznout už před selekcí. Do projekce hluboko ve stromu ale musíme přibalit i sloupce $Z$, které sice nechce finální výsledek, ale jsou nezbytné pro správné vyhodnocení filtrační podmínky $P$.
+    * $$\pi_{X}[\sigma_{P}(R)] = \pi_{X}(\sigma_{P}[\pi_{X \cup Z}(R)])$$
 
 * **Posun projekce pod spojení:**
-  Mějme $X \subseteq R$, $Y \subseteq S$ a množinu společných (join) atributů $Z$:
-  $$\pi_{XY}(R \bowtie S) = \pi_{XY}([\pi_{X \cup Z}(R)] \bowtie [\pi_{Y \cup Z}(S)])$$
+    * **Princip:** Namísto propojování širokých tabulek a následného osekávání výsledku odřízneme nepotřebné sloupce přímo na zdrojích $R$ a $S$. Do vnořených projekcí musíme kromě finálně požadovaných sloupců ($X, Y$) zahrnout také množinu společných spojovacích atributů $Z$, bez kterých by operátor joinu nedokázal řádky spárovat.
+    * $$\pi_{XY}(R \bowtie S) = \pi_{XY}([\pi_{X \cup Z}(R)] \bowtie [\pi_{Y \cup Z}(S)])$$
 
 ---
 
@@ -400,11 +455,11 @@ Ladění (Query/Schema Tuning) reaguje na situace, kdy automatická optimalizace
 Indexy výrazně urychlují `SELECT`, ale dramaticky zpomalují zápisy (`INSERT`, `DELETE`, `UPDATE`), protože DBMS musí synchronně aktualizovat i datové struktury indexu (např. B+ strom).
 
 *Příklad z praxe:*
-*U tabulky `StarsIn` provádíme dotazy podle herce ($p_1$), podle filmu ($p_2$) a zápisy (Insert). Náklady v počtu I/O operací se mění podle konfigurace indexů:*
+*U tabulky `StarsIn` provádíme dotazy podle herce* ($p_1$) *, podle filmu* ($p_2$) *a zápisy (Insert). Náklady v počtu I/O operací se mění podle konfigurace indexů:*
 * *Bez indexů: Čtení = 10 I/O (Table Scan), Zápis = 2 I/O.*
 * *Index na herce: Čtení podle herce = 4 I/O, Zápis = 4 I/O.*
 * *Oba indexy: Čtení podle herce = 4 I/O, Čtení podle filmu = 4 I/O, Zápis = 6 I/O.*
-*Zavedení obou indexů se vyplatí pouze tehdy, pokud je frekvence vyhledávání výrazně vyšší než frekvence zápisů ($p_1, p_2 \ge 0.4$).*
+*Zavedení obou indexů se vyplatí pouze tehdy, pokud je frekvence vyhledávání výrazně vyšší než frekvence zápisů* ($p_1, p_2 \ge 0.4$).
 
 ### 2. Eliminace zbytečných DISTINCTů
 Použití `DISTINCT` nutí databázi provést drahé řazení nebo hašování (*Unique* / *HashAggregate*) pro odstranění duplicit. Často je však `DISTINCT` v dotazu nadbytečný.
@@ -471,27 +526,115 @@ Systém zotavení (Recovery Manager) zajišťuje atomicitu (vrácení nedokonče
 Základní pravidlo pro zachování konzistence dat na disku: **Žádný datový blok nesmí být zapsán do primární databáze na disk dříve, než je příslušný záznam o jeho změně bezpečně uložen a synchronizován (flushed) v transakčním logu.**
 
 ### 2. Strategie správy bufferu (Buffer Management)
-Správce paměti (Buffer Manager) rozhoduje o tom, kdy se špinavé (změněné) stránky z RAM bufferu přepisují do primárního souboru na disku. Kombinace strategií definuje náročnost zotavení:
+Správce paměti (Buffer Manager) rozhoduje o tom, kdy se špinavé (změněné) stránky z RAM bufferu přepisují do primárního souboru na disku. Kombinace těchto strategií určuje náročnost a nutnost zotavení:
 
-* **Steal vs. No-Steal:**
-  * *Steal:* Systém smí zapsat na disk změny provedené dosud nepotvrzenou transakcí (např. při nedostatku RAM). Vyžaduje fázi **UNDO** při pádu (vrácení změn nedokončených transakcí).
-  * *No-Steal:* Systém nesmí zapsat necommitované změny na disk. Fáze UNDO není nutná.
-* **Force vs. No-Force:**
-  * *Force:* Všechny změny musí být zapsány na disk okamžitě při potvrzení (commit) transakce.
-  * *No-Force:* Změny commitované transakce mohou zůstat v RAM bufferu a zapíšou se na disk později. Šetří diskové I/O, ale vyžaduje fázi **REDO** při pádu (znovupřehrání změn potvrzených transakcí z logu).
+* **Steal vs. No-Steal (Rozhoduje o potřebě fáze UNDO):**
+    * **Steal:** Systém smí zapsat na disk změny provedené dosud nepotvrzenou transakcí (např. když dojde RAM a je potřeba uvolnit místo). Pokud systém po tomto zápisu spadne, data na disku jsou nekonzistentní. Vyžaduje fázi **UNDO** při pádu (vrácení změn nedokončených transakcí).
+    * **No-Steal:** Systém nesmí zapsat necommitované změny na disk. Vše drží v RAM, dokud transakce neskončí. Fáze UNDO pak při pádu není nutná, ale systém je limitován velikostí RAM.
+* **Force vs. No-Force (Rozhoduje o potřebě fáze REDO):**
+    * **Force:** Všechny změny musí být zapsány na disk okamžitě při potvrzení (commit) transakce. Databáze nepustí uživatele dál, dokud neproběhne zápis do datových souborů. Zaručuje trvanlivost, ale má katastrofální výkon kvůli neustálému náhodnému zápisu (Random I/O). Fáze REDO není nutná.
+    * **No-Force:** Změny commitované transakce mohou zůstat v RAM bufferu a zapíšou se na disk asynchronně někdy později. Šetří diskové operace, ale pokud systém spadne, potvrzená data v RAM se ztratí. Vyžaduje fázi **REDO** při pádu (znovupřehrání změn z logu).
 
-Moderní vysoce výkonné databáze používají kombinaci **Steal / No-Force** (maximální volnost pro správu paměti), což znamená, že proces zotavení musí bezpodmínečně provádět jak fázi REDO, tak fázi UNDO.
+Moderní vysoce výkonné databáze používají kombinaci **Steal / No-Force** (maximální volnost a rychlost pro správu paměti), což znamená, že proces zotavení musí bezpodmínečně provádět jak fázi REDO, tak fázi UNDO.
 
-### 3. Fáze zotavení (např. ARIES)
-Po restartu systému po havárii probíhá proces zotavení ve třech po sobě jdoucích fázích:
-1. **Analytická fáze:** Prochází log směrem dopředu od posledního kontrolního bodu. Identifikuje aktivní transakce (které v momentě pádu běžely a bude nutné je vrátit) a špinavé stránky v bufferu.
-2. **Fáze REDO (Zopakování):** Prochází log dopředu a znovu aplikuje všechny zapsané změny (potvrzených i nepotvrzených transakcí), čímž uvádí databázi přesně do stavu, v jakém byla v momentě pádu.
-3. **Fáze UNDO (Vrácení zpět):** Prochází log pozpátku a odstraňuje (rolluje zpět) změny všech transakcí, které nebyly před pádem úspěšně potvrzeny (commitovány).
+<img alt="img.png" src="img/db/force-steal.png" width="400"/>
 
-### 4. Kontrolní body (Checkpoints)
-Periodická operace, která zkracuje čas zotavení po havárii. 
-* Během checkpointu se aktuální špinavé stránky z RAM bufferu zapíšou na disk a do logu se zapíše záznam o stavu aktivních transakcí.
-* Při následném pádu víme, že všechny změny zapsané před checkpointem jsou bezpečně na disku, a analýzu logu proto nemusíme provádět od úplného začátku souboru logu.
+Vztah mezi politikami správy bufferu, výkonem systému a nároky na zotavení dokonale popisuje následující přehled:
+
+* **Kvadrant [No-Steal / Force] – Nejpomalejší (Slowest) / No UNDO, No REDO:**
+    * Paměťový buffer má svázané ruce. Nesmí zapsat nepotvrzená data na disk (No-Steal) a zároveň musí při každém commitu okamžitě a synchronně zapsat všechna změněná data do datových souborů (Force).
+    * Pokud systém spadne, na disku garantovaně nejsou žádná data z nedokončených transakcí (netřeba UNDO) a zároveň jsou na něm bezpečně všechna data z potvrzených transakcí (netřeba REDO). Databáze nepotřebuje žádný složitý log.
+    * Katastrofální výkon. Neustálé nucené zápisy na disk při každém commitu způsobují masivní I/O úzké hrdlo.
+
+* **Kvadrant [Steal / Force] – Pouze UNDO / No REDO:**
+    * Buffer smí přemazat necommitovanou stránku na disku (Steal), ale při commitu musí vše hned zapsat (Force).
+    * Na disku se mohou ocitnout data transakcí, které nakonec spadly. Je nutné čistit a provádět fázi **UNDO**. Fáze REDO netřeba.
+
+* **Kvadrant [No-Steal / No-Force] – No UNDO / Pouze REDO:**
+    * Buffer drží nepotvrzená data striktně v RAM (No-Steal), ale po commitu dovolí transakci běžet dál bez okamžitého zápisu dat na disk (No-Force).
+    * Na disku nikdy nejsou nečistá data (netřeba UNDO). Potvrzená data ale mohla zůstat jen v RAM a při pádu zmizet. Je nutné je znovu přehrát ze záznamů v logu – fáze **REDO**.
+
+* **Kvadrant [Steal / No-Force] – Nejrychlejší (Fastest) / Vyžaduje UNDO i REDO:**
+    * Buffer má absolutní svobodu. Může na disk zapsat kdykoliv cokoliv (Steal) a odkládat zápisy potvrzených dat na neurčito (No-Force).
+    * Při pádu je na disku chaos – jsou tam změny, které tam být nemají, a chybí tam změny, které tam být mají. Systém obnovy musí bezpodmínečně umět obojí: **UNDO i REDO** (např. algoritmus ARIES).
+    * Maximální možná rychlost. Databáze zapisuje na disk na pozadí, asynchronně a v optimálních dávkách. Právě proto tento přístup používají všechny moderní produkční databáze.
+
+### 3. Typy logování a algoritmus ARIES
+V závislosti na tom, jaké informace o změnách do logu ukládáme a jak s nimi pracujeme při obnově, rozlišujeme tři základní přístupy:
+
+* **A) UNDO Logování:**
+    * **Obsah záznamu:** `[ID_transakce, ID_objektu, stará_hodnota]` (předchozí stav dat).
+    * **Zápis:** Vyžaduje strategii *No-Force*. Stará data musí být zapsána na disk ještě před commitem transakce.
+    * **Zotavení:** Při pádu se log prochází **od konce dozadu** a u transakcí, které nestihly commit, se vrátí původní `stará_hodnota`.
+* **B) REDO Logování:**
+    * **Obsah záznamu:** `[ID_transakce, ID_objektu, nová_hodnota]` (nový stav dat).
+    * **Zápis:** Vyžaduje strategii *No-Steal*. Změny se zapisují na disk až po commitu (resp. log se synchronizuje na disk při commitu).
+    * **Zotavení:** Při pádu se log prochází **od začátku dopředu** a u všech potvrzených transakcí se znovu vynutí `nová_hodnota`.
+* **C) Zpětně-dopředné logování (UNDO/REDO) – Algoritmus ARIES:**
+    * Standard moderních vysoce výkonných DBMS splňující strategii *Steal / No-Force*. Sdružuje výhody obou přístupů a odstraňuje jejich paměťová omezení.
+    * **Obsah záznamu:** `[ID_transakce, ID_objektu, stará_hodnota, nová_hodnota]`
+    * Každý záznam v logu obsahuje monotónně rostoucí číslo **LSN (Log Sequence Number)** a ukazatel na předchozí operaci stejné transakce (`prevLSN`). Každá datová stránka na disku si v hlavičce nese políčko `pageLSN` (ID posledního zapsaného logu na této stránce) pro zajištění idempotence (ochrana před duplicitním zápisem).
+
+Po restartu systému po havárii provádí **ARIES** zotavení ve třech po sobě jdoucích fázích:
+
+1. **Analytická fáze (Analysis):**
+    * Prochází log směrem **dopředu** od posledního kontrolního bodu (Checkpointu).
+    * Identifikuje aktivní transakce v momentě pádu (tzv. *Losers*, které nestihly udělat commit a bude nutné je vrátit) a špinavé stránky v bufferu.
+2. **Fáze REDO (Zopakování / History Repeating):**
+    * Prochází log směrem **dopředu** a znovu aplikuje veškeré změny **všech** transakcí (potvrzených i aktivních *Losers*). Tím uvede databázi přesně do stavu, v jakém byla sekundu před pádem.
+    * Pokud je LSN v logu menší nebo rovno `pageLSN` na disku, operace se přeskočí (změna už na disku bezpečně byla).
+3. **Fáze UNDO (Vrácení zpět):**
+    * Prochází log směrem **dozadu** od konce.
+    * Odstraňuje změny všech transakcí označených jako *Losers* (aktivní při pádu) zápisem jejich původních `starých_hodnot`.
+    * Za každou vrácenou operaci zapíše do logu speciální dopředný záznam **CLR (Compensation Log Record)**. Pokud by systém spadl znovu uprostřed zotavování, díky CLR ví, které změny už jednou úspěšně vrátil a nemusí je rollbovat podruhé.
+---
+
+### Komplexní příklad zotavení (Analýza, REDO, UNDO)
+
+Mějme na disku tabulku s hodnotami $A=10, B=20$. Spustí se dvě transakce:
+* $T_1$ upraví $A$ na $100$.
+* $T_2$ upraví $B$ na $200$.
+* $T_1$ úspěšně provede `COMMIT`.
+* V tom okamžiku dojde k **pádu systému** (výpadek proudu). Transakce $T_2$ zůstala nedokončená.
+
+#### Stav logu v momentě pádu:
+```text
+LSN 101: [T1, A, stará=10, nová=100]
+LSN 102: [T2, B, stará=20, nová=200]
+LSN 103: [T1, COMMIT]
+<<< PÁD SYSTÉMU >>>
+```
+LSN (= Log Sequence Number)
+
+#### Průběh zotavení:
+
+1. **Analýza (Dopředu):** Optimalizátor přečte log od začátku (resp. od checkpointu). Narazí na start transakcí $T_1$ a $T_2$. Na konci logu zjistí, že $T_1$ má zaznamenaný `COMMIT`, ale $T_2$ ne. 
+   * **Výsledek fáze:** $T_1$ je potvrzená, $T_2$ je označen jako **Loser** určený k vrácení.
+
+2. **REDO fáze (Dopředu):**
+   Systém vezme log od nejstaršího záznamu dopředu a slepě replikuje historii (opakuje všechny změny):
+   * Podle záznamu LSN 101 zapíše do $A$ hodnotu $100$.
+   * Podle záznamu LSN 102 zapíše do $B$ hodnotu $200$.
+   * *Na konci této fáze je databáze v přesném stavu, v jakém se nacházela v momentě pádu (tedy $A=100, B=200$).*
+
+3. **UNDO fáze (Dozadu):**
+   Systém čistí změny po aktivní transakci $T_2$. Prochází log směrem pozpátku:
+   * Narazí na záznam LSN 102 (patřící $T_2$). Vezme jeho hodnotu `stará=20` a zapíše ji do $B$.
+   * Do logu okamžitě zapíše kompenzační záznam: `LSN 104: [CLR: T2, B, stará=20]`, který odkazuje na `prevLSN` této transakce (zde žádný předchozí není, takže $T_2$ je kompletně vrácena).
+   * Narazí na záznam LSN 101 (patřící $T_1$). Protože transakce $T_1$ není loser, tento záznam zcela ignoruje.
+
+**Finální konzistentní stav na disku po zotavení:** $A=100$ (změna z potvrzené $T_1$ byla zachována), $B=20$ (nedokončená změna z $T_2$ byla bezpečně odvolána).
+
+---
+
+### 5. Kontrolní body (Checkpoints)
+Periodická operace, která zkracuje čas zotavení po havárii. Bez checkpointů by databáze musela při restartu analyzovat transakční log od úplného prvního řádku (který mohl vzniknout před měsíci).
+
+* **Princip:** Během checkpointu se aktuální špinavé stránky z RAM bufferu zapíšou na disk a do logu se zapíše záznam o stavu aktivních transakcí. Při následném pádu víme, že všechny změny zapsané před checkpointem jsou bezpečně na disku, a analýzu logu proto nemusíme provádět od úplného začátku souboru logu.
+
+#### Typy Checkpointů:
+* **Strict (Ostrý) Checkpoint:** Zastaví se zpracování všech transakcí (přeruší se zápisy), všechny špinavé stránky z RAM se synchronně spláchnou (flush) na disk a až pak se pokračuje. Způsobuje nepříjemné výkonnostní skoky a propady propustnosti (throughput).
+* **Fuzzy Checkpoint:** Nebrání běhu transakcí. Do logu se zapíše `[BEGIN_CHECKPOINT]`, na pozadí se začnou asynchronně zapisovat špinavé stránky na disk. Jakmile jsou zapsány, zapíše se `[END_CHECKPOINT]` s tabulkou transakcí (Transaction Table) a tabulkou špinavých stránek (Dirty Page Table), které byly v momentě začátku checkpointu aktivní. Analytická fáze zotavení pak začíná na záznamu `BEGIN_CHECKPOINT`.
 
 ---
 
