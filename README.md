@@ -4,35 +4,10 @@ Materiály k přípravě na státní závěrečnou magisterskou zkoušku na Faku
 
 Otázky viz https://www.fi.muni.cz/studies/fe-mgr/uizd2018.html
 
-## Okruhy ke státní zkoušce
-### Společný základ programu
-
-| Okruh | Předmět | Poznámka |
-|---|---|---|
-| [Metody umělé inteligence](./Metody_umele_inteligence.md) | IV126 | |
-| [Statistika](./Statistika.md) | MA012 | |
-| [Infrastrukturní a cloudové systémy](./Infrastrukturni_a_cloudove_systemy.md) | PA234 | Povinné pro šablonu 2024/2025 nebo novější |
-| [Databáze](./Databaze.md) | PA152 | |
-| [Neuronové sítě](./Neuronove_site.md) | PV021 | |
-| [Dobývání znalostí](./Dobyvani_znalosti_PV056.md) | PV056 | Pro absolventy předmětu do jara 2024 včetně |
-| [Strojové učení](./Strojove_uceni.md) | PV056 | Pro absolventy předmětu od jara 2025 včetně |
-| [Dobývání znalostí](./Dobyvani_znalosti.md) | PA212, PV056 | Pro absolventy předmětu PV056 od jara 2025 včetně |
-| [Vizualizace](./Vizualizace.md) | PV251 | |
-
-### Zpracování a analýza rozsáhlých dat
-
-| Okruh | Předmět | Poznámka |
-|---|---|---|
-| [Analýza dat](./Analyza_dat.md) | PA220 | |
-| [Pokročilé techniky vyhledávání](./Pokrocile_techniky_vyhledavani.md) | PA212 | Povinné pro šablonu 2022/2023 nebo novější |
-| [Podobnostní hledání](./Podobnostni_hledani.md) | PA128 | Povinné pro šablonu 2022/2023 nebo novější |
-| [Cloudové počítání a distribuované databáze](./Cloudove_pocitani_a_distribuovane_databaze.md) | PA200, PA195 | |
-| [Softwarové inženýrství](./Softwarove_inzenyrstvi.md) | PA017 | |
-
 # Otázky N-UIZD Umělá inteligence a zpracování dat
 
 ## Společný základ programu 
-_Pro studium od kontrolní šablony 2024/2025 a pro absolventy PV056 od jara 2025 včetně. Zkopírování ze stránek FI MUNI 30.3.2026_
+_Pro studium od kontrolní šablony 2024/2025 a pro absolventy PV056 od jara 2025 včetně. Zkopírováno ze stránek FI MUNI 30.3.2026_
 
 1) **[Metody umělé inteligence](./Metody_umele_inteligence.md):** Prohledávání stavového prostoru, lokální prohledávání a metaheuristiky s jedním řešením, populační metaheuristiky (evoluční algoritmy, inteligence hejna). Plánování, reprezentace problému, plánování se stavovým prostorem. Práce s neurčitostí, Bayesovské sítě, exaktní a aproximační odvozování, čas a neurčitost, teorie užitku, Markovský rozhodovací proces, iterace hodnot, iterace strategie. Robotika, plánování pohybu robota (konfigurační prostor, kombinatorické a pravděpodobnostní přístupy). (IV126)
 2) **[Statistika](./Statistika.md):** Základní statististické metody (bodové odhady, intervaly spolehlivosti, testování statistických hypotéz). ANOVA. Neparametrické testy hypotéz. Mnohonásobná lineární regrese, autokorelace, multikolinearita. Analýza hlavních komponent (PCA). (MA012)
