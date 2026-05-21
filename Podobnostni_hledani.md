@@ -54,14 +54,14 @@ Aby byla funkce $d$ regulérní metrikou, musí pro libovolné objekty $x, y, z 
 * **Semimetrika:** Nesplňuje trojúhelníkovou nerovnost. Nad semimetrickým prostorem nelze stavět standardní metrické indexy, protože nelze provádět prořezávání prostoru.
 
 
-### Koncepční srovnání: Metrický vs. Vektorový prostor
+### Koncepční srovnání: metrický vs. vektorový prostor
 V praxi se nejčastěji setkáváme s vícerozměrnými vektory (např. embeddingy), avšak z matematického a indexačního hlediska jde o zásadní rozdíl v abstrakci.
 Každý normovaný vektorový prostor (kde umíme měřit délku vektoru) je metrickým prostorem, ale zdaleka ne každý metrický prostor je prostorem vektorovým.
 
 * **Vektorový prostor (Lineární):** Je striktně definován kartézskými souřadnicemi a systémem os (např. vektor $[1.2, -0.4]$). Známe absolutní pozici bodů, objekty lze sčítat, násobit skalárem a existuje zde počátek souřadnic $[0,0,\dots,0]$.
 * **Metrický prostor:** Je mnohem obecnější koncept. **Neexistují zde žádné osy, souřadnice ani počátek a objekty nelze sčítat.** Jediné, co máme k dispozici, je vzdálenostní funkce $d(x,y)$, která pro libovolnou dvojici objektů vrátí reálné číslo.
 
-#### Čistě metrické (ne-vektorové) prostory:
+**Čistě metrické (ne-vektorové) prostory:**
 V podobnostním vyhledávání existují obrovské rodiny dat, které nemají povahu bodů v prostoru, ale splňují axiomy metriky, takže nad nimi lze stavět indexy (např. M-Tree):
 1. **Řetězce a texty (String Spaces):** Objekty jsou slova či texty a metrikou je *Levenshteinova (Edit) vzdálenost* (počet editačních operací).
 2. **Množinová data (Set Spaces):** Objekty jsou nákupní košíky nebo seznamy zájmů a metrikou je *Jaccardova vzdálenost* měřící míru jejich překryvu.
@@ -76,7 +76,8 @@ Volba konkrétní metriky závisí na povaze indexovaných dat a sémantickém v
     * $p=1$: Manhattan (City-block) vzdálenost ($L_1$)
     * $p=2$: Eukleidovská vzdálenost ($L_2$) – nejčastější geometrická metrika.
     * $p \to \infty$: Čebyševova vzdálenost ($L_\infty$) – definována jako maximum z absolutních rozdílů složek: $\max_{i=1..n} |x_i - y_i|$.
-* **Edit vzdálenost (Levenshtein):** Nemyslitelná bez metrického pojetí; udává minimální počet editačních operací (vložení, smazání, záměna znaku) pro transformaci jednoho řetězce na druhý.
+* **Edit vzdálenost (Levenshtein):** Udává minimální počet editačních operací (vložení, smazání, záměna znaku) pro transformaci jednoho řetězce na druhý.
+*Příklad:* Vzdálenost mezi řetězci `"kitten"` a `"sitting"` je 3 (1× záměna `k` $\to$ `s`, 1× záměna `e` $\to$ `i`, 1× vložení `g` na konec).
 * **Jaccardova vzdálenost:** Využívána pro porovnávání množinových dat (např. tokeny v textu):
     $$d_J(A, B) = 1 - \frac{|A \cap B|}{|A \cup B|}$$
 
