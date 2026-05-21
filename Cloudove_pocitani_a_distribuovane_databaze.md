@@ -11,23 +11,31 @@
 
 Cloud computing je model umožňující všudypřítomný a pohodlný síťový přístup na vyžádání ke sdílenému fondu konfigurovatelných výpočetních zdrojů. Tyto zdroje (sítě, servery, úložiště, aplikace) lze rychle poskytnout a uvolnit s minimálním úsilím při správě nebo interakci s poskytovatelem.
 
-### Hlavní charakteristiky (dle NIST)
+### Hlavní charakteristiky (dle NIST - National Institute of Standards and Technology)
 * **On-demand self service:** Uživatel si může automaticky sjednat výpočetní kapacity (např. čas serveru nebo síťové úložiště) bez nutnosti lidské interakce s poskytovatelem služeb.
 * **Broad network access:** Služby jsou dostupné přes síť prostřednictvím standardních mechanismů, které podporují různé platformy (mobilní telefony, tablety, notebooky).
 * **Resource pooling:** Výpočetní zdroje poskytovatele jsou sdíleny více spotřebiteli pomocí modelu multi-tenancy, přičemž různé fyzické a virtuální zdroje jsou dynamicky přiřazovány podle poptávky.
+Zákazník zpravidla neví, kde přesně data leží, ale může specifikovat polohu na vyšší úrovni abstrakce, např. stát či datacentrum.
 * **Rapid elasticity:** Kapacity mohou být elasticky uvolňovány nebo poskytovány (často automaticky), aby bylo možné rychle škálovat směrem nahoru i dolů podle aktuálních potřeb.
 * **Measured service:** Cloudové systémy automaticky řídí a optimalizují zdroje pomocí měření spotřeby (např. úložiště, procesor, šířka pásma), což umožňuje transparentní vyúčtování pro poskytovatele i uživatele.
 
 ### Modely nasazení (Deployment Models)
 * **Public cloud:** Infrastruktura je přístupná široké veřejnosti a vlastněna organizací prodávající cloudové služby. _např. AWS, Azure._
 * **Private cloud:** Infrastruktura je provozována výhradně pro jednu organizaci. _např. interní datové centrum firmy._
+* **Community cloud:** Infrastruktura je sdílená několika organizacemi, které mají společný zájem, cíle, požadavky na bezpečnost nebo shodu s předpisy (compliance). Může být spravována samotnými organizacemi nebo třetí stranou a může existovat jak v on-premise prostředí, tak externě. _např. sdílený cloud pro několik bankovních institucí, vládní úřady nebo akademické výzkumné týmy._
 * **Hybrid cloud:** Kombinace dvou nebo více cloudů (soukromých, komunitních nebo veřejných), které zůstávají unikátními entitami, ale jsou propojeny technologií umožňující přenositelnost dat a aplikací.
 
 ### Modely služeb (Service Models)
-* **IaaS (Infrastructure as a Service):** Poskytování základní infrastruktury (virtuální stroje, sítě, úložiště).
-* **PaaS (Platform as a Service):** Poskytování platformy pro vývoj a běh aplikací bez nutnosti správy podkladového HW a OS.
-* **SaaS (Software as a Service):** Poskytování hotových aplikací běžících v cloudové infrastruktuře.
-* **Serverless / FaaS (Function as a Service):** Nejvyšší abstrakce. Kód se spouští pouze na základě události (event-driven). Uživatel neřeší servery ani nečinný výkon. *Problém:* **Cold Start** – prodleva při alokaci zdrojů pro první spuštění funkce.
+* **IaaS (Infrastructure as a Service):** Poskytování základní infrastruktury (virtuální stroje, sítě, úložiště). Zákazník si sám instaluje a spravuje OS i software.
+_Příklady:_ AWS EC2, Azure Virtual Machines, Google Compute Engine.
+* **PaaS (Platform as a Service):** Poskytování platformy pro vývoj a běh aplikací bez nutnosti správy podkladového HW a OS. Vývojář dodá pouze kód aplikace, o běhové prostředí (runtime), záplatování operačního systému a škálování se stará poskytovatel.
+_Příklady:_ AWS Elastic Beanstalk, Heroku, Google App Engine, Azure App Services.
+* **SaaS (Software as a Service):** Poskytování hotových aplikací běžících v cloudové infrastruktuře, ke kterým uživatel přistupuje nejčastěji přes webový prohlížeč. Uživatel neřeší žádný kód ani správu platforem.
+_Příklady:_ Microsoft 365, Google Workspace (Gmail, Docs), Salesforce, Slack.
+* **Serverless / FaaS (Function as a Service):** Nejvyšší abstrakce. Kód (krátké, jednoúčelové funkce) se spouští pouze na základě události (event-driven). Uživatel neřeší servery ani nečinný výkon – platí se striktně za čas, kdy funkce reálně běží.
+_Příklady:_ AWS Lambda, Azure Functions, Google Cloud Functions.
+*Problém:* **Cold Start (Studený start)** – Situace, kdy je funkce zavolána po delší době nečinnosti nebo při náhlém zvýšení zátěže. Protože poskytovatel cloudových služeb neudržuje nečinné funkce neustále spuštěné, musí platforma při novém požadavku nejprve zařídit novou alokaci zdrojů (nastartovat izolovaný kontejner/mikroVM, inicializovat runtime prostředí a načíst kód funkce). 
+To způsobuje úvodní prodlevu (od stovek milisekund po několik sekund), která může negativně ovlivnit latenci aplikace. Následná volání (tzv. **Warm Start**) už probíhají okamžitě, protože kontejner zůstává po určitou dobu v paměti připravený.
 
 <img alt="img.png" src="img/cloud/iaas-paas.png" width="600"/>
 
@@ -40,12 +48,6 @@ IaaS představuje nejnižší a nejvíce flexibilní úroveň cloudových služe
 * **Compute (Výpočet):** Virtuální stroje (VM) s definovaným počtem CPU jader a kapacitou RAM. *např.: Vývojář si během minuty spustí instanci Amazon EC2 s operačním systémem Ubuntu, aby na ní otestoval nový skript v Pythonu.*
 * **Storage (Úložiště):** Virtuální pevné disky (blokové úložiště) nebo objektová úložiště pro nestrukturovaná data. *např.: Připojení dodatečného 500 GB SSD disku k běžícímu virtuálnímu serveru pro potřeby rostoucí databáze.*
 * **Networking (Sítě):** Virtuální sítě (VPC), firewally, směrovače a přidělování IP adres. *např.: Nastavení bezpečnostních pravidel (Security Groups), která zakážou veškerý přístup k serveru z internetu kromě specifického portu 443 pro HTTPS provoz.*
-
-### Model sdílené odpovědnosti (Shared Responsibility Model)
-V modelu IaaS je hranice odpovědnosti jasně dělena mezi poskytovatele a zákazníka. Obecné pravidlo zní: poskytovatel odpovídá za bezpečnost **cloudu**, zákazník za bezpečnost **v cloudu**.
-
-* **Odpovědnost zákazníka:** Správa a aktualizace operačního systému (patchování), konfigurace firewallů na úrovni OS, správa identity a přístupů (IAM), šifrování dat a samotné aplikace.
-* **Odpovědnost poskytovatele:** Fyzická bezpečnost datových center, funkčnost hardwaru, chlazení, konektivita a správa virtualizační vrstvy (hypervisoru).
 
 ### Výhody a nevýhody
 | Výhody | Nevýhody |
@@ -146,18 +148,15 @@ V cloudu (AWS, Azure) se nejčastěji setkáte s touto variantou: Kontejnery bě
 Migrace na cloud je proces přesunu digitálních aktiv (dat, aplikací, IT infrastruktury) z lokálního prostředí (on-premise) nebo jiného cloudu do cloudového prostředí. Cílem je obvykle snížení nákladů, zvýšení dostupnosti a lepší škálovatelnost.
 
 ### Strategie migrace (Model 6 R)
-Gartner definoval šest základních přístupů k migraci, které se liší složitostí a mírou úprav aplikací:
+Při přesunu do cloudu se pro každou aplikaci volí specifická strategie na základě její komplexnosti, byznysové hodnoty a technického stavu. 
+Gartner tyto přístupy definoval v tzv. modelu 6 R (seřazeno od nejjednodušších po technologicky nejnáročnější):
 
-1.  **Rehosting (Lift-and-Shift):** Přesun aplikace do cloudu bez jakýchkoliv změn.
-    * *Příklad: Vezmete celý virtuální stroj se starším účetním systémem a prostě ho spustíte jako instanci v AWS EC2.*
-2.  **Replatforming (Lift-and-Reshape):** Provedení drobných optimalizací pro využití cloudových výhod, ale bez změny architektury.
-    * *Příklad: Místo správy vlastní SQL databáze na virtuálním stroji převedete data do spravované služby typu Azure SQL Database.*
-3.  **Refactoring / Re-architecting:** Kompletní přepsání aplikace tak, aby byla "cloud-native" (využívala mikroslužby, kontejnery).
-    * *Příklad: Rozbití monolitické aplikace na malé samostatné kontejnery spravované v Kubernetes.*
-4.  **Repurchasing (Drop-and-Shop):** Ukončení používání stávajícího řešení a přechod na hotovou SaaS službu.
-    * *Příklad: Firma přestane spravovat vlastní e-mailový server (Exchange) a přejde na Microsoft 365.*
-5.  **Retiring:** Identifikace a vypnutí aplikací, které už nejsou potřeba.
-6.  **Retaining:** Ponechání aplikace v současném stavu (on-premise), obvykle z důvodu bezpečnosti nebo regulací.
+1. **Retiring (Vyřazení):** Tato strategie spočívá v identifikaci a trvalém vypnutí aplikací, které již nejsou pro firmu užitečné nebo jejichž funkci plně převzal jiný systém, což přináší okamžitou úsporu nákladů a snižuje režii správy ještě před začátkem samotné migrace, _jako je například vypnutí starého lokálního reportovacího nástroje, který už nikdo v týmu nepoužívá_.
+2. **Retaining (Ponechání):** Tento přístup představuje rozhodnutí ponechat aplikaci v současném stavu on-premise a vůbec ji nemigrovat, což je typické pro systémy vyžadující extrémně nízkou latenci k lokálnímu hardwaru, starší systémy s vysokým rizikem selhání při přesunu, nebo pro data podléhající přísným legislativním regulacím, _což ilustruje provoz hlavního bankovního mainframe systému na vlastním hardwaru_.
+3. **Repurchasing (Odkoupení):** Strategie znamená kompletní opuštění stávající interní aplikace a přechod na hotové, komerční cloudové řešení ve formě SaaS, což umožňuje rychlou modernizaci bez nutnosti vlastního vývoje a správy infrastruktury, _přičemž typickým příkladem je přechod z interně spravovaného e-mailového serveru Microsoft Exchange na cloudovou službu Microsoft 365_.
+4. **Rehosting (Lift-and-Shift):** Tento proces spočívá v čistém přesunu aplikace do cloudu v poměru 1:1 bez jakýchkoliv změn v jejím zdrojovém kódu či architektuře, kdy se celá aplikace pouze "přemístí" z lokálního fyzického nebo virtuálního serveru na virtuální stroj v cloudu v rámci modelu IaaS, _například export účetního systému z lokálního VMware a jeho přímé spuštění jako instance v AWS EC2_.
+5. **Replatforming (Lift-and-Reshape):** Při této strategii se aplikace přesouvá do cloudu s drobnými optimalizacemi, které sice nemění její jádro a architekturu, ale umožní nahradit některé podpůrné komponenty spravovanými PaaS službami, což snižuje provozní režii, _což v praxi znamená, že kód webové aplikace zůstane stejný, ale její databáze se namísto virtuálního serveru přesune do plně spravované služby Azure SQL Database_.
+6. **Refactoring / Re-architecting (Přepsání):** Jedná se o technologicky nejnáročnější přístup, kdy se architektura aplikace kompletně přepíše, aby byla plně cloud-native, což nejčastěji znamená rozbití starého robustního monolitu na nezávislé mikroslužby, kontejnery a serverless funkce pro dosažení maximální elasticity a odolnosti systému, _jako je například transformace monolitického e-shopu na sadu samostatných mikroslužeb v Kubernetes_.
 
 ### Fáze migračního procesu
 1.  **Objevování a hodnocení (Discovery):** Analýza stávající infrastruktury, závislostí mezi aplikacemi a nákladů.
@@ -170,7 +169,7 @@ Gartner definoval šest základních přístupů k migraci, které se liší slo
 * **Bezpečnost a compliance:** Nutnost zajistit, aby data v cloudu splňovala zákonné požadavky (např. GDPR).
 * **Náklady na přenos dat (Egress fees):** Někteří poskytovatelé si účtují poplatky za stahování velkého množství dat z cloudu ven.
 * **Latence:** Pokud část systému zůstane on-premise a část v cloudu, může komunikace mezi nimi zpomalit celou aplikaci.
-    * *Příklad: Máte webový server v cloudu v Irsku, ale databázi v Praze – uživatel bude pociťovat pomalé načítání stránek kvůli síťovému zpoždění.*
+*Příklad: Máte webový server v cloudu v Irsku, ale databázi v Praze – uživatel bude pociťovat pomalé načítání stránek kvůli síťovému zpoždění.*
 
 ---
 ## Bezpečnost služeb v cloudu
@@ -226,7 +225,6 @@ Propojování **více běžných strojů** do jednoho logického celku (**cluste
 | **Cena** | Nelineární (high-end HW je drahý) | Lineární (běžný "commodity" HW) |
 | **Administrace** | Snadná (správa jedné instance) | Náročná (správa clusteru a sítě) |
 
-<img alt="img.png" src="img/cloud/hor-ver-scaling.png" width="500"/>
 
 ### Další pojmy související se škálováním
 
@@ -241,12 +239,6 @@ Propojování **více běžných strojů** do jednoho logického celku (**cluste
 * **Latency vs. Throughput:** Latence je doba odezvy, propustnost je množství odbavených požadavků.
 
 ---
-## Současné technologie a poskytovatelé cloudových služeb
-* Dominantní poskytovatelé (AWS, Azure, GCP)
-* Serverless computing (FaaS)
-* Cloud-native technologie a mikro-služby 
-  
-<img alt="img.png" src="img/cloud/bytebytego-cloud-services.png" width="600"/>
 
 ## Současné technologie a poskytovatelé cloudových služeb
 
@@ -265,6 +257,14 @@ Trhu s veřejným cloudem dominují tři hlavní poskytovatelé (tzv. "The Big T
 * **Multi-cloud a Hybrid-cloud:** Strategie používání více poskytovatelů najednou, aby se firma vyhnula závislosti na jednom prodejci (Vendor Lock-in).
 * **Edge Computing:** Přesun výpočetního výkonu blíž ke zdroji dat (např. senzory v továrně), aby se snížila latence.
 * **AI a ML jako služba (AIaaS):** Poskytovatelé nabízejí hotové API pro rozpoznávání obrazu, textu nebo trénování vlastních modelů (např. *AWS SageMaker* nebo *Google Vertex AI*).
+
+<details>
+
+  <summary>Obrázek - Cloud Comparison Cheat Sheet</summary>
+
+  <img alt="img.png" src="img/cloud/bytebytego-cloud-services.png" width="600"/>
+
+</details>
 
 ---
 ## Distribuované databáze
