@@ -291,10 +291,10 @@ Při předpokladu rovnoměrného (uniformního) rozdělení dat se velikost mezi
 * **Kartézský součin ($W = R_1 \times R_2$):**
     * Nejhorší možný scénář; spojí se každý řádek s každým. Výsledný počet řádků je čistým součinem velikostí obou tabulek.
     * $$T(W) = T(R_1) \cdot T(R_2)$$
-* **Selekce – Rovnost** ($\sigma_{A = \text{val}}(R)$):
+* **Selekce – Rovnost** ( $\sigma_{A = \text{val}}(R)$ ):
     * Pravděpodobnost, že řádek obsahuje konkrétní hodnotu, je převrácená hodnota počtu unikátních hodnot daného atributu.
     * $$sf = \frac{1}{V(R, A)} \quad \implies \quad T(W) = \frac{T(R)}{V(R, A)}$$
-* **Selekce – Rozsah** ($\sigma_{A \ge \text{val}}(R)$):
+* **Selekce – Rozsah** ( $\sigma_{A \ge \text{val}}(R)$ ):
     * Počítá poměr délky požadovaného intervalu (od zadané hodnoty po maximum) vůči celkovému rozsahu hodnot (od minima po maximum) v tabulce.
     * $$sf = \frac{\text{Max} - \text{val} + 1}{\text{Max} - \text{Min} + 1}$$
 * **Konjunkce (AND) nezávislých podmínek:**
