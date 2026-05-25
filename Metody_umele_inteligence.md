@@ -5,228 +5,330 @@
 > Plánování, reprezentace problému, plánování se stavovým prostorem. 
 > Práce s neurčitostí, Bayesovské sítě, exaktní a aproximační odvozování, čas a neurčitost, 
 > teorie užitku, Markovský rozhodovací proces, iterace hodnot, iterace strategie. 
-> Robotika, plánování pohybu robota (konfigurační prostor, kombinatorické a pravděpodobnostní přístupy). (IV126)
+> Robotika, plánování pohybu robota (konfigurační prostor, kombinatorické a pravděpodobnostní přístupy).
 
-## Prohledávání stavového prostoru (State Space Search)
+---
 
-Mnoho problémů v umělé inteligenci (hry, dokazování vět, plánování cest) lze modelovat jako hledání v grafu, kde vrcholy jsou stavy a hrany jsou akce. Cílem je najít sekvenci akcí, která nás dovede z počátku do cíle při minimalizaci ceny.
+## Prohledávání stavového prostoru
 
-**Formální definice problému**
+Mnoho úloh v umělé inteligenci lze formálně modelovat jako hledání cesty v orientovaném grafu, kde vrcholy představují stavy systému a hrany reprezentují přípustné akce (přechody).
 
-Problém prohledávání je definován::
+### Formální definice problému
+Prohledávání stavového prostoru je exaktně definováno jako pětice:
+* **Množina stavů ($S$):** Množina všech teoreticky možných konfigurací systému.
+* **Počáteční stav ($s_0 \in S$):** Fixní stav, ve kterém agent zahajuje prohledávání.
+* **Množina akcí ($A(s)$):** Soubor operátorů/akcí aplikovatelných v daném stavu $s \in S$.
+* **Přechodový model ($Result(s, a)$):** Deterministická funkce určující následníka stavu $s$ po provedení akce $a$:
+  $$Result(s, a) = s'$$
+* **Cílový test ($GoalTest(s)$):** Booleovská funkce určující, zda je stav $s$ cílovým stavem ($GoalTest(s) \to \{true, false\}$).
+* **Cena cesty ($g(n)$):** Numerická hodnota definovaná jako kumulativní suma cen jednotlivých akcí na cestě od počátečního stavu $s_0$ do daného uzlu $n$ vyhledávacího stromu či grafu. Algoritmy prohledávání generují uzly reprezentující konkrétní cesty, nikoli pouze izolované stavy. Cena jednotlivého přechodu se značí $c(s, a, s')$.
 
-* **Množina stavů (**$S$**):** Obsahuje všechny možné konfigurace systému.
-* **Počáteční stav (**$s_0 \in S$**):** Stav, ve kterém agent začíná.
-* **Akce (**$A(s)$**):** Množina akcí použitelných ve stavu $s$.
-* **Přechodový model (**$Result(s, a)$**):** Popisuje stav, který vznikne provedením akce $a$ ve stavu $s$.
-* **Funkce sousedství N** je zobrazení $N : S → 2^S$, které každému řešení s rozlohy S přiřazuje množinu řešení $N(s) ⊂ S$.
-* **Cílový test (**$GoalTest(s)$**):** Rozhoduje, zda je stav $s$ cílový.
-* **Cena akce (***$ActionCost(s, a, s')$***)**, která určuje numerickou váhu přechodu (typicky* $c(s, a, s') \ge 0$*).*
+### Stromové vs. Grafové prohledávání
+Algoritmy generují **strom prohledávání** (search tree), kde kořenem je $s_0$. 
+* **Stromové vyhledávání (Tree Search):** Exploruje stavy bez paměti na již navštívené vrcholy. V grafech s cykly může uvíznout v nekonečné smyčce.
+* **Grafové vyhledávání (Graph Search):** Navíc eviduje tzv. **Explored set** (uzavřený seznam / Closed List). Pokud je uzel vygenerován a nachází se v uzavřeném seznamu, je okamžitě zahozen.
 
-**Základní algoritmy a jejich vlastnosti**
+Kvalitu algoritmů měříme pomocí čtyř kritérií: **Úplnost**, **Optimalita**, **Časová složitost** a **Prostorová složitost** (vyjádřené pomocí faktoru větvení $b$, hloubky cíle $d$ a maximální hloubky prostoru $m$).
 
-Algoritmy vyvíjejí **strom prohledávání**, kde kořenem je $s_0$. Rozlišujeme mezi **stromovým vyhledáváním** (může cyklit) a **grafovým vyhledáváním**, které využívá *Explored set* (uzavřený seznam) pro eliminaci duplicitních stavů. Kvalitu algoritmů měříme pomocí: **Úplnosti** (najde vždy řešení?), **Optimality** (najde nejlevnější?), **Časové a prostorové složitosti**.
-
-* **Neinformované (slepé) prohledávání:** Nemá informaci o vzdálenosti k cíli.
-
-  * **BFS (Breadth First Search - do šířky):** Expanduje nejmělčí uzly. Je úplný a optimální pro konstantní ceny akcí. Paměťová náročnost $O(b^d)$ je hlavním limitem.
-
-  * **DFS (Depth-first search - do hloubky):** Expanduje nejhlubší uzly. Nízká paměť $O(b \cdot m)$, ale není úplný (v nekonečných prostorech) ani optimální.
-
-  * **UCS (Uniform-cost search):** Expanduje uzel $n$ s nejmenší cenou cesty $g(n)$. Je optimální pro libovolné nezáporné ceny.
+### Neinformované (slepé) prohledávání
+Algoritmy nemají žádné explicitní znalosti o tom, jak blízko či daleko se nacházejí od cílového stavu.
+* **BFS (Breadth-First Search – do šířky):** Využívá pro ukládání frontu typu **FIFO**. Expanduje vždy nejmělčí uzly. Je úplný. Výstup je optimální tehdy a jen tehdy, pokud jsou ceny všech akcí identické (konstantní) a striktně kladné (obecně platí, že celková cena cesty musí být neklesající funkcí hloubky uzlu). Pokud by konstantní cena akce byla nulová nebo záporná, BFS optimální nebude. Časová i prostorová složitost jsou $O(b^d)$.
+* **DFS (Depth-First Search – do hloubky):** Využívá zásobník nebo frontu typu **LIFO**. Expanduje nejhlubší uzly. Nízká prostorová složitost $O(b \cdot m)$, ale není úplný v nekonečných prostorech ani optimální.
+* **UCS (Uniform-Cost Search):** Zobecnění BFS pro variabilní ceny hran (Dijkstrův algoritmus). Využívá prioritní frontu řazenou podle celkové dosavadní ceny cesty $g(n)$. Je úplný a optimální za předpokladu, že ceny všech akcí jsou **striktně kladné** ($c \ge \varepsilon > 0$). Pokud by ceny byly nulové, algoritmus by mohl uvíznout v nekonečných cyklech bez nárůstu ceny cesty.
 
 <img alt="img.png" src="img/metody_umele_inteligence/bfs-dfs.png" width="400"/>
 
-* **Informované (heuristické) prohledávání:** Využívá **heuristickou funkci** $h(n)$, která odhaduje cenu nejlevnější cesty z $n$ do cíle.
-
-  * **A* Search:*\* Nejdůležitější algoritmus, expanduje uzel s minimální hodnotou $f(n) = g(n) + h(n)$.
-
-  * **Podmínky optimality A*:*\* Heuristika musí být **přípustná** (nikdy nepřeceňuje skutečnou cenu, $h(n) \le h^*(n)$) pro stromové hledání a **konzistentní** ($h(n) \le c(n, a, n') + h(n')$) pro grafové hledání.
-
-  * *Příklad: V problému hledání trasy v mapě je přípustnou heuristikou vzdušná vzdálenost do cíle.*
+### Informované (heuristické) prohledávání
+Využívá doménově specifickou znalost zakódovanou do **heuristické funkce** $h(n)$, která odhaduje cenu nejlevnější cesty z aktuálního uzlu $n$ do cíle. 
+* **A\* Search:** Klíčový algoritmus informovaného hledání. Uzly v prioritní frontě řadí podle celkové odhadované ceny:
+  $$f(n) = g(n) + h(n)$$
+* **Podmínky optimality a důsledky konzistence:** Heuristika musí být **přípustná** ($0 \le h(n) \le h^*(n)$) pro stromové vyhledávání a **konzistentní** ($h(n) \le c(n, a, n') + h(n')$) pro grafové vyhledávání. 
+  Klíčovým důsledkem konzistence je, že hodnoty $f(n)$ podél jakékoli cesty **neklesají**. Jakmile grafová varianta algoritmu A\* expanduje uzel, našla již **optimální cestu** do daného stavu, a uzly nacházející se v uzavřeném seznamu (Closed List) není nikdy třeba znovu otevírat a přehodnocovat.
 
 ---
+
 ## Lokální prohledávání a metaheuristiky s jedním řešením
 
-V mnoha úlohách (např. *problém 8 dam* nebo *rozvrhování*) nás nezajímá cesta k cíli, ale pouze koncový stav. Lokální prohledávání pracuje pouze s **aktuálním stavem** a jeho sousedy, což drasticky snižuje nároky na paměť ($O(1)$).
+V mnoha optimalizačních úlohách (např. rozvrhování) nás nezajímá cesta, kterou jsme se k řešení dostali, ale pouze finální konfigurace (stav), která splňuje kritéria nebo maximalizuje/minimalizuje zadanou funkci. Lokální prohledávání pracuje pouze s **jedním aktuálním stavem** (a jeho bezprostředními sousedy), což snižuje prostorovou složitost na stabilní $O(1)$.
 
-**Krajina stavového prostoru (State-space landscape)**
-
-Stavy si představujeme jako body v krajině, kde výška odpovídá **cílové funkci** (maximalizace) nebo **cenové funkci** (minimalizace). Cílem je najít globální maximum/minimum. Problémem jsou **lokální maxima**, **hřebeny (ridges)** a **plošiny (plateaux)**.
+### Krajina stavového prostoru (State-space landscape)
+Topologii prostoru si lze představit jako geometrickou krajinu, kde vertikální osa reprezentuje hodnotu **účelové funkce** (při maximalizaci) nebo **cenové funkce** (při minimalizaci). Hlavními překážkami jsou lokální optima, úzké hřebeny (ridges) a plošiny (plateaux) s nulovým gradientem.
 
 <img alt="img.png" src="img/metody_umele_inteligence/landscape.png" width="400"/>
 
-**Klíčové algoritmy**
-
-* **Hill-climbing (Horolezecký algoritmus):** "Hladový" algoritmus, který se neustále pohybuje ve směru největšího stoupání.
-
-  * *Příklad: V problému 8 dam posuneme dámu v sloupci tak, aby se co nejvíce snížil počet vzájemných ohrožení.*
-
-  * Varianty: **Stochastický** (náhodný výběr z lepších), **First-choice** (první lepší soused), **Random-restart** (restartuje hledání z náhodných míst pro nalezení globálního maxima).
-
-* **Simulované žíhání (Simulated Annealing):** Algoritmus inspirovaný metalurgií, který dovoluje "kroky zpět" (do horšího stavu), aby unikl z lokálního optima.
-
-  * Pravděpodobnost přijetí horšího stavu je $e^{\Delta E / T}$, kde $\Delta E$ je zhoršení a $T$ je **teplota**. Teplota se postupně snižuje podle plánu ochlazování. Na začátku (vysoké $T$) algoritmus skáče náhodně, na konci (nízké $T$) se chová jako Hill-climbing.
-
-* **Tabu prohledávání (Tabu Search):** Využívá krátkodobou paměť (**Tabu list**) k uchování nedávno navštívených stavů nebo provedených změn. Tím zabraňuje cyklení a nutí algoritmus prozkoumávat nové oblasti, i za cenu dočasného zhoršení.
-
-* **Local Beam Search:** Udržuje $k$ stavů současně. V každém kroku vygeneruje všechny sousedy všech $k$ stavů a vybere $k$ nejlepších z celého souboru. Nejde o $k$ nezávislých hledání, protože stavy mezi sebou "sdílejí" informace o nejlepších oblastech.
+### Klíčové algoritmy s jedním řešením
+* **Hill-climbing (Horolezecký algoritmus):** Čistě lokální, "hladový" algoritmus. V každém kroku se přesune do souseda s nejlepším zlepšením. Pokud žádný soused není lepší než aktuální stav, algoritmus uvízne v lokálním optimu a končí. Využívají se varianty jako stochastický, first-choice či random-restart hill-climbing.
+* **Simulované žíhání (Simulated Annealing):** Algoritmus inspirovaný fyzikálním procesem ochlazování kovu. V kontextu klasifikace metaheuristik uvažujeme **minimalizační úlohu**. Vědomě povoluje kroky do **horšího** stavu s cílem uniknout z lokálních optim. Zhoršující krok znamená, že $f(s') > f(s)$, tedy změna hodnoty vykazuje kladný nárůst $\Delta f = f(s') - f(s) > 0$. Pravděpodobnost přijetí tohoto horšího řešení je definována s využitím záporného exponentu:
+  $$P(\text{přijetí}) = e^{-\frac{\Delta f}{T}}$$
+  Teplota $T$ se v čase postupně snižuje podle zadaného plánu ochlazování.
+* **Tabu prohledávání (Tabu Search):** Implementuje krátkodobou paměť zvanou **Tabu list**, kde uchovává $k$ posledních provedených změn (nebo navštívených stavů). Pohyb zpět do stavu v tabu seznamu je zakázán, což nutí algoritmus opustit lokální optimum a prohledávat jiné oblasti. Zákaz lze přebít aspiračním kritériem.
+* **Local Beam Search (Lokální svazkové prohledávání):** Paralelně udržuje fixní počet $k$ stavů. Pokud se v každém kroku vygenerují všichni sousedé všech $k$ stavů a striktně se vybere $k$ nejlepších jedinců podle jejich deterministické kvality, jedná se o **lokální deterministický Beam Search**. Přednášky však zdůrazňují jeho **stochatickou variantu**, kde se následníci nevybírají striktně deterministicky, ale s pravděpodobností úměrnou jejich kvalitě (podobně jako v genetických algoritmech). Tento stochastický prvek pomáhá efektivně udržet diverzitu kandidátních řešení a uniknout z lokálních optim.
 
 ---
-## Populační metaheuristiky (Evoluční algoritmy a inteligence hejna)
 
-Populační algoritmy pracují s množinou řešení současně, což umožňuje efektivnější prohledávání komplexních prostorů díky kombinaci informací z různých jedinců.
+## Populační metaheuristiky
 
-**Evoluční algoritmy (EA)**
+Populační algoritmy (Population-based metaheuristics) pracují s celou množinou (populací) řešení současně. To umožňuje efektivní paralelní prozkoumávání komplexních vyhledávacích prostorů díky kombinaci a sdílení informací mezi jedinci.
 
-Inspirovány biologickou evolucí (Darwinův princip přežití nejzdatnějších). Základní cyklus: **Inicializace populace** $\to$ **Ohodnocení (fitness)** $\to$ **Selekce** $\to$ **Variace (křížení a mutace)** $\to$ **Nahrazení.**
+---
 
-* **Genetické algoritmy (GA):** Jedinci jsou kódováni jako řetězce (chromozomy, často bitové).
+## Evoluční algoritmy
 
-  * **Selekce:** Výběr rodičů pro další generaci (např. *ruletový výběr* – pravděpodobnost úměrná fitness, nebo *turnajový výběr*).
+Metody inspirované biologickou evolucí, přirozeným výběrem a genetikou. Základní iterační smyčka: Inicializace $\to$ Ohodnocení $\to$ Selekce rodičů $\to$ Křížení a Mutace $\to$ Selekce přeživších.
 
-  * **Křížení (Crossover):** Kombinuje části dvou rodičů (např. *jednobodové*, *dvoubodové* nebo *uniformní křížení*). Slouží k exploitaci (využití známých dobrých prvků).
+### Genetické algoritmy (GA)
+Klasická podtřída evolučních algoritmů vyžadující explicitní reprezentaci jedince. Jedinec (chromozom) je zakódované řešení problému (např. binární řetězec), gen je konkrétní rozhodovací proměnná a alela představuje její konkrétní hodnotu.
 
-  * **Mutace:** Náhodná změna v chromozomu (např. otočení bitu). Slouží k exploraci (udržení diverzity a objevování nových oblastí).
-  * populace: sada řešení (asi 20–100)
-  * chromozom/jedinec: kódované řešení 
-  * gen: rozhodovací proměnná v řešení 
-  * alela: hodnota rozhodovací proměnné
+### Hlavní operátory GA
+* **Selekce (Selection):** Výběr nadprůměrných jedinců, kteří se stanou rodiči. Používá se **ruletový výběr**, kde pravděpodobnost výběru $P_i$ závisí na poměru fitness jedince vůči sumě fitness hodnot celé populace o rozsahu $N$. Index v sumě jmenovatele běží přes odlišnou proměnnou $j$:
+  $$P_i = \frac{f_i}{\sum_{j=1}^{N} f_j}$$
+  Alternativou je *turnajový výběr*, který přímo řídí selekční tlak velikostí turnaje $k$.
+* **Křížení (Crossover):** Rekombinační operátor kombinující genetickou informaci dvou rodičů. V klasifikaci metaheuristik (dle Talbiho) je křížení operátorem, který provádí **exploraci / diverzifikaci**. Kombinuje dvě odlišná řešení, což umožňuje provádět skoky do zcela nových, dosud neprozkoumaných oblastí stavového prostoru. Rozlišujeme křížení jednobodové, dvoubodové nebo uniformní.
+* **Mutace (Mutation):** Operátor zavádějící do populace drobné varianty. V klasifikaci metaheuristik (dle Talbiho) mutace provádí **exploitaci / intenzifikaci**. Prohledává blízké, bezprostřední lokální okolí aktuálního řešení za účelem lokálního doladění a zpřesnění nalezeného stavu.
 
 <img alt="img.png" src="img/metody_umele_inteligence/evolalg.png" width="400"/>
 
-**Inteligence hejna (Swarm Intelligence)**
+---
 
-Studuje kolektivní chování decentralizovaných, samoorganizovaných systémů.
+## Inteligence hejna
 
-* **Optimalizace částicemi (PSO - Particle Swarm Optimization):** Každý jedinec (částice) má v prostoru svou **polohu (**$x$**)** a **rychlost (**$v$**)**.
+Studuje decentralizované systémy složené z jednoduchých autonomních agentů interagujících mezi sebou a s prostředím, vykazující emergentní inteligentní chování bez přítomnosti centrálního řízení.
 
-  * Částice si pamatuje své dosavadní nejlepší řešení (**personal best**) a zná nejlepší řešení celého hejna (**global best**).
+### Optimalizace částicemi (PSO - Particle Swarm Optimization)
+Algoritmus inspirovaný chováním hejna ptáků či ryb při hledání potravy v kontinuálním prostoru. Každá částice $i$ si udržuje vektory aktuální **polohy** $\mathbf{x}_i^{(t)}$ a **rychlosti** $\mathbf{v}_i^{(t)}$, přičemž si pamatuje svou dosud nejlepší polohu $\mathbf{p}_i$ (*personal best*) a nejlepší polohu celého hejna $\mathbf{g}$ (*global best*). V každém kroku probíhá aktualizace podle rovnic:
+$$\mathbf{v}_i^{(t+1)} = w \cdot \mathbf{v}_i^{(t)} + c_1 \cdot r_1 \cdot (\mathbf{p}_i - \mathbf{x}_i^{(t)}) + c_2 \cdot r_2 \cdot (\mathbf{g} - \mathbf{x}_i^{(t)})$$
+$$\mathbf{x}_i^{(t+1)} = \mathbf{x}_i^{(t)} + \mathbf{v}_i^{(t+1)}$$
 
-  * Rychlost částice je v každém kroku ovlivněna její setrvačností, směrem k *personal best* a směrem k *global best*.
+### Optimalizace mravenčí kolonií (ACO - Ant Colony Optimization)
+Stochastická metaheuristika inspirovaná mechanizmem nepřímé komunikace reálných mravenců pomocí chemických stop – **stigmergie**. Vhodná pro diskrétní kombinatorické problémy. Pravděpodobnost přechodu z uzlu $i$ do uzlu $j$ závisí na koncentraci feromonu $\tau_{ij}$ a lokální heuristické výhodnosti $\eta_{ij}$:
+$$P_{ij} = \frac{[\tau_{ij}]^\alpha \cdot [\eta_{ij}]^\beta}{\sum_{k \in \text{allowed}} [\tau_{ik}]^\alpha \cdot [\eta_{ik}]^\beta}$$
 
-  * *Využití: Optimalizace spojitých funkcí, kde částice "létají" prostorem k optimu.*
-
-* **Optimalizace mravenčí kolonií (ACO - Ant Colony Optimization):** Inspirováno mravenci hledajícími cestu k potravě pomocí **feromonových stop**.
-
-  * Mravenci se pohybují stochasticky, ale preferují cesty s vyšší koncentrací feromonu.
-
-  * Po nalezení cíle mravenec cestu "označkuje". Kratší cesta je projita rychleji více mravenci, čímž se na ní feromon kumuluje dříve (pozitivní zpětná vazba).
-
-  * Feromon se postupně odpařuje, což umožňuje zapomínat staré, neoptimální cesty.
-
-  * *Příklad: Velmi úspěšné u diskrétních problémů jako Problém obchodního cestujícího (TSP).*
+### Klíčové dynamické procesy ACO
+* **Kumulace feromonu:** Mravenci, kteří úspěšně dokončí validní cestu, uloží na navštívené hrany dodatečný feromon. Kratší cesty jsou projity rychleji, což generuje pozitivní zpětnou vazbu.
+* **Odpařování feromonu (Evaporation):** V každém kroku se koncentrace feromonu sníží podle koeficientu odparu $\rho \in (0, 1]$, což působí jako negativní zpětná vazba a zabraňuje uvíznutí v suboptimálních cestách:
+  $$\text{\tau}_{ij} \leftarrow (1 - \rho)\tau_{ij}$$
 
 ---
-## Plánování a reprezentace problému
 
-Klasické prohledávání stavového prostoru (BFS, A*) vnímá stav jako "černou skříňku". Plánování naproti tomu otevírá strukturu stavu a využívá logickou reprezentaci. To umožňuje agentovi lépe rozumět vztahům mezi akcemi a cíli a využívat pokročilejší heuristiky. Předpokládáme deterministické, plně pozorovatelné a statické prostředí.
+## Plánování
 
-**Reprezentace stavů a cílů**
+Klasické prohledávání stavového prostoru vnímá stav jako neprůhlednou strukturu (black-box). Plánování otevírá vnitřní strukturu stavů a přechodů pomocí formální logické reprezentace. To umožňuje analyticky odvozovat heuristiky bez nutnosti doménových znalostí programátora. Předpokládá se klasické prostředí: deterministické, plně pozorovatelné, statické a konečné.
 
-V klasickém plánování využíváme k popisu světa prvořádovou logiku, ale s omezeními (bez funkcí, konečný počet objektů).
-- **Stav:** Množina pozitivních literálů (atomů), které jsou v daném čase pravdivé. Platí **předpoklad uzavřeného světa (Closed World Assumption)** – co není v seznamu, je nepravdivé.
-- **Cíl:** Konjunkce literálů. Stav $s$ splňuje cíl $g$, pokud $g \subseteq s$.
+---
 
-**Reprezentace akcí (Operátory)**
+## Reprezentace problému
 
-Akce jsou definovány pomocí schémat (operátorů), které obsahují:
-- **Jméno a parametry:** Identifikace akce (např. *Fly(p, from, to)*).
-- **Prekondenice (Pre):** Literály, které musí být v aktuálním stavu pravdivé, aby bylo možné akci provést.
-- **Efekty (Eff):** Popisují, jak se svět změní. Dělí se na **Add-list** (literály, které se stanou pravdivými) a **Delete-list** (literály, které přestanou platit).
+Svět je popsán konečnou množinou vztahů a objektů.
+
+### Reprezentace stavů a cílů
+* **Stav:** V klasickém plánování (např. STRIPS) je stav definován jako množina instanciovaných (**ground**) atomů / literálů. Tyto literály jsou striktně **bez proměnných** a obsahují výhradně konkrétní objekty domény (např. $at(r1, loc2)$). Predikáty obsahující proměnné (např. $at(x, y)$) se vyskytují až na úrovni schémat operátorů akcí. Platí **předpoklad uzavřeného světa (Closed World Assumption)** – jakýkoliv literál, který není explicitně uveden v definici stavu, je nepravdivý.
+* **Cíl ($g$):** Konjunkce literálů. Stav $s$ splňuje cíl $g$, pokud platí inkluze $g \subseteq s$.
+
+### Reprezentace akcí (Operátory)
+Akce jsou definovány schématy operátorů, které zobecňují akce pomocí proměnných. Každý operátor obsahuje název, parametry, prekondice a efekty.
 
 <img alt="img.png" src="img/metody_umele_inteligence/operators-predicates.png" width="500"/>
 
-*Příklad: Akce pro naložení nákladu do letadla v Air Cargo doméně:*
-*Load(c, p, a):*
-*Pre: At(c, a) ∧ At(p, a) ∧ Cargo(c) ∧ Plane(p) ∧ Airport(a)*
-*Eff: ¬At(c, a) ∧ In(c, p)*
+### Formální jazyky: STRIPS vs. PDDL
+Hlavním rozdílem mezi těmito jazyky je jejich **expresivita** (vyjadřovací schopnost):
+* **STRIPS:** Historický základ. Striktně vyžaduje, aby prekondice i efekty byly tvořeny výhradně konjunkcemi pozitivních literálů. Proměnné nejsou povoleny v cíli a efekty nemohou obsahovat negace ani disjunkce.
+* **PDDL:** Moderní standardizovaný syntax s výrazně bohatší sémantikou. Umožňuje definovat komplexní podmíněné efekty (conditional effects), univerzální i existenční kvantifikátory (např. `forall`, `exists`), typové hierarchie a fluidy pro práci s numerickými hodnotami. Rozděluje zadání na *Domain file* a *Problem file*.
 
-
-### PDDL  a STRIPS
-
-**STRIPS (Stanford Research Institute Problem Solver)**
-
-Historicky první a nejjednodušší formální jazyk pro plánování. Má velmi striktní omezení (např. efekty mohou být pouze konjunkce literálů, žádné proměnné v cíli). STRIPS položil základy pro reprezentaci akcí pomocí seznamů "přidej" a "smaž".
-
-**PDDL (Planning Domain Definition Language)**
-
-Moderní standardizovaný jazyk pro definici domén a problémů. Rozděluje popis na dvě části:
-1.  **Domain file:** Definuje typy objektů, predikáty a operátory (akce). Je společný pro více instancí problému.
-2.  **Problem file:** Definuje konkrétní objekty, počáteční stav a cílovou podmínku.
-
-**Sémantika přechodu**
-
-Provedení akce $a$ ve stavu $s$ (pokud $Pre(a) \subseteq s$) definuje nový stav následovně:
-**$s' = (s \setminus Del(a)) \cup Add(a)$**
-Tento mechanismus řeší **problém rámce (Frame Problem)** – vše, co není výslovně změněno efekty, zůstává v platnosti.
+### Sémantika přechodu a problém rámce
+Provedení akce $a$ ve stavu $s$ je formálně definováno pomocí přechodové funkce $\gamma(s, a)$ s využitím pozitivních a negativních efektů akce:
+$$\gamma(s, a) = (s \setminus effects^-(a)) \cup effects^+(a)$$
+Kde $effects^-(a)$ představuje seznam literálů, které přestávají platit (delete-list), a $effects^+(a)$ je seznam literálů, které se stávají pravdivými (add-list). Tento mechanismus řeší *problém rámce* – vše nezmíněné zůstává invariantní.
 
 ---
 
 ## Plánování se stavovým prostorem
 
-Plánování ve stavovém prostoru hledá cestu v grafu, kde uzly jsou stavy popsané jako množiny literálů a hrany jsou instancované akce.
+Prohledávání stavového prostoru v plánování reprezentuje konstrukci sekvence akcí, které transformují počáteční stav do stavu splňujícího cílové podmínky.
 
-**Dopředné prohledávání (Progression / Forward Search)**
-
-Začíná v počátečním stavu $s_0$ a aplikuje akce, jejichž prekondenice jsou splněny.
-- **Výhody:** Snadno se implementuje, stavy jsou plně specifikované (vždy víme, co platí).
-- **Nevýhody:** Obrovský faktor větvení. Mnoho akcí může být irelevantních vzhledem k cíli.
-- *Příklad: Chceme-li letět z Prahy do New Yorku, dopředné hledání může zvažovat i akci "koupit si v Praze kávu", protože je v daném stavu možná, i když k cíli nepomáhá.*
+### Dopředné prohledávání (Progression / Forward State-Space Search)
+Hledání postupuje v přirozeném směru kauzality. Začíná v počátečním stavu $s_0$. Algoritmus hledá všechny akce, jejichž prekondice jsou splněny, a generuje následníky.
+* *Výhody:* Stavy jsou plně definovány (víme přesně, co platí a co ne), což usnadňuje vyhodnocování složitých podmínek.
+* *Nevýhody:* Trpí enormním faktorem větvení. Algoritmus uvažuje akce, které jsou v daném stavu sice legální, ale jsou naprosto irelevantní vzhledem k požadovanému cíli.
 
 <img alt="img.png" src="img/metody_umele_inteligence/forward.png" width="400"/>
- 
-**Zpětné prohledávání (Regression / Backward Search)**
 
-Začíná od cíle $g$ a postupuje směrem k počátečnímu stavu. Uzly v grafu reprezentují **množiny cílů (podcíle)**, které je třeba splnit.
-- **Relevantní akce:** Akce $a$ je relevantní pro cíl $g$, pokud:
-    1.  Alespoň jeden z efektů akce $a$ sjednocuje s nějakým literálem v $g$.
-    2.  Žádný z efektů akce $a$ není v konfliktu s ostatními literály v $g$ (nepopírá je).
-- **Regresní krok:** Nový stav (množina podcílů) vznikne jako: $g' = (g \setminus Add(a)) \cup Pre(a)$.
-- **Lifting:** Významná technika pro zpětné hledání. Místo abychom hned dosazovali konkrétní objekty (např. letadlo *Plane1*), pracujeme s proměnnými a dosazujeme je až v momentě, kdy je to nutné pro splnění prekondenic. To dramaticky zmenšuje prohledávaný prostor.
+### Zpětné prohledávání (Regression / Backward State-Space Search)
+Postupuje proti směru kauzality. Začíná od specifikace finálního cíle $g$. 
+* **Definice uzlu:** Uzel v regresním plánování nepředstavuje obecnou „množinu podcílů“, ale **regresní množinu (regression set)**. Jedná se o konjunkci literálů, které musí být splněny, aby bylo z daného bodu možné dosáhnout finálního stanoveného cíle.
+
+Akce $a$ je uznána jako **relevantní** pro cíl $g$, pokud s ním není v konfliktu a zároveň k němu prokazatelně přispívá, což je vyjádřeno podmínkou:
+$$g \cap effects^+(a) \neq \emptyset$$
+
+Inverzní přechodová funkce $\gamma^{-1}(g, a)$ definující regresní krok je specifikována vzorcem:
+$$\gamma^{-1}(g, a) = (g \setminus effects(a)) \cup precond(a)$$
+Z aktuálního cílového stavu $g$ odstraňujeme ty efekty ($effects(a)$), které daná akce úspěšně uspokojila a doručila, nikoli kompletní add-list promítnutý bez vazby na cíl. Následně unifikujeme s prekondicemi ($precond(a)$) aplikované akce.
+
+#### Technika Liftingu (Lifting)
+Zásadní optimalizace zpětného plánování. Namísto prohledávání s plně instancovanými akcemi se pracuje s operátory obsahujícími volné **proměnné**. Konkrétní objekty jsou dosazovány unifikací až v momentě, kdy je to nezbytně nutné pro provázání s prekondicemi jiné akce. Tím se dramaticky redukuje faktor větvení.
 
 <img alt="img_1.png" src="img/metody_umele_inteligence/backward.png" width="400"/>
 
-**Plánovací heuristiky**
+### Plánovací heuristiky a Uvolnění (Relaxation)
+Efektivita plánování závisí na kvalitě heuristiky $h(s)$, která se často generuje pomocí uvolnění problému:
+* **Heuristika s vypuštěním smazaných literálů (Empty-delete-list heuristic):** Matematická abstrakce, kde z efektů všech akcí kompletně vymažeme jejich $effects^-(a) = \emptyset$. V tomto fiktivním světě akce pouze přidávají nové skutečnosti a nikdy nic neničí. Problém se stává monotónním a délka optimálního plánu v tomto uvolněném prostoru tvoří perfektní přípustnou heuristiku $h^+(s)$ pro reálný svět.
 
-Efektivita plánování závisí na kvalitě heuristiky $h(s)$. Častým přístupem je **uvolnění problému (Relaxation)**:
-- **Heuristika s vypuštěním smazaných literálů (Empty-delete-list):** Předpokládáme, že akce nic neničí (nemají Delete-list). Problém se stává mnohem jednodušším a cena řešení v tomto relaxovaném světě je přípustnou heuristikou pro původní problém.
+---
 
 ## Práce s neurčitostí
-V reálném světě jsou akce nespolehlivé a senzory nepřesné. Motivací je vytvořit agenty, kteří se dokáží racionálně rozhodovat i za neúplné informace. Agent místo jednoho stavu udržuje **stav víry** (belief state), což je rozdělení pravděpodobnosti přes všechny možné stavy světa. K popisu těchto vztahů se využívá teorie pravděpodobnosti.
+
+V reálném světě se agenti potýkají s neúplnou pozorovatelností, šumem v senzorech a nedeterministickými efekty akcí. Čistá logika zde selhává, protože nedokáže kvantifikovat míru nejistoty. Agent si proto namísto udržování jednoho konkrétního stavu světa udržuje **stav víry (Belief State)** – pravděpodobnostní rozdělení přes všechny teoreticky možné stavy stavového prostoru:
+$$b(s) = P(S_t = s \mid e_{1:t})$$
+kde $e_{1:t}$ reprezentuje historii všech dosud získaných senzorických dat a důkazů. K exaktnímu popisu těchto vztahů a rozhodování se využívá teorie pravděpodobnosti.
+
+---
 
 ## Bayesovské sítě
-Bayesovské sítě jsou grafický model, který reprezentuje pravděpodobnostní vztahy mezi proměnnými. Motivací je drastické snížení výpočetní náročnosti oproti úplným pravděpodobnostním tabulkám díky využití podmíněné nezávislosti. Síť je tvořena orientovaným grafem (DAG), kde uzly jsou proměnné a hrany značí přímý vliv. Každý uzel obsahuje tabulku podmíněné pravděpodobnosti (CPT).
+
+Acyklické orientované grafy (DAG) sloužící k efektivní reprezentaci sdruženého rozdělení pravděpodobnosti nad množinou náhodných proměnných $X_1, \dots, X_n$.
+
+### Strukturální komponenty
+1. **Uzly:** Reprezentují náhodné proměnné (diskrétní či spojité).
+2. **Orientované hrany:** Hrana z uzlu $X$ do $Y$ indikuje přímý statistický vliv ($X$ je rodičem $Y$).
+3. **Tabulky podmíněných pravděpodobností (CPT - Conditional Probability Tables):** Každý uzel $X_i$ má přidruženou tabulku $P(X_i \mid Parents(X_i))$, která plně kvantifikuje vliv rodičů na tento uzel.
+
+### Využití podmíněné nezávislosti
+Bayesovské sítě využívají topologické vlastnosti: **každý uzel je podmíněně nezávislý na svých nenaslednících, pokud jsou fixovány hodnoty jeho rodičů**. Celé sdružené rozdělení se pak spočítá jako součin lokálních podmíněných distribucí:
+$$P(X_1, \dots, X_n) = \prod_{i=1}^{n} P(X_i \mid Parents(X_i))$$
+Pokud má každý uzel maximálně $k$ rodičů, klesá paměťová náročnost z exponenciální $O(2^n)$ na lineární růst $O(n \cdot 2^k)$.
+
+---
 
 ## Exaktní a aproximační odvozování
-Odvozování (inference) je proces výpočtu pravděpodobnosti dotazu na základě známých důkazů. **Exaktní odvozování** (např. Variable Elimination) poskytuje matematicky přesný výsledek, ale v rozsáhlých sítích je výpočetně neúnosné. Proto se používá **aproximační odvozování** pomocí vzorkování (sampling), kde generujeme tisíce scénářů a sledujeme četnost výsledků. Metody jako Likelihood Weighting zajišťují, aby vzorky odpovídaly známým faktům.
+
+Odvozování (inference) v Bayesovských sítích znamená výpočet podmíněné distribuce dotazovaných proměnných $\mathbf{X}$ na základě fixovaných pozorovaných důkazů $\mathbf{e}$: $P(\mathbf{X} \mid \mathbf{e})$.
+
+### Exaktní odvozování
+* **Inference enumerací (Inference by enumeration):** Základní naivní přístup k exaktnímu odvozování. Výpočet probíhá striktně shora dolů procházením celého stromu sdruženého rozdělení pravděpodobnosti a sčítáním přes všechny skryté proměnné. Metoda vykazuje extrémní výpočetní časovou složitost, která je v nejhorším případě NP-těžká.
+* **Eliminace proměnných (Variable Elimination):** Reaguje na naivní enumeraci jako pokročilá optimalizace využívající principy **dynamického programování**. Namísto opakovaného přepočítávání stejných členů shora dolů fixuje mezivýsledky (tzv. faktory) a sdílí je napříč výpočetními větvemi. Distributivním zákonem přesouvá sumace co nejhlouběji do součinu, čímž eliminuje redundantní operace.
+
+### Aproximační odvozování
+Pro obří sítě se exaktní výpočet stává nerealizovatelným. Využívají se stochastické simulace založené na vzorkování (sampling):
+* **Vzorkování s věrohodnostní váhou (Likelihood Weighting):** Algoritmus začíná s inicializací počáteční váhy vzorku na hodnotu $w = 1.0$ a prochází síť v přirozeném topologickém uspořádání. Kdykoli během průchodu narazí na standardní skrytou proměnnou, náhodně vygeneruje její hodnotu na základě lokální distribuce z CPT. Pokud však narazí na evidenční proměnnou (proměnná $E_i$, která je fixní součástí pozorovaného důkazu $\mathbf{e}$), její hodnota se **nevzorkuje**, ale pevně zafixuje podle pozorované reality $e_i$. Aktuální běžná váha vzorku se v tom okamžiku vynásobí podmíněnou pravděpodobností tohoto pozorování:
+  $$w \leftarrow w \times P(E_i = e_i \mid Parents(E_i))$$
+  Výsledná finální váha jednoho vygenerovaného vzorku je součinem těchto dílčích hodnot přes všechny přítomné evidenční proměnné v síti. Cílová distribuce se následně získá normalizací váženého součtu všech nasbíraných vzorků.
+
+---
 
 ## Čas a neurčitost
-Mnoho systémů vyžaduje sledování stavu, který se mění v čase. K tomu slouží modely časových řad, kde stav v čase $t$ závisí na stavech předchozích. Základem je **Markovský předpoklad**, který říká, že budoucí stav závisí pouze na stavu současném, nikoliv na celé historii. To umožňuje efektivní výpočty úloh jako je filtrování (odhad aktuálního stavu), predikce (budoucnost) a vyhlazování (analýza minulosti).
+
+Při modelování dynamického světa, který se mění v čase, reprezentujeme stav jako sekvenci náhodných proměnných $\mathbf{X}_0, \mathbf{X}_1, \mathbf{X}_2, \dots$ v diskrétních krocích. Platí Markovský předpoklad: $P(\mathbf{X}_t \mid \mathbf{X}_{0:t-1}) = P(\mathbf{X}_t \mid \mathbf{X}_{t-1})$.
+
+### Algoritmy odvozování v čase
+Inference v časových modelech se opírá o specifické algoritmické průchody:
+* **Filtrování (Filtering):** Odhad aktuálního stavu $P(\mathbf{X}_t \mid \mathbf{e}_{1:t})$ se striktně opírá o **Forward algoritmus** (dopředný průchod). Jedná se o rekurzivní proces, který kombinuje predikci stavu pro krok $t$ na základě přechodového modelu a následný senzorický update (korekci) v momentě, kdy dorazí nový sensorický důkaz $e_t$.
+* **Vyhlazování (Smoothing):** Rekonstrukce minulých stavů $P(\mathbf{X}_k \mid \mathbf{e}_{1:t})$ pro $k < t$ využívá pokročilejší **Forward-Backward algoritmus**. Výpočet kombinuje dopředný průchod (forward message) se zpětným průchodem (backward message). Zpětná zpráva shromažďuje a sčítá veškeré pravděpodobnostní důkazy získané z "budoucnosti" vůči bodu $k$, což umožňuje přesně zpětně zpřesnit odhad historického stavu.
+
+---
 
 ## Teorie užitku
-Samotná pravděpodobnost agentovi neříká, co má dělat. Teorie užitku zavádí funkci $U(s)$, která kvantifikuje, jak moc je daný stav pro agenta žádoucí. Motivací je vytvoření racionálního agenta, který se rozhoduje podle principu **maximálního očekávaného užitku** (MEU) – vybírá akci, která v průměru vede k nejlepším výsledkům, i když výsledek akce není jistý.
 
-## Markovský rozhodovací proces (MDP)
-MDP je matematický rámec pro modelování sekvenčního rozhodování v prostředích, kde jsou výsledky akcí částečně náhodné. Skládá se ze stavů, akcí, přechodového modelu $P(s' | s, a)$ a funkce odměny $R(s)$. Cílem je najít **strategii** (policy) $\pi(s)$, která agentovi určí optimální akci v každém možném stavu tak, aby maximalizoval dlouhodobý součet odměn.
+Samotná pravděpodobnost agentovi neříká, jakou akci má reálně zvolit. Teorie užitku zavádí funkci $U(s)$, která kvantifikuje, jak moc je daný stav pro agenta žádoucí. Racionální agent se v prostředích s neurčitostí řídí **principem maximálního očekávaného užitku (MEU - Maximum Expected Utility)**. Volí akci $a$, která maximalizuje průměrný očekávaný užitek přes všechny možné následné stavy:
+$$\text{Action} = \arg\max_{a} \sum_{s'} P(s' \mid s, a) \cdot U(s')$$
+
+---
+
+## Markovský rozhodovací proces
+
+Markovský rozhodovací proces (MDP) je formální matematický rámec pro modelování sekvenčního rozhodování v plně pozorovatelném, nedeterministickém prostředí se stacionárními přechody. Je definován jako čtveřice:
+* Množina stavů $S$.
+* Množina akcí $A$.
+* **Přechodový model $P(s' \mid s, a)$:** Pravděpodobnost, že aplikace akce $a$ ve stavu $s$ povede do stavu $s'$.
+* **Funkce odměny $R(s)$:** Okamžitá numerická odměna získaná za příchod do stavu $s$.
+
+Cílem řešení MDP je nalézt **strategii (Policy)** $\pi(s)$, což je zobrazení $\pi: S \to A$, určující optimální akci pro každý stav $s$ tak, aby se maximalizoval dlouhodobý sumární zisk odměn s využitím diskontního faktoru $\gamma \in [0, 1)$:
+$$U(s_0, s_1, s_2, \dots) = \sum_{t=0}^{\infty} \gamma^t R(s_t)$$
+
+---
 
 ## Iterace hodnot
-Iterace hodnot je algoritmus pro řešení MDP. Využívá Bellmanovu rovnici k postupnému výpočtu užitku každého stavu. Algoritmus opakovaně aktualizuje hodnotu stavu na základě odměny a očekávaného užitku budoucích stavů, dokud se hodnoty neustálí (nekonvergují). Výsledné hodnoty pak přímo určují optimální strategii.
+
+Iterace hodnot (Value Iteration) je algoritmus pro výpočet optimálního užitku stavů $U(s)$ založený na **Bellmanově rovnici optimality**:
+$$U(s) = R(s) + \gamma \max_{a \in A} \sum_{s'} P(s' \mid s, a) U(s')$$
+
+### Algoritmus a podmínka ukončení
+Začíná s libovolnými počátečními hodnotami (např. $U_0(s) = 0$). V každé iteraci provede synchronní aktualizaci všech stavů podle pravidla:
+$$U_{i+1}(s) \leftarrow R(s) + \gamma \max_{a \in A} \sum_{s'} P(s' \mid s, a) U_i(s')$$
+Sleduje se maximální zaznamenaná změna hodnoty $\delta$ napříč všemi stavy. Podle Bellmanova teorému je exaktní **podmínka ukončení** algoritmu pro dosažení maximální povolené chyby odhadu $\epsilon$ definována vzorcem:
+$$\text{until } \delta < \epsilon \frac{1 - \gamma}{\gamma}$$
+Po splnění této podmínky je výpočet zastaven a je extrahována optimální strategie.
+
+---
 
 ## Iterace strategie
-Na rozdíl od iterace hodnot se tento přístup zaměřuje přímo na vylepšování strategie. Skládá se ze dvou kroků: **evaluace strategie** (výpočet užitků stavů pro aktuálně zvolené akce) a **zlepšení strategie** (přehodnocení akcí v každém stavu). Tento proces často vede k nalezení optimální strategie v mnohem menším počtu kroků než iterace hodnot.
+
+Na rozdíl od iterace hodnot se tento přístup zaměřuje přímo na vylepšování strategie v rámci makro-kroků. Cyklí mezi dvěma fázemi:
+1. **Evaluace strategie (Policy Evaluation):** Pro aktuální strategii $\pi_i$ spočítá fixní hodnoty užitků $U^{\pi_i}(s)$. Bellmanův operátor ztrácí maximum, což transformuje problém na systém lineárních rovnic řešitelný v polynomiálním čase:
+   $$U_i(s) = R(s) + \gamma \sum_{s'} P(s' \mid s, \pi_i(s)) U_i(s')$$
+2. **Zlepšení strategie (Policy Improvement):** Na základě nově spočítaných užitků $U_i$ aktualizuje strategii pro každý stav dosazením lokálně nejlepší akce:
+   $$\pi_{i+1}(s) \leftarrow \arg\max_{a \in A} \sum_{s'} P(s' \mid s, a) U_i(s')$$
+
+Algoritmus garantovaně konverguje k absolutnímu optimu a ukončí se v momentě, kdy $\pi_{i+1}(s) = \pi_i(s)$ pro všechny stavy.
+
+---
 
 ## Robotika
-Robotika představuje propojení AI s fyzickým světem. Robot musí vnímat své okolí (senzory), vytvářet modely světa, plánovat své akce a fyzicky je provádět (efektory). Klíčovým problémem je zvládání chyb v pohybu a šumu v senzorech, což se řeší pomocí technik pravděpodobnostního vnímání a lokalizace (např. SLAM).
+
+Robotika představuje realizaci AI metod a algoritmů ve fyzickém světě. Robot musí uzavírat smyčku vnímání-plánování-akce (Perception-Planning-Action) v kontinuálním a chybovém prostředí. Klíčovým problémem je zvládání chyb v pohybu a šumu v senzorech, což se řeší pomocí technik pravděpodobnostního vnímání a lokalizace (např. SLAM).
+
+---
 
 ## Plánování pohybu robota
-Cílem plánování pohybu je nalezení spojité cesty v prostoru tak, aby robot nenarazil do žádné překážky. Motivací je oddělení vysoké úrovně plánování (kde se má robot nacházet) od nízké úrovně řízení (jaké napětí poslat do motorů).
 
-## Konfigurační prostor (C-space)
-Konfigurační prostor je klíčová abstrakce v robotice. Zatímco v reálném světě má robot složitý geometrický tvar, v C-space je reprezentován jako **jediný bod**. Každý stupeň volnosti robota (např. posun, rotace, úhel v kloubu) představuje jednu dimenzi tohoto prostoru. Úloha hledání cesty se tak mění na nalezení trajektorie bodu ve volném konfiguračním prostoru $C_{free}$.
+Cílem plánování pohybu je nalezení spojité cesty v prostoru tak, aby robot nenarazil do žádné překážky. Úloha se zaměřuje na transformaci geometrie reálného světa do abstraktního matematického modelu, kde lze efektivně aplikovat prohledávací algoritmy.
+
+---
+
+## Konfigurační prostor
+
+Konfigurační prostor (Configuration Space / C-space) je klíčová abstrakce v robotice. Zatímco v reálném světě má robot složitou geometrickou strukturu, v C-space je reprezentován jako **jediný bod**.
+
+### Dimenze C-prostoru vs. Stupně volnosti (DoF)
+Je nutné striktně rozlišovat mezi počtem konfiguračních parametrů (dimenzí C-prostoru) a okamžitými stupni volnosti (DoF) robota:
+* *Dimenze C-prostoru:* Odpovídá celkovému počtu parametrů nutných pro plný popis polohy a orientace tělesa. Například běžný mobilní podvozek (auto) vyžaduje 3 konfigurační dimenze – souřadnice polohy a úhel orientace $[x, y, \theta]$.
+* *Stupně volnosti (DoF):* Představují počet nezávislých směrů, kterými se může robot v daném okamžiku reálně pohnout. Kvůli **neholonomním omezením** (auto má pevná kola a nemůže se pohybovat čistě kolmo na směr své podélné osy, tj. bokem) vykazuje toto vozidlo pouze **2 okamžité stupně volnosti** (akcelerace vpřed/vzad a rotace volantu). Dimenze C-prostoru je tedy v tomto případě vyšší než počet reálných DoF.
+
+Prostor se dělí na $C_{obs}$ (konfigurace v kolizi) a $C_{free}$ (bezpečný volný prostor):
+$$C_{free} = C \setminus C_{obs}$$
+
+---
 
 ## Kombinatorické přístupy
-Tyto metody se snaží o exaktní vyřešení geometrie volného prostoru. **Graf viditelnosti** propojuje rohy překážek a hledá nejkratší cestu (která ale vede nebezpečně blízko hran). **Dekompozice na buňky** rozděluje prostor na jednoduché geometrické tvary (např. lichoběžníky), ve kterých se lze pohybovat přímočaře. Tyto přístupy jsou přesné, ale pro vysoké dimenze výpočetně nezvládnutelné.
+
+Snaží se o přesné analytické vyřešení geometrické struktury volného prostoru $C_{free}$. Jsou úplné, ale vykazují vysokou výpočetní složitost v prostorech s vysokou dimenzí.
+
+* **Graf viditelnosti (Visibility Graph):** Vrcholy grafu jsou počáteční stav, cíl a rohy překážek. Hrany propojují ty vrcholy, které se vzájemně lineárně vidí. 
+  * *Garantovaná optimalita:* Tento přístup striktně garantuje nalezení absolutně **nejkratší eukleidovské cesty v 2D** prostoru pro případ **polygonálních překážek a bodového robota** (případně pro reálného robota transformovaného na bod pomocí geometrické operace Minkowského sumy).
+* **Dekompozice na buňky (Cell Decomposition):** Rozděluje volný prostor $C_{free}$ na konečný počet jednoduchých, nekřížících se geometrických oblastí (buněk, např. lichoběžníků). Uvnitř každé buňky je pohyb triviálně lineární. Zkonstruuje se adlační graf sousedství buněk, ve kterém se najde cesta standardními metodami typu A\*.
+
+---
 
 ## Pravděpodobnostní přístupy
-V moderní robotice se pro komplexní úkoly (např. ramena s mnoha klouby) využívají pravděpodobnostní metody založené na vzorkování. **PRM** (Probabilistic Roadmaps) náhodně vzorkuje konfigurační prostor a staví síť cest. **RRT** (Rapidly-exploring Random Trees) rychle rozšiřuje strom z počáteční polohy do neprobádaných oblastí. Tyto metody jsou velmi rychlé a efektivní i ve složitých prostorech, i když nezaručují vždy nejkratší možnou cestu.
+
+Pro prostory s vysokým počtem stupňů volnosti (např. kloubová ramena) je exaktní geometrický výpočet výpočetně nezvládnutelný. Pravděpodobnostní přístupy nepočítají přesné hranice překážek, ale testují náhodně generované konfigurace pomocí rychlých implicitních **detektorů kolizí**.
+
+### Pravděpodobnostní úplnost (Probabilistic Completeness)
+Všechny vzorkovací algoritmy v této kategorii jsou definovány jako **pravděpodobnostně úplné**. To znamená, že pravděpodobnost nalezení validního řešení (pokud v reálném světě prokazatelně existuje) se s rostoucím časem výpočtu / počtem vygenerovaných vzorků limitně blíží k 1. 
+Klíčovým omezením však zůstává, že **pokud validní řešení neexistuje**, algoritmus běží donekonečna v nekonečné smyčce a nedokáže jeho neexistenci sám o své vůli detekovat a korektně ohlásit.
+
+### PRM (Probabilistic Roadmaps)
+Metoda určená pro plánování ve stejném prostředí pro více dotazů (multi-query). Sestává ze dvou fází:
+1. **Fáze učení (Learning phase):** Náhodně vzorkuje konfigurace v C-prostoru. Volné konfigurace (mimo $C_{obs}$) se stanou vrcholy grafu a algoritmus se pokusí propojit lokální sousedy hranou ověřenou lokálním plánovačem. Výsledkem je robustní síť cest pokrývající $C_{free}$.
+2. **Fáze dotazování (Query phase):** Počáteční stav a cíl robota se propojí s nejbližšími uzly vybudované sítě a cesta se najde pomocí algoritmu A\*.
+
+### RRT (Rapidly-exploring Random Trees)
+Inkrementální metoda navržená pro rychlé vyřešení jednoho konkrétního dotazu (single-query), vysoce efektivní i v prostorech s neholonomními omezeními. Strom se rozšiřuje generováním náhodného bodu $q_{rand}$, vyhledáním nejbližšího stávajícího uzlu $q_{near}$ a provedením kroku o délce $\epsilon$ směrem k náhodnému bodu, čímž vzniká nový uzel $q_{new}$. S fixní pravděpodobností se namísto náhodného bodu dosazuje přímo cílová konfigurace $q_{goal}$ (tzv. *Goal bias*).
+
+### Přehledový "Cheat Sheet" algoritmů plánování pohybu a Asymptotická optimalita
+Základní verze algoritmů PRM a RRT sice generují geometricky zubaté a neoptimální trajektorie. Moderní pokročilé varianty **PRM\*** a **RRT\*** však přidávají podmínku dynamického přehodnocování a propojování uzlů v přesně definovaném poloměru okolí, díky čemuž dosahují **asymptotické optimality** (s rostoucím počtem vzorků délka nalezené cesty matematicky konverguje k absolutnímu teoretickému optimu).
+
+| Metoda | Typ | Třída úloh | Hlavní výhoda | Klíčové omezení / Vlastnost |
+| :--- | :--- | :--- | :--- | :--- |
+| **Graf viditelnosti** | Kombinatorická | 2D, Polygonální překážky | Garantuje nejkratší možnou cestu pro bodový robot | Exponenciální růst se složitostí geometrie |
+| **Dekompozice** | Kombinatorická | Jednoduché 2D/3D prostory | Snadná implementace adlačních grafů | Nevhodné pro vysoké dimenze (DoF) |
+| **PRM / PRM\*** | Pravděpodobnostní | Vysoké DoF, statické prostředí | Rychlé opakované dotazy (Multi-query) | Verze PRM\* dosahuje asymptotické optimality |
+| **RRT / RRT\*** | Pravděpodobnostní | Vysoké DoF, dynamické/komplexní | Extrémně rychlý single-query, zvládá DoF | Verze RRT\* dosahuje asymptotické optimality |
