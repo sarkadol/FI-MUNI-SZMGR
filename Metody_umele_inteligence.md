@@ -191,6 +191,8 @@ Acyklické orientované grafy (DAG) sloužící k efektivní reprezentaci sdruž
 2. **Orientované hrany:** Hrana z uzlu $X$ do $Y$ indikuje přímý statistický vliv ($X$ je rodičem $Y$).
 3. **Tabulky podmíněných pravděpodobností (CPT - Conditional Probability Tables):** Každý uzel $X_i$ má přidruženou tabulku $P(X_i \mid Parents(X_i))$, která plně kvantifikuje vliv rodičů na tento uzel.
 
+<img alt="img.png" src="img/metody_umele_inteligence/cpt.png" width="300"/>
+
 ### Využití podmíněné nezávislosti
 Bayesovské sítě využívají topologické vlastnosti: **každý uzel je podmíněně nezávislý na svých nenaslednících, pokud jsou fixovány hodnoty jeho rodičů**. Celé sdružené rozdělení se pak spočítá jako součin lokálních podmíněných distribucí:
 $$P(X_1, \dots, X_n) = \prod_{i=1}^{n} P(X_i \mid Parents(X_i))$$
@@ -242,6 +244,8 @@ Markovský rozhodovací proces (MDP) je formální matematický rámec pro model
 
 Cílem řešení MDP je nalézt **strategii (Policy)** $\pi(s)$, což je zobrazení $\pi: S \to A$, určující optimální akci pro každý stav $s$ tak, aby se maximalizoval dlouhodobý sumární zisk odměn s využitím diskontního faktoru $\gamma \in [0, 1)$:
 $$U(s_0, s_1, s_2, \dots) = \sum_{t=0}^{\infty} \gamma^t R(s_t)$$
+
+<img alt="img.png" src="img/metody_umele_inteligence/markov.png" width="400"/>
 
 ---
 
@@ -295,6 +299,8 @@ Je nutné striktně rozlišovat mezi počtem konfiguračních parametrů (dimenz
 Prostor se dělí na $C_{obs}$ (konfigurace v kolizi) a $C_{free}$ (bezpečný volný prostor):
 $$C_{free} = C \setminus C_{obs}$$
 
+<img alt="img.png" src="img/metody_umele_inteligence/config vs workspace.png" width="400"/>
+
 ---
 
 ## Kombinatorické přístupy
@@ -304,6 +310,8 @@ Snaží se o přesné analytické vyřešení geometrické struktury volného pr
 * **Graf viditelnosti (Visibility Graph):** Vrcholy grafu jsou počáteční stav, cíl a rohy překážek. Hrany propojují ty vrcholy, které se vzájemně lineárně vidí. 
   * *Garantovaná optimalita:* Tento přístup striktně garantuje nalezení absolutně **nejkratší eukleidovské cesty v 2D** prostoru pro případ **polygonálních překážek a bodového robota** (případně pro reálného robota transformovaného na bod pomocí geometrické operace Minkowského sumy).
 * **Dekompozice na buňky (Cell Decomposition):** Rozděluje volný prostor $C_{free}$ na konečný počet jednoduchých, nekřížících se geometrických oblastí (buněk, např. lichoběžníků). Uvnitř každé buňky je pohyb triviálně lineární. Zkonstruuje se adlační graf sousedství buněk, ve kterém se najde cesta standardními metodami typu A\*.
+
+![img.png](img/metody_umele_inteligence/cell-decomp.png)
 
 ---
 
