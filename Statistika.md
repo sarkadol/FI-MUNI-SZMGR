@@ -71,6 +71,15 @@ Při testování se můžeme dopustit dvou typů chyb:
 | **$H_0$ ve skutečnosti platí** | Správné rozhodnutí | **Chyba I. typu ($\alpha$)** (Falešný poplach) |
 | **$H_1$ ve skutečnosti platí** | **Chyba II. typu ($\beta$)** (Nepoznaný efekt) | Správné rozhodnutí (Síla testu $1-\beta$) |
 
+#### Síla testu ($1-\beta$)
+Vyjadřuje pravděpodobnost, že test správně zamítne neplatnou nulovou hypotézu $H_0$ (tj. rozpozná skutečně existující efekt či rozdíl a nedopustí se chyby II. typu). 
+* **Interpretace:** Čím vyšší je síla testu, tím menší je riziko, že přehlédneme důležitý objev. V praxi se požaduje síla testu alespoň 80 % ($1-\beta = 0,80$).
+* **Faktory zvyšující sílu testu:**
+  1. **Větší rozsah výběru ($n$):** Více dat snižuje standardní chybu a zpřesňuje test.
+  2. **Větší velikost efektu (Effect Size):** Výrazné rozdíly v populaci se prokazují snáze než miniaturní odchylky.
+  3. **Menší variabilita dat ($\sigma$):** Homogennější data snižují množství šumu.
+  4. **Zvýšení hladiny významnosti ($\alpha$):** Snížením přísnosti (např. z 5 % na 10 %) sice zvýšíme sílu testu, ale za cenu vyššího rizika falešného poplachu (chyby I. typu).
+
 #### Základní příklady testů:
 * **t-test:** Testování průměru pro malé výběry při neznámem populačním rozptylu.
 * **z-test:** Testování průměru pro velké výběry nebo při známém rozptylu.
@@ -93,6 +102,17 @@ ANOVA je statistická metoda pro testování rovnosti středních hodnot u **tř
 1. **Nezávislost výběrů:** Jednotlivá pozorování musí být na sobě zcela nezávislá. Pokud nejsou, mění se rozdělení testové statistiky i p-hodnota a výsledky nejsou spolehlivé.
 2. **Normalita dat:** Ověřuje se pomocí Q-Q grafu nebo testů (např. Shapiro–Wilk). ANOVA je poměrně odolná – pokud má každá skupina alespoň ~20 pozorování a data nejsou silně vychýlená, mírné porušení nevadí. Při silném porušení použijeme neparametrický test (např. Kruskal–Wallis).
 3. **Shoda rozptylů (homogenita variancí):** Ověřuje se např. Leveneho nebo Bartlettovým testem. Mírné porušení většinou nevadí, pokud mají srovnávané skupiny podobný rozsah.
+
+#### Formální modelové vyjádření ANOVA
+ANOVA lze chápat jako speciální případ lineárního regresního modelu (kde prediktory jsou kategorické proměnné). Každé jednotlivé pozorování můžeme rozložit na teoretické složky pomocí lineárního modelu:
+
+$$Y_{ij} = \mu + \alpha_i + \varepsilon_{ij}$$
+
+Kde:
+* $Y_{ij}$ je naměřená hodnota $j$-tého pozorování v $i$-té skupině (např. hmotnost konkrétního trsu brambor z konkrétní odrůdy).
+* $\mu$ je **celkový průměr** (grand mean) napříč všemi skupinami bez rozdílu.
+* $\alpha_i$ je **efekt $i$-té skupiny** (faktoru), který vyjadřuje odchylku průměru dané skupiny od celkového průměru ($\alpha_i = \mu_i - \mu$). Pro jednoznačnost modelu platí dodatečná podmínka $\sum \alpha_i = 0$.
+* $\varepsilon_{ij}$ je **náhodná chyba** (reziduum) daného pozorování, která představuje přirozenou variabilitu (šum). Předpokládá se, že tyto chyby jsou nezávislé a mají normální rozdělení s nulovou střední hodnotou a konstantním rozptylem, tedy $\varepsilon_{ij} \sim N(0, \sigma^2)$.
 
 #### Jednofaktorová vs. Vícefaktorová ANOVA
 Jednofaktorová ANOVA zkoumá vliv jedné nezávislé proměnné (faktory). Vícefaktorová ANOVA analyzuje vliv dvou a více faktorů současně, včetně jejich vzájemných interakcí na závislou proměnnou.
@@ -122,6 +142,8 @@ $$F = \frac{MS_{between}}{MS_{within}}$$
 
 * Pokud jsou průměry skupin stejné, očekáváme $F \approx 1$.
 * Výrazně velká hodnota $F$ překračující teoretickou kritickou hodnotu vede k zamítnutí $H_0$.
+
+<img alt="img.png" src="img/statistika/soucty ctvercu.png" width="300"/>
 
 ### 2.2 Post-hoc testy
 Pokud ANOVA zamítne $H_0$, víme, že existuje rozdíl, ale nevíme, mezi kterými konkrétními skupinami. K tomu slouží post-hoc testy:
@@ -176,6 +198,7 @@ Aby byly odhady stabilní a testy spolehlivé, musí platit:
 2. **Nezávislost chyb:** Rezidua $\varepsilon_i$ jsou na sobě nezávislá.
 3. **Homoskedasticita:** Konstantní rozptyl náhodných chyb (reziduí).
 4. **Normalita chyb:** Rezidua mají normální rozdělení, což je klíčové pro platnost t-testů a intervalů spolehlivosti.
+5. **Absence dokonalé multikolinearity** – Mezi vysvětlujícími proměnnými ($X_j$) nesmí existovat přesný lineární vztah (dokonalá kolinearita), ani extrémně silná korelace. Pokud by byly proměnné dokonale závislé, matematicky nelze jednoznačně odhadnout regresní koeficienty $\beta$ (matice prediktorů by byla singulární a nešlo by ji invertovat).
 
 ### 4.2 Matematický model
 $$Y_i = \beta_0 + \beta_1 X_{i1} + \beta_2 X_{i2} + \dots + \beta_p X_{ip} + \varepsilon_i$$
@@ -234,6 +257,8 @@ $$VIF_j = \frac{1}{1 - R_j^2}$$
 * $VIF_j > 5$: Možný problém s kolinearitou.
 * $VIF_j > 10$: Silná, kritická multikolinearita.
 
+<img alt="img.png" src="img/statistika/multikol.png" width="400"/>
+
 ---
 
 ### 4.6 Autokorelace
@@ -248,6 +273,8 @@ Detekuje se nejčastěji pomocí **Durbin-Watsonova testu** (hodnoty v rozsahu 0
 * $DW \to 4$: Silná negativní autokorelace.
 
 *Řešení:* Použití metod upravených pro časové řady (např. zobecněné nejmenší čtverce GLS).
+
+<img alt="img.png" src="img/statistika/autokor.png" width="400"/>
 
 ---
 
