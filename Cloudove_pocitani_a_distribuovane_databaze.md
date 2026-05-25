@@ -368,7 +368,7 @@ Rozdělení datové sady na menší části (shardy), kde každý uzel nese jen 
 ### Geodistribuce
 Rozmístění uzlů databáze do různých geografických lokalit (regionů).
 * **Účel:** Snížení latence (přiblížení dat uživateli) a odolnost proti výpadku celého datacentra.
-* **Data Sovereignty:** Nutnost uchovávat data v určitém regionu kvůli legislativě. _např. GDPR vyžaduje uložení dat občanů EU v rámci Unie._
+* **Data Sovereignty:** Nutnost uchovávat data v určitém regionu kvůli legislativě. _např. GDPR reguluje přenos dat mimo EU, což v praxi často vede firmy k tomu, že data evropských uživatelů raději striktně ukládají na servery uvnitř Unie._
 
 ---
 ## Úložiště párů klíč-hodnota (Key-Value)
