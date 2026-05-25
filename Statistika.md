@@ -30,7 +30,7 @@ Zásadní pilíř matematické statistiky. Říká, že pokud je rozsah výběru
 Principiálně odlišný přístup k odhadu parametrů rozdělení. Hledá takové hodnoty parametrů, pro které je pravděpodobnost získání reálně pozorovaných dat maximální.
 * **Věrohodnostní funkce (Likelihood function):** Pro nezávislá pozorování je definována jako součin jejich hustot pravděpodobnosti (nebo pravděpodobnostních funkcí):
   $$L(\theta) = \prod_{i=1}^{n} f(x_i; \theta)$$
-* **Postup:** V praxi maximalizujeme logaritmus této funkce ($\ln L(\theta)$), což transformuje součin na součet a zjednodušuje derivování. MLE odhady jsou asymptoticky nestranné, normální a efektivní, avšak pro malé výběry mohou být vychýlené (např. MLE odhad rozptylu dělí číslem $n$, nikoliv $n-1$).
+* **Postup:** V praxi maximalizujeme logaritmus této funkce ( $\ln L(\theta)$ ), což transformuje součin na součet a zjednodušuje derivování. MLE odhady jsou asymptoticky nestranné, normální a efektivní, avšak pro malé výběry mohou být vychýlené (např. MLE odhad rozptylu dělí číslem $n$, nikoliv $n-1$).
 
 ---
 
