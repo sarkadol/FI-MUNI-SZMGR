@@ -433,13 +433,26 @@ $$PC_k = a_{k1}X_1 + a_{k2}X_2 + \dots + a_{kp}X_p$$
 
 Kde $X_j$ jsou původní proměnné a $a_{kj}$ jsou koeficienty určující směr komponenty (*loadings*). Tyto koeficienty tvoří **vlastní vektory** kovarianční nebo korelační matice.
 
-### 5.2 Výpočet a Spektrální rozklad
+### 5.2 Výpočet PCA
 Před použitím PCA je nezbytné data **standardizovat**, zejména pokud jsou proměnné v různých fyzikálních jednotkách, jinak by proměnné s přirozeně větším měřítkem zkreslily celou analýzu.
 
 Následně se určí charakteristická rovnice matice:
 $$\mathbf{S}\mathbf{a}_k = \lambda_k \mathbf{a}_k$$
 
-Kde $\mathbf{S}$ je kovarianční nebo korelační matice, $\mathbf{a}_k$ je vlastní vektor a $\lambda_k$ je **vlastní číslo**, které vyjadřuje rozptyl vysvětlený danou $k$-tou komponentou.
+Kde $\mathbf{S}$ je kovarianční nebo korelační matice (můžu si vybrat - rozdíl je v tom jestli je matice standardizovaná anebo ne, jinak se neliší), $\mathbf{a}_k$ je vlastní vektor a $\lambda_k$ je **vlastní číslo**, které vyjadřuje rozptyl vysvětlený danou $k$-tou komponentou.
+
+*Charakteristická rovnice je matematický nástroj, který převádí maticový problém hledání nových os na obyčejnou algebraickou rovnici. Určujeme ji proto, abychom z výpočtu dočasně eliminovali neznámé směry komponent (vektory) a osamostatnili výpočet pro neznámá vlastní čísla* $\lambda_k$ *představující rozptyly. Vynulováním determinantu navíc garantujeme, že nově nalezené osy budou nenulové (matice bude singulární).*
+
+*Proces hledání neznámých vlastních čísel* $\lambda$ *probíhá z této základní rovnice následovně:*
+1. *Převedením všech členů na levou stranu a vynásobením jednotkovou maticí* $\mathbf{I}$ *získáme homogenní soustavu rovnic:* $(\mathbf{S} - \lambda_k \mathbf{I})\mathbf{a}_k = 0$.
+2. *Hledáme netriviální (nenulové) řešení pro směr komponenty* $\mathbf{a}_k$*. Soustava má nenulové řešení pouze tehdy, když je matice soustavy singulární. Sestavíme proto charakteristickou rovnici vynulováním jejího determinantu:* $\det(\mathbf{S} - \lambda_k \mathbf{I}) = 0$.
+3. *Rozvinutím determinantu se matice roznásobí do podoby obyčejné algebraické rovnice (např. pro 2 proměnné vznikne kvadratická rovnice* $\lambda^2 + b\lambda + c = 0$*, obecně nazývaná polynom $p$-tého stupně). Vyřešením této rovnice získáme konkrétní hodnoty pro vlastní čísla* $\lambda$*.*
+*Příklad pro 3 původní proměnné ($p = 3$): Odčítání* $\lambda$ *od diagonály matice vztahů* $\mathbf{S}$ *a následný výpočet determinantu vypadá v obecném zápisu takto:*
+
+$$\det(\mathbf{S} - \lambda \mathbf{I}) = \det \begin{pmatrix} S_{11} - \lambda & S_{12} & S_{13} \\ S_{21} & S_{22} - \lambda & S_{23} \\ S_{31} & S_{32} & S_{33} - \lambda \end{pmatrix} = 0$$
+
+
+4. *Vlastní čísla seřadíme sestupně od největšího po nejmenší:* $\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_p \ge 0$*. Největší* $\lambda_1$ *odpovídá první hlavní komponentě ($PC_1$), protože zachycuje největší podíl rozptylu.*
 
 Podíl vysvětlené variability $k$-tou komponentou odpovídá zlomku:
 $$\frac{\lambda_k}{\sum_{j=1}^p \lambda_j}$$
