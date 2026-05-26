@@ -106,12 +106,12 @@ Vyjadřuje pravděpodobnost, že test správně zamítne neplatnou nulovou hypot
 * **z-test:** Testování průměru pro velké výběry nebo při známém rozptylu.
 * **chí-kvadrát test:** Testování shody rozdělení nebo nezávislosti nominálních znaků.
 
-<img alt="img.png" src="img/statistika/hypothesis-graph.png" width="400"/>
+<img alt="img.png" src="img/statistika/hypothesis-graph.png" width="800"/>
 
 Obrázek graficky znázorňuje, jak **rozsah výběru ($n$) ovlivňuje sílu testu (Power)** při zachování stejné hladiny významnosti ($\alpha = 5\ \%$) a stejné velikosti efektu (vzdálenost středů modré a červené křivky je stále $0,5$).
 
-* **Horní graf ($n = 30$):** Variabilita (šířka křivek) je větší, což způsobuje výrazný překryv rozdělení pod nulovou ($H_0$) a alternativní ($H_1$) hypotézou. Abychom udrželi chybu I. typu na $5\ \%$ (modrá plocha napravo od kritické hodnoty $0,30$), kritická hodnota musí být posunuta poměrně daleko doprava. V důsledku toho je síla testu (červená plocha napravo od kritické hodnoty) pouze **$86,3\ \%$**. Riziko chyby II. typu ($\beta$) je zbylých $13,7\ \%$.
-* **Dolní graf ($n = 100$):** S větším množstvím dat se podle Centrální limitní věty standardní chyba zmenšuje – křivky jsou výrazně užší a "špičatější". Překryv obou rozdělení je minimální. Kritická hodnota se posouvá doleva na $0,16$, přičemž modrá plocha ($\alpha$) stále drží svých $5\ \%$. Červená plocha pod křivkou $H_1$ však nyní pokrývá celých **$100\ \%$** plochy. 
+* **Pravý graf ($n = 30$):** Variabilita (šířka křivek) je větší, což způsobuje výrazný překryv rozdělení pod nulovou ($H_0$) a alternativní ($H_1$) hypotézou. Abychom udrželi chybu I. typu na $5\ \%$ (modrá plocha napravo od kritické hodnoty $0,30$), kritická hodnota musí být posunuta poměrně daleko doprava. V důsledku toho je síla testu (červená plocha napravo od kritické hodnoty) pouze **$86,3\ \%$**. Riziko chyby II. typu ($\beta$) je zbylých $13,7\ \%$.
+* **Levý graf ($n = 100$):** S větším množstvím dat se podle Centrální limitní věty standardní chyba zmenšuje – křivky jsou výrazně užší a "špičatější". Překryv obou rozdělení je minimální. Kritická hodnota se posouvá doleva na $0,16$, přičemž modrá plocha ($\alpha$) stále drží svých $5\ \%$. Červená plocha pod křivkou $H_1$ však nyní pokrývá téměř **$100\ \%$** plochy. 
 * **Závěr:** Zvýšením rozsahu výběru z $30$ na $100$ jsme zpřesnili odhady, snížili šum a dosáhli stoprocentní jistoty, že reálně existující efekt detekujeme.
 
 ---
@@ -284,11 +284,12 @@ Pozor, nezaměňovat jednoduchou regresi s více parametry s mnohonásobnou regr
 ### 4.1 Základní předpoklady lineární regrese
 Aby byly odhady stabilní a testy spolehlivé, musí platit:
 1. **Linearita:** Vztah mezi závislou proměnnou $Y$ a prediktory $X_j$ je lineární.
-2. **Nezávislost chyb:** Rezidua $r_i$ jsou na sobě nezávislá.
-3. **Homoskedasticita:** Konstantní rozptyl náhodných chyb (reziduí).
-4. **Normalita chyb:** Rezidua mají normální rozdělení, což je klíčové pro platnost t-testů a intervalů spolehlivosti.
+2. **Nezávislost chyb:**  Náhodné chyby $\varepsilon_i$ jsou na sobě nezávislá.
+3. **Homoskedasticita:** Konstantní rozptyl náhodných chyb.
+4. **Normalita chyb:** Náhodné chyby $\varepsilon_i$ mají normální rozdělení, což je klíčové pro platnost t-testů a intervalů spolehlivosti.
 5. **Absence dokonalé multikolinearity:** Mezi vysvětlujícími proměnnými nesmí existovat přesný lineární vztah ani extrémně silná korelace. Pokud by byly proměnné dokonale závislé, matice prediktorů by byla singulární a matematicky nelze jednoznačně odhadnout regresní koeficienty $\beta$.
 
+*Poznámka: Tyto předpoklady jsou formulovány pro teoretické **náhodné chyby** (* $\varepsilon_i$ *), což jsou neviditelné náhodné složky v populaci, které nikdy nemůžeme přesně změřit, protože neznáme skutečné parametry přírody. V praxi proto všechny tyto předpoklady ověřujeme a testujeme na **reziduích** (* $r_i$ *), která představují svislé odchylky reálných dat od našeho odhadnutého modelu a slouží jako nejlepší dostupný odhad těchto teoretických chyb.*
 
 ### 4.2 Matematický model a výpočet OLS
 
@@ -427,26 +428,27 @@ První hlavní komponenta tedy zachycuje největší část informace obsažené
 
 *Optimální a neoptimální báze*
 
-### 5.1 Matematický tvar hlavních komponent
+### 7.1 Matematický tvar hlavních komponent
 Každá hlavní komponenta je lineární kombinací původních proměnných:
 $$PC_k = a_{k1}X_1 + a_{k2}X_2 + \dots + a_{kp}X_p$$
 
 Kde $X_j$ jsou původní proměnné a $a_{kj}$ jsou koeficienty určující směr komponenty (*loadings*). Tyto koeficienty tvoří **vlastní vektory** kovarianční nebo korelační matice.
 
-### 5.2 Výpočet PCA
+### 7.2 Výpočet PCA
 Před použitím PCA je nezbytné data **standardizovat**, zejména pokud jsou proměnné v různých fyzikálních jednotkách, jinak by proměnné s přirozeně větším měřítkem zkreslily celou analýzu.
 
 Následně se určí charakteristická rovnice matice:
 $$\mathbf{S}\mathbf{a}_k = \lambda_k \mathbf{a}_k$$
 
-Kde $\mathbf{S}$ je kovarianční nebo korelační matice (můžu si vybrat - rozdíl je v tom jestli je matice standardizovaná anebo ne, jinak se neliší), $\mathbf{a}_k$ je vlastní vektor a $\lambda_k$ je **vlastní číslo**, které vyjadřuje rozptyl vysvětlený danou $k$-tou komponentou.
+Kde $\mathbf{S}$ je kovarianční nebo korelační matice (můžeme si vybrat – korelační matici volíme ve většině případů, protože odpovídá situaci, kdy data před analýzou standardizujeme, abychom je očistili od rozdílných fyzikálních jednotek), $\mathbf{a}_k$ je vlastní vektor a $\lambda_k$ je **vlastní číslo**, které vyjadřuje rozptyl vysvětlený danou $k$-tou komponentou.
 
 *Charakteristická rovnice je matematický nástroj, který převádí maticový problém hledání nových os na obyčejnou algebraickou rovnici. Určujeme ji proto, abychom z výpočtu dočasně eliminovali neznámé směry komponent (vektory) a osamostatnili výpočet pro neznámá vlastní čísla* $\lambda_k$ *představující rozptyly. Vynulováním determinantu navíc garantujeme, že nově nalezené osy budou nenulové (matice bude singulární).*
 
 *Proces hledání neznámých vlastních čísel* $\lambda$ *probíhá z této základní rovnice následovně:*
 1. *Převedením všech členů na levou stranu a vynásobením jednotkovou maticí* $\mathbf{I}$ *získáme homogenní soustavu rovnic:* $(\mathbf{S} - \lambda_k \mathbf{I})\mathbf{a}_k = 0$.
-2. *Hledáme netriviální (nenulové) řešení pro směr komponenty* $\mathbf{a}_k$*. Soustava má nenulové řešení pouze tehdy, když je matice soustavy singulární. Sestavíme proto charakteristickou rovnici vynulováním jejího determinantu:* $\det(\mathbf{S} - \lambda_k \mathbf{I}) = 0$.
+2. *Hledáme netriviální (nenulové) řešení pro směr komponenty* $\mathbf{a}_k$*. Soustava má nenulové řešení pouze tehdy, když je matice soustavy singulární. Sestavíme proto charakteristickou rovnici vynulováním jejího determinantu:* $\det(\mathbf{S} - \lambda \mathbf{I}) = 0$.
 3. *Rozvinutím determinantu se matice roznásobí do podoby obyčejné algebraické rovnice (např. pro 2 proměnné vznikne kvadratická rovnice* $\lambda^2 + b\lambda + c = 0$*, obecně nazývaná polynom $p$-tého stupně). Vyřešením této rovnice získáme konkrétní hodnoty pro vlastní čísla* $\lambda$*.*
+
 *Příklad pro 3 původní proměnné ($p = 3$): Odčítání* $\lambda$ *od diagonály matice vztahů* $\mathbf{S}$ *a následný výpočet determinantu vypadá v obecném zápisu takto:*
 
 $$\det(\mathbf{S} - \lambda \mathbf{I}) = \det \begin{pmatrix} S_{11} - \lambda & S_{12} & S_{13} \\ S_{21} & S_{22} - \lambda & S_{23} \\ S_{31} & S_{32} & S_{33} - \lambda \end{pmatrix} = 0$$
@@ -457,7 +459,7 @@ $$\det(\mathbf{S} - \lambda \mathbf{I}) = \det \begin{pmatrix} S_{11} - \lambda 
 Podíl vysvětlené variability $k$-tou komponentou odpovídá zlomku:
 $$\frac{\lambda_k}{\sum_{j=1}^p \lambda_j}$$
 
-### 5.3 Volba počtu komponent
+### 7.3 Volba počtu komponent
 Počet ponechaných komponent se volí na základě několika kritérií:
 * Ponechat tolik komponent, aby kumulativně vysvětlily cca 80–90 % celkové variability.
 * **Kaiserovo pravidlo:** Ponechat pouze komponenty s vlastním číslem $\lambda_k > 1$.
@@ -467,7 +469,7 @@ Počet ponechaných komponent se volí na základě několika kritérií:
 
 *Scree plot*
 
-### 5.4 Scores a Loadings
+### 7.4 Scores a Loadings
 * **Loadings:** Koeficienty definující váhu původních proměnných v komponentě (říkají, jak silně proměnné s PC korelují).
 * **Scores:** Nově vypočítané souřadnice konkrétních pozorování v prostoru hlavních komponent, které lze vizualizovat v grafech.
 
