@@ -85,6 +85,14 @@ Vyjadřuje pravděpodobnost, že test správně zamítne neplatnou nulovou hypot
 * **z-test:** Testování průměru pro velké výběry nebo při známém rozptylu.
 * **chí-kvadrát test:** Testování shody rozdělení nebo nezávislosti nominálních znaků.
 
+<img alt="img.png" src="img/statistika/hypothesis-graph.png" width="400"/>
+
+Obrázek graficky znázorňuje, jak **rozsah výběru ($n$) ovlivňuje sílu testu (Power)** při zachování stejné hladiny významnosti ($\alpha = 5\ \%$) a stejné velikosti efektu (vzdálenost středů modré a červené křivky je stále $0,5$).
+
+* **Horní graf ($n = 30$):** Variabilita (šířka křivek) je větší, což způsobuje výrazný překryv rozdělení pod nulovou ($H_0$) a alternativní ($H_1$) hypotézou. Abychom udrželi chybu I. typu na $5\ \%$ (modrá plocha napravo od kritické hodnoty $0,30$), kritická hodnota musí být posunuta poměrně daleko doprava. V důsledku toho je síla testu (červená plocha napravo od kritické hodnoty) pouze **$86,3\ \%$**. Riziko chyby II. typu ($\beta$) je zbylých $13,7\ \%$.
+* **Dolní graf ($n = 100$):** S větším množstvím dat se podle Centrální limitní věty standardní chyba zmenšuje – křivky jsou výrazně užší a "špičatější". Překryv obou rozdělení je minimální. Kritická hodnota se posouvá doleva na $0,16$, přičemž modrá plocha ($\alpha$) stále drží svých $5\ \%$. Červená plocha pod křivkou $H_1$ však nyní pokrývá celých **$100\ \%$** plochy. 
+* **Závěr:** Zvýšením rozsahu výběru z $30$ na $100$ jsme zpřesnili odhady, snížili šum a dosáhli stoprocentní jistoty, že reálně existující efekt detekujeme.
+
 ---
 
 ## 2. ANOVA (Analysis of Variance - Analýza rozptylu)
@@ -111,7 +119,7 @@ $$Y_{ij} = \mu + \alpha_i + \varepsilon_{ij}$$
 Kde:
 * $Y_{ij}$ je naměřená hodnota $j$-tého pozorování v $i$-té skupině (např. hmotnost konkrétního trsu brambor z konkrétní odrůdy).
 * $\mu$ je **celkový průměr** (grand mean) napříč všemi skupinami bez rozdílu.
-* $\alpha_i$ je **efekt $i$-té skupiny** (faktoru), který vyjadřuje odchylku průměru dané skupiny od celkového průměru ($\alpha_i = \mu_i - \mu$). Pro jednoznačnost modelu platí dodatečná podmínka $\sum \alpha_i = 0$.
+* $\alpha_i$ je **efekt $i$-té skupiny** (faktoru), který vyjadřuje odchylku průměru dané skupiny od celkového průměru ($\alpha_i = \mu_i - \mu$). Pro jednoznačnost modelu platí dodatečná podmínka $\sum \alpha_i = 0$, efekty skupin jsou definovány jako odchylky od celkového průměru - jejich součet je 0.
 * $\varepsilon_{ij}$ je **náhodná chyba** (reziduum) daného pozorování, která představuje přirozenou variabilitu (šum). Předpokládá se, že tyto chyby jsou nezávislé a mají normální rozdělení s nulovou střední hodnotou a konstantním rozptylem, tedy $\varepsilon_{ij} \sim N(0, \sigma^2)$.
 
 #### Jednofaktorová vs. Vícefaktorová ANOVA
@@ -131,6 +139,18 @@ ANOVA rozkládá celkovou variabilitu na dvě základní složky:
 * **Variabilita mezi skupinami ($SS_{between}$):** Rozdíly mezi průměry skupin a celkovým průměrem.
 * **Variabilita uvnitř skupin ($SS_{within}$):** Přirozená variabilita uvnitř jednotlivých skupin (šum).
 
+* **Meziskupinový součet čtverců ($SS_{between}$ / Teoretický):** Vyjadřuje variabilitu způsobenou faktorem (rozdíly mezi skupinami).
+  $$SS_{between} = \sum_{i=1}^{k} n_i (\bar{y}_i - \bar{y})^2$$
+* **Vnitroskupinový součet čtverců ($SS_{within}$ / Reziduální):** Vyjadřuje náhodnou variabilitu (šum uvnitř skupin).
+  $$SS_{within} = \sum_{i=1}^{k} \sum_{j=1}^{n_i} (y_{ij} - \bar{y}_i)^2$$
+* **Celkový součet čtverců ($SS_{total}$):** Celková variabilita dat kolem celkového průměru.
+  $$SS_{total} = \sum_{i=1}^{k} \sum_{j=1}^{n_i} (y_{ij} - \bar{y})^2$$
+
+Kde $k$ je počet porovnávaných skupin, $n_i$ je rozsah (počet pozorování) v $i$-té skupině a $n$ je celkový počet všech pozorování v experimentu ($n = \sum n_i$).
+
+<img alt="img.png" src="img/statistika/variability.png" width="500"/>
+
+
 Celkový součet čtverců:
 $$SS_{total} = SS_{between} + SS_{within}$$
 
@@ -144,6 +164,14 @@ $$F = \frac{MS_{between}}{MS_{within}}$$
 * Výrazně velká hodnota $F$ překračující teoretickou kritickou hodnotu vede k zamítnutí $H_0$.
 
 <img alt="img.png" src="img/statistika/soucty ctvercu.png" width="300"/>
+
+### Proč nepoužít vícero párových t-testů místo ANOVA?
+Pokud máme např. 4 skupiny a chtěli bychom porovnat každou s každou pomocí klasického t-testu, museli bychom provést $C(4,2) = 6$ samostatných testů. S každým dalším testem se však dramaticky kumuluje **chyba I. typu (falešný poplach)**. 
+
+Pokud je hladina významnosti jednoho testu $\alpha = 0,05$ (tedy 5% šance, že najdeme rozdíl tam, kde není), pak pravděpodobnost, že při 6 nezávislých testech uděláme *alespoň jednu* chybu I. typu, stoupne na:
+$$1 - (1 - 0,05)^6 \approx 0,265 \implies 26,5\ \%$$
+Místo kontrolovaných 5 % tak riskujeme falešný objev ve více než čtvrtině případů (tzv. *Family-wise error rate*). ANOVA tento problém řeší tak, že nejprve provede jeden **globální (omnibusový) F-test** na jednotné hladině významnosti. Teprve pokud ten vyjde statisticky významný, přicházejí na řadu post-hoc testy se speciálními korekcemi (Tukey, Bonferroni), které chybu I. typu udrží pod kontrolou.
+
 
 ### 2.2 Post-hoc testy
 Pokud ANOVA zamítne $H_0$, víme, že existuje rozdíl, ale nevíme, mezi kterými konkrétními skupinami. K tomu slouží post-hoc testy:
@@ -164,23 +192,57 @@ Nevyžadují konkrétní tvar **rozdělení** (typicky normalitu) a nejčastěji
 
 Neparametrické testy bývají „konzervativnější“ (mají nižší sílu testu) než parametrické testy, pokud jsou předpoklady parametrických testů splněny. Naopak při silném porušení normality nebo přítomnosti outlierů mohou být výrazně spolehlivější.
 
-### 3.1 Wilcoxonův párový test (Wilcoxon Signed-Rank Test)
-Neparametrická alternativa k párovému t-testu. Hodí se, když máme stejné subjekty měřené dvakrát (před/po) a rozdíly vykazují nenormální rozdělení.
-* **$H_0$:** Medián rozdílů mezi párovými měřeními je roven nule.
-* **$H_1$:** Medián rozdílů se statisticky významně liší od nuly.
-* *Příklad:* Měření krevního tlaku u stejných pacientů bezprostředně před podáním léku a hodinu po něm.
+### 3.1 Wilcoxonův test (jednovýběrový a párový)
+Používá se jako neparametrická alternativa k **jednovýběrovému** nebo **párovému** t-testu při porušení normality.
+
+* **Jednovýběrový test:** Porovnává medián jednoho výběru se zadanou konstantou $c$ ($H_0: \tilde{x} = c$).
+  * *Příklad:* Testujeme, zda lidé odhadnou minutu přesně (medián odhadů = 60 s). Odchylka se počítá jako $Y_i = X_i - 60$.
+* **Párový test:** Testuje, zda je medián rozdílů mezi dvěma měřeními u stejných subjektů roven nule ($H_0: \tilde{x}_{D} = 0$).
+  * *Příklad:* Měření tlaku krve před podáním léku a po něm. Odchylka (rozdíl) se počítá v rámci každé dvojice: $Y_i = X_{i,\text{před}} - X_{i,\text{po}}$.
+
+#### Princip výpočtu:
+1. Pro každé pozorování se spočítá odchylka $Y_i$ (od konstanty nebo v rámci páru). Nulové odchylky se vyřadí.
+2. Vezmou se absolutní hodnoty těchto odchylek $|Y_i|$, seřadí se vzestupně a přiřadí se jim **pořadí (ranks)** $R_i^+$ (1 pro nejmenší odchylku, $n$ pro největší).
+3. Pořadím se vrátí původní znaménka odchylek ($\text{sgn}(Y_i)$).
+4. Zvlášť se sečtou kladná pořadí ($T^+$) a záporná pořadí ($T^-$).
+5. Za platnosti $H_0$ by měly být sumy $T^+$ a $T^-$ přibližně vyrovnané. Výrazný nepoměr mezi nimi vede k nízké p-hodnotě a zamítnutí $H_0$.
+
+<img alt="img.png" src="img/statistika/wilcox.png" width="500"/>
 
 ### 3.2 Mann-Whitneyův test (Wilcoxon Rank-Sum Test)
 Porovnává dvě nezávislé skupiny bez předpokladu normality dat. Ověřuje, zda hodnoty v jedné skupině mají tendenci být systematicky větší než ve druhé (testuje rozdíl rozdělení polohy).
 * **$H_0$:** Distribuce obou nezávislých skupin jsou totožné.
 * **$H_1$:** Distribuce polohy obou skupin se liší (hodnoty jedné skupiny mají tendenci převyšovat druhou).
+* Data z obou nezávislých skupin se spojí do jednoho velkého souboru o rozsahu $n_1 + n_2$ a seřadí se vzestupně od nejmenší po největší hodnotu. Každému pozorování je přiděleno jeho **globální pořadí** (při shodě hodnot se dává průměrné pořadí). Následně se pořadí sečtou separátně pro první skupinu ($R_1$) a druhou skupinu ($R_2$). Pokud jedna ze skupin obsahuje systematicky větší hodnoty, získá i výrazně vyšší sumu pořadí, což vede k zamítnutí $H_0$.
 * *Příklad:* Máme dva typy hnojiva A a B a měříme výnos (kg) na nezávislých polích. Data jsou silně šikmá kvůli několika extrémně výnosným polím a chceme zjistit, jestli se výnosy liší.
+
+<img alt="img.png" src="img/statistika/ranksum.png" width="500"/>
 
 ### 3.3 Kruskal-Wallisův test
 Neparametrická alternativa k jednofaktorové ANOVA pro tři a více nezávislých skupin.
 * **$H_0$:** Všechny srovnávané skupiny pocházejí ze stejného rozdělení (mediány skupin jsou shodné).
 * **$H_1$:** Alespoň jedna skupina se liší distribucí polohy od ostatních.
+* Funguje jako zobecnění Mann-Whitneyho testu pro $k$ skupin. Všechna pozorování napříč všemi skupinami se spojí, seřadí a přiřadí se jim globální pořadí. Následně se spočítají průměrná pořadí pro každou jednotlivou skupinu. Testová statistika $H$ porovnává, jak moc se průměrná pořadí jednotlivých skupin odlišují od celkového průměrného pořadí. Pro větší výběry má statistika $H$ přibližně $\chi^2$ (chí-kvadrát) rozdělení s $k-1$ stupni volnosti.
 * *Příklad:* Máme 4 odrůdy brambor, ale hmotnosti trsů jsou výrazně nenormální s outliery. Chceme zjistit, zda se odrůdy liší.
+
+<img alt="img.png" src="img/statistika/kruskall.png" width="500"/>
+
+#### 3.4 Znaménkový test (Sign Test)
+Mimořádně jednoduchý test, který je sice méně silný než Wilcoxonův test (zahazuje část informace), ale nevyžaduje ani předpoklad symetrie rozdělení kolem mediánu.
+
+* **Jednovýběrový:** Testuje, zda je medián roven konstantě ($H_0: \tilde{x} = c$).
+* **Párový:** Testuje, zda je medián rozdílů mezi dvěma měřeními roven nule ($H_0: \tilde{x}_{D} = 0$).
+
+##### Princip výpočtu:
+1. Pro každou hodnotu se spočítá odchylka (od konstanty nebo v rámci páru). Případy, kdy je odchylka přesně $0$, se z testu vyřadí.
+2. Sleduje se pouze **znaménko** této odchylky:
+   * Kolik hodnot skončilo nad mediánem/konstantou (počet znamének `+`).
+   * Kolik hodnot skončilo pod mediánem/konstantou (počet znamének `-`).
+3. Za platnosti $H_0$ by měl být poměr plusů a mínusů vyrovnaný (přibližně 50 : 50). Rozdělení počtu znamének se řídí **binomickým rozdělením** $Bi(n, p=0,5)$. Pokud je poměr příliš vychýlený (např. 9 plusů a 1 mínus z 10 měření), $H_0$ se zamítá.
+
+<img alt="img_1.png" src="img/statistika/signtest.png" width="500"/>
+
+Přehled parametrických a neparametrických testů:
 
 <img width="600" alt="image" src="img/statistika/non-parametric-cheat-sheet1.jpg" />
 
