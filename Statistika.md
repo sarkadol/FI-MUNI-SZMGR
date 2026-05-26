@@ -203,7 +203,7 @@ Používá se jako neparametrická alternativa k **jednovýběrovému** nebo **p
 #### Princip výpočtu:
 1. Pro každé pozorování se spočítá odchylka $Y_i$ (od konstanty nebo v rámci páru). Nulové odchylky se vyřadí.
 2. Vezmou se absolutní hodnoty těchto odchylek $|Y_i|$, seřadí se vzestupně a přiřadí se jim **pořadí (ranks)** $R_i^+$ (1 pro nejmenší odchylku, $n$ pro největší).
-3. Pořadím se vrátí původní znaménka odchylek ($\text{sgn}(Y_i)$).
+3. Pořadím se vrátí původní znaménka odchylek ( $\text{sgn}(Y_i)$ ).
 4. Zvlášť se sečtou kladná pořadí ($T^+$) a záporná pořadí ($T^-$).
 5. Za platnosti $H_0$ by měly být sumy $T^+$ a $T^-$ přibližně vyrovnané. Výrazný nepoměr mezi nimi vede k nízké p-hodnotě a zamítnutí $H_0$.
 
