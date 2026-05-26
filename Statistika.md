@@ -51,7 +51,7 @@ $$r_{XY} = \frac{S_{XY}}{S_X \cdot S_Y} = \frac{\sum_{i=1}^{n} (X_i - \bar{X})(Y
 
 *Poznámka ke korelační matici: Stejně tak uspořádáváme korelace do **korelační matice** (značí se* $R$ *). Na její hlavní diagonále jsou vždy jedničky (protože korelace každé proměnné se sebou samou je* $r_{XX} = 1$ * ) a mimo diagonálu jsou hodnoty vzájemných lineárních vztahů.*
 
-<img alt="img.png" src="img/statistika/pravdep-stat-kor-kov-uni-bivariete.png" width="700"/>
+<img alt="img.png" src="img/statistika/pravdep-stat-kor-kov-uni-bivariete.png" width="800"/>
 
 ---
 
@@ -118,9 +118,7 @@ Obrázek graficky znázorňuje, jak **rozsah výběru ($n$) ovlivňuje sílu tes
 
 ## 2. ANOVA (Analysis of Variance - Analýza rozptylu)
 
-ANOVA je statistická metoda pro testování rovnosti středních hodnot u **tří a více nezávislých skupin**. Zjišťuje, zda nezávislé kategorické proměnné (faktory) statisticky významně ovlivňují spojitou závislou proměnnou, a to rozkladem celkové variability na rozptyl mezi skupinami a uvnitř skupin.
-
-* *Příklad:* Máme 4 různé odrůdy brambor sesbírané po trsech s různou hmotností. Zajímá nás, jestli je některá odrůda výnosnější než jiná (průměrná hmotnost trsu se liší na základě odrůdy).
+ANOVA je statistická metoda pro testování rovnosti středních hodnot u **tří a více nezávislých skupin**. Zjišťuje, zda nezávislé kategorické proměnné (faktory) statisticky významně ovlivňují spojitou závislou proměnnou, a to rozkladem celkové variability na rozptyl mezi skupinami a uvnitř skupin. *Příklad: Máme 4 různé odrůdy brambor sesbírané po trsech s různou hmotností. Zajímá nás, jestli je některá odrůda výnosnější než jiná (průměrná hmotnost trsu se liší na základě odrůdy).*
 
 * **$H_0$:** Všechny skupinové průměry jsou stejné: $\mu_1 = \dots = \mu_k$ pro všechna $i = 1, \dots, k$.
 * **$H_1$:** Alespoň jeden pár skupinových průměrů se liší: $\exists\, i,j \in \{1,\dots,k\},\ i \neq j:\ \mu_i \neq \mu_j$.
@@ -187,11 +185,11 @@ $$F = \frac{MS_{between}}{MS_{within}}$$
 <img alt="img.png" src="img/statistika/soucty ctvercu.png" width="300"/>
 
 ### Proč nepoužít vícero párových t-testů místo ANOVA?
-Pokud máme např. 4 skupiny a chtěli bychom porovnat každou s každou pomocí klasického t-testu, museli bychom provést $C(4,2) = 6$ samostatných testů. S každým dalším testem se však dramaticky kumuluje **chyba I. typu (falešný poplach)**. 
+*Pokud máme např. 4 skupiny a chtěli bychom porovnat každou s každou pomocí klasického t-testu, museli bychom provést* $C(4,2) = 6$ *samostatných testů. S každým dalším testem se však dramaticky kumuluje **chyba I. typu (falešný poplach)**.* 
 
-Pokud je hladina významnosti jednoho testu $\alpha = 0,05$ (tedy 5% šance, že najdeme rozdíl tam, kde není), pak pravděpodobnost, že při 6 nezávislých testech uděláme *alespoň jednu* chybu I. typu, stoupne na:
+*Pokud je hladina významnosti jednoho testu* $\alpha = 0,05$ *(tedy 5% šance, že najdeme rozdíl tam, kde není), pak pravděpodobnost, že při 6 nezávislých testech uděláme *alespoň jednu* chybu I. typu, stoupne na:*
 $$1 - (1 - 0,05)^6 \approx 0,265 \implies 26,5\ \%$$
-Místo kontrolovaných 5 % tak riskujeme falešný objev ve více než čtvrtině případů (tzv. *Family-wise error rate*). ANOVA tento problém řeší tak, že nejprve provede jeden **globální (omnibusový) F-test** na jednotné hladině významnosti. Teprve pokud ten vyjde statisticky významný, přicházejí na řadu post-hoc testy se speciálními korekcemi (Tukey, Bonferroni), které chybu I. typu udrží pod kontrolou.
+*Místo kontrolovaných 5 % tak riskujeme falešný objev ve více než čtvrtině případů (tzv. Family-wise error rate). ANOVA tento problém řeší tak, že nejprve provede jeden **globální (omnibusový) F-test** na jednotné hladině významnosti. Teprve pokud ten vyjde statisticky významný, přicházejí na řadu post-hoc testy se speciálními korekcemi (Tukey, Bonferroni), které chybu I. typu udrží pod kontrolou.*
 
 
 ### 2.2 Post-hoc testy
@@ -447,14 +445,14 @@ Kde $\mathbf{S}$ je kovarianční nebo korelační matice (můžeme si vybrat �
 *Proces hledání neznámých vlastních čísel* $\lambda$ *probíhá z této základní rovnice následovně:*
 1. *Převedením všech členů na levou stranu a vynásobením jednotkovou maticí* $\mathbf{I}$ *získáme homogenní soustavu rovnic:* $(\mathbf{S} - \lambda_k \mathbf{I})\mathbf{a}_k = 0$.
 2. *Hledáme netriviální (nenulové) řešení pro směr komponenty* $\mathbf{a}_k$*. Soustava má nenulové řešení pouze tehdy, když je matice soustavy singulární. Sestavíme proto charakteristickou rovnici vynulováním jejího determinantu:* $\det(\mathbf{S} - \lambda \mathbf{I}) = 0$.
-3. *Rozvinutím determinantu se matice roznásobí do podoby obyčejné algebraické rovnice (např. pro 2 proměnné vznikne kvadratická rovnice* $\lambda^2 + b\lambda + c = 0$*, obecně nazývaná polynom $p$-tého stupně). Vyřešením této rovnice získáme konkrétní hodnoty pro vlastní čísla* $\lambda$*.*
+3. *Rozvinutím determinantu se matice roznásobí do podoby obyčejné algebraické rovnice (např. pro 2 proměnné vznikne kvadratická rovnice* $\lambda^2 + b\lambda + c = 0$*, obecně nazývaná polynom p-tého stupně). Vyřešením této rovnice získáme konkrétní hodnoty pro vlastní čísla* $\lambda$*.*
 
-*Příklad pro 3 původní proměnné ($p = 3$): Odčítání* $\lambda$ *od diagonály matice vztahů* $\mathbf{S}$ *a následný výpočet determinantu vypadá v obecném zápisu takto:*
+*Příklad pro 3 původní proměnné (p = 3): Odčítání* $\lambda$ *od diagonály matice vztahů* $\mathbf{S}$ *a následný výpočet determinantu vypadá v obecném zápisu takto:*
 
 $$\det(\mathbf{S} - \lambda \mathbf{I}) = \det \begin{pmatrix} S_{11} - \lambda & S_{12} & S_{13} \\ S_{21} & S_{22} - \lambda & S_{23} \\ S_{31} & S_{32} & S_{33} - \lambda \end{pmatrix} = 0$$
 
 
-4. *Vlastní čísla seřadíme sestupně od největšího po nejmenší:* $\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_p \ge 0$*. Největší* $\lambda_1$ *odpovídá první hlavní komponentě ($PC_1$), protože zachycuje největší podíl rozptylu.*
+4. *Vlastní čísla seřadíme sestupně od největšího po nejmenší:* $\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_p \ge 0$*. Největší* $\lambda_1$ *odpovídá první hlavní komponentě* ($PC_1$), *protože zachycuje největší podíl rozptylu.*
 
 Podíl vysvětlené variability $k$-tou komponentou odpovídá zlomku:
 $$\frac{\lambda_k}{\sum_{j=1}^p \lambda_j}$$
