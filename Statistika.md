@@ -227,7 +227,7 @@ Neparametrická alternativa k jednofaktorové ANOVA pro tři a více nezávislý
 
 <img alt="img.png" src="img/statistika/kruskall.png" width="500"/>
 
-#### 3.4 Znaménkový test (Sign Test)
+### 3.4 Znaménkový test (Sign Test)
 Mimořádně jednoduchý test, který je sice méně silný než Wilcoxonův test (zahazuje část informace), ale nevyžaduje ani předpoklad symetrie rozdělení kolem mediánu.
 
 * **Jednovýběrový:** Testuje, zda je medián roven konstantě ($H_0: \tilde{x} = c$).
