@@ -297,7 +297,10 @@ $$Y_i = \beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \dots + \beta_k x_{ik} + \va
 
 V maticovém tvaru celý model odpovídá zápisu $Y = X\beta + \varepsilon$:
 
-$$\begin{pmatrix} Y_1 \\ \vdots \\ Y_n \end{pmatrix} = \begin{pmatrix} 1 & x_{11} & \cdots & x_{1k} \\ \vdots & \vdots & \ddots & \vdots \\ 1 & x_{n1} & \cdots & x_{nk} \end{pmatrix} \begin{pmatrix} \beta_0 \\ \beta_1 \\ \vdots \\ \beta_k \end{pmatrix} + \begin{pmatrix} \varepsilon_1 \\ \vdots \\ \varepsilon_n \end{pmatrix}$$
+$$
+\begin{pmatrix} Y_1 \\\\ \vdots \\\\ Y_n \end{pmatrix} = \begin{pmatrix} 1 & x_{11} & \cdots & x_{1k} \\\\ \vdots & \vdots & \ddots & \vdots \\\\ 1 & x_{n1} & \cdots & x_{nk} \end{pmatrix} \begin{pmatrix} \beta_0 \\\\ \beta_1 \\\\ \vdots \\\\ \beta_k \end{pmatrix} + \begin{pmatrix} \varepsilon_1 \\\\ \vdots \\\\ \varepsilon_n \end{pmatrix}
+$$
+
 
 Kde $X$ je **matice plánu** (design matrix), jejíž první sloupec tvoří jedničky patřící k absolutnímu členu $\beta_0$.
 
