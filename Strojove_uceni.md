@@ -43,11 +43,6 @@ Učení bez učitele se snaží najít vnitřní strukturu v datech bez jakýchk
 - *Příklad 2: Komprese obrazu nebo zvuku pomocí nalezení redundantních informací v datech.*
 - *Příklad 3: Astronomický výzkum při hledání nových typů galaxií seskupováním milionů pozorovaných objektů s podobným spektrem.*
 
-### Kontrastivní a self-distilační učení bez učitele (Self-Supervised Learning)
-V moderním pojetí se učení bez anotovaných dat opírá o vytváření vlastních úloh přímo ze surové datové distribuce. U klasických kontrastivních algoritmů, jako je SimCLR, se pozitivní páry generují pomocí datové augmentace, kdy se na jeden neoznačený obrázek aplikují dvě náhodné transformace, zatímco všechny ostatní vzorky v trénovací dávce fungují jako negativní příklady. 
-
-Pokročilejší přístup reprezentují modely řady DINO (DINOv2 a DINOv3) od Meta AI, které odstraňují potřebu explicitních negativních vzorků i doprovodného textu. Tyto architektury fungují na principu self-distilace v uspořádání Student-Teacher a kombinují kontrastivní principy s maskovaným modelováním obrazu, při kterém síť doplňuje chybějící části pixelů. Zatímco DINOv2 vyniká v produkci detailních embeddingů na úrovni jednotlivých pixelů a perfektním chápání geometrie scény, novější DINOv3 tento koncept škáluje pro nativní zpracování videa a časovou konzistenci. Výsledné modely slouží jako univerzální vizuální enkodéry, které bez jakéhokoliv lidského dozoru přirozeně zvládají odhad hloubky scény, segmentaci objektů i vyhledávání podle sémantické podobnosti.
-
 
 ---
 ## Klasifikace
@@ -76,7 +71,7 @@ V závislosti na struktuře dat a složitosti vztahů rozlišujeme několik hlav
 - **Logistická regrese:** Specifický případ, který sice matematicky patří pod regresní modely, ale v praxi se používá výhradně pro **klasifikaci**. Místo libovolného čísla predikuje hodnotu v intervalu $(0, 1)$ pomocí sigmoidální funkce, což interpretujeme jako pravděpodobnost příslušnosti k dané třídě.
 - **Nelineární a komplexní regrese:** Pro zachycení vysoce složitých vztahů se využívají pokročilé algoritmy jako *Support Vector Regression (SVR)*, regresní rozhodovací stromy a náhodné lesy, nebo hluboké neuronové sítě zakončené lineární vrstvou, které dokážou aproximovat téměř libovolnou funkci.
 
-<img alt="img.png" src="img/strojove_uceni/log-lin-regres.png" width="400"/>
+<img alt="img.png" src="img/strojove_uceni/log-lin-regres.png" width="500"/>
 
 ---
 
@@ -96,6 +91,11 @@ Detekce anomálií (Outlier Detection) identifikuje vzorky, které neodpovídaj�
 
 Cílem je naučit model takovou transformaci dat, aby vzdálenost ve výsledném vektorovém prostoru odpovídala sémantické podobnosti objektů.
 
+Pokud máme v úloze obrovské množství tříd (např. desítky tisíc) a pro každou třídu máme k dispozici pouze malé jednotky vzorků, standardní klasifikační sítě selhávají. 
+- ***Příklad se vzorky (Stanford Online Products):** Dataset stažený z eBay obsahuje 120 tisíc obrázků rozdělených do 23 tisíc produktových tříd, což v průměru znamená pouze přibližně 4 obrázky na jednu třídu.*
+- *Klasická hluboká síť s výstupní softmax vrstvou o 23 tisících uzlech by na takto nevyvážených a chudých datech podala neuspokojivý výkon.*
+- *Učení metrik tento problém řeší: model se neučí poznávat konkrétní třídu, ale obecný vztah podobnosti, což mu umožňuje excelovat v rozpoznávání tváří nebo produktů (Face & Retail-product recognition) i pro objekty a identity, které při trénování nikdy neviděl.*
+
 ### Cíle učení metrik a tvorba embeddingů
 Základním úkolem učení metrik je nalézt funkci $f$, která mapuje datové objekty (např. obrázky, texty) na numerické vektory, nazývané **embeddingy**. V ideálním případě chceme, aby podobné objekty měly vektory blízko u sebe, zatímco nepodobné objekty byly v prostoru daleko od sebe.
 - Tradiční přístupy spoléhaly na ručně definované příznaky, zatímco moderní metody využívají neuronové sítě k automatickému učení těchto reprezentací přímo z dat.
@@ -109,13 +109,21 @@ Kontrastivní učení není jedna konkrétní funkce, ale široké paradigma. U�
 - Namísto klasifikace do tříd (např. "pes") model řeší otázku: "Jsou tyto dvě věci stejné nebo jiné?"
 - Využívá se k učení společného prostoru pro různé modality (obraz + text) i pro učení bez učitele (Self-Supervised Learning).
 - Implementuje se nejčastěji pomocí **Pairwise Loss** (práce s dvojicemi) nebo **Triplet Loss** (práce s trojicemi).
-- *Příklad: Model CLIP se učí kontrastivně tím, že v rámci jedné dávky dat hledá správný pár (obrázek-text) mezi mnoha nesprávnými kombinacemi.*
+- Příklad: Model CLIP se učí kontrastivně tím, že v rámci jedné dávky dat hledá správný pár (obrázek-text) mezi mnoha nesprávnými kombinacemi.
+
+*Zatímco klasické učení metrik vyžaduje lidmi anotované dvojice či trojice, moderní pojetí se opírá o vytváření vlastních pseudolabelů (úloh) přímo ze surové datové distribuce bez jakéhokoliv lidského dozoru. Podle přístupu k datům a vnitřní architektury se tyto nesupervizované modely dělí na několik směrů:*
+
+- ***SimCLR** představuje kontrastivní přístup, kde se na jeden obrázek aplikují dvě náhodné augmentace, čímž vznikne pozitivní pár, zatímco všechny ostatní obrázky v dávce fungují jako negativní příklady.*
+- ***MoCo** zefektivňuje kontrastivní učení tím, že obří trénovací dávky nahrazuje dynamickou frontou pro ukládání negativních vzorků, což výrazně snižuje nároky na hardware.*
+- ***BYOL** ukazuje, že to jde i bez negativních vzorků; využívá dvě sítě (Online a Target), kde se Online síť učí předpovídat reprezentaci Target sítě, jejíž váhy se aktualizují klouzavým průměrem.*
+- ***DINO** (Meta AI) staví na self-distilaci Student-Teacher a maskování patchů, přičemž se učí čistě ze surových pixelů bez textu. Vzniká tak univerzální vizuální enkodér s výborným chápáním geometrie scény, který sám od sebe zvládá odhad hloubky, segmentaci i vyhledávání.*
+- ***MAE** přenáší principy maskovaného modelování (jako BERT) do obrazu tak, že náhodně skryje až 75 % patchů fotografie a Vision Transformer se je snaží zpětně zrekonstruovat, čímž se nuceně učí sémantické struktuře scény.*
 
 ---
 ## Pairwise kontrastivní loss (Práce s dvojicemi)
 Jedná se o základní formu kontrastivního učení, která optimalizuje vzdálenost mezi dvěma vzorky v embeddingovém prostoru současně . Pro dvojici vzorků $(x_1, x_2)$ z trénovací dávky (batch) se definuje binární indikátor $y \in \{0, 1\}$, kde $y=0$ označuje pozitivní pár (shodný label) a $y=1$ negativní pár (odlišný label) .
 
-Celková ztrátová funkce pro celou dávku se podle materiálů předmětu zapisuje jako :
+Celková ztrátová funkce pro celý batch je:
 $$L = \sum_{i} (1 - y_i) \left[ dist(f(x_1^i), f(x_2^i)) \right]^2 + y_i \left[ \max \{0, m - dist(f(x_1^i), f(x_2^i))\} \right]^2$$
 
 Kde $dist(f(x), f(y))$ je euklidovská vzdálenost mezi embeddingy a $m$ je marže (margin) .
@@ -126,7 +134,7 @@ Kde $dist(f(x), f(y))$ je euklidovská vzdálenost mezi embeddingy a $m$ je mar�
 
 *Příklad: V doporučovacím systému módního e-shopu pairwise loss zajistí, že embeddingy dvou různých fotografií téže „černé mikiny Nike“ budou přitahovány těsně k sobě ($y=0$). Naopak pro fotografii „červené sukně“ ($y=1$) loss funkce zajistí, že její embedding bude od mikiny odpuzen alespoň do vzdálenosti $m$, ale model už dál neřeší, jestli skončí ve vzdálenosti $m$ nebo $10m$.*
 
-<img alt="img.png" src="img/strojove_uceni/pariwiseloss.png" width="400"/>
+<img alt="img.png" src="img/strojove_uceni/pariwiseloss.png" width="600"/>
 
 ---
 ## Triplet-loss učení a relativní uspořádání
@@ -137,13 +145,30 @@ Triplet-loss posouvá kontrastivní učení k relativnímu porovnávání trojic
 Ztrátová funkce (Triplet Loss) pro dávku o velikosti $N$ trojic je definována jako :
 $$L = \sum_{i=1}^{N} \max \left\{ 0, dist^2(f(x_i^a), f(x_i^p)) - dist^2(f(x_i^a), f(x_i^n)) + \delta \right\}$$
 
-Kde $\delta$ je marže, která se při normalizaci velikosti embeddingů na jednotkovou délku typicky nastavuje na hodnotu $0.2$ .
+Kde jednotlivé komponenty vyjadřují následující vlastnosti:
+- **$f(x_i^a)$, $f(x_i^p)$, $f(x_i^n)$:** Reprezentují embeddingy (vektory) pro kotvu (Anchor), pozitivní vzorek (stejná třída) a negativní vzorek (odlišná třída).
+- **$dist^2$ (Kvadratická euklidovská vzdálenost):** Umocnění vzdálenosti na druhou se používá z výpočetních důvodů, protože je na rozdíl od samotné euklidovské vzdálenosti hladce diferencovatelné v celém prostoru (včetně nulové vzdálenosti), což zajišťuje stabilní výpočet gradientů při gradientním sestupu.
+- **$\delta$ (Margin / Marže):** Pevně stanovený práh (v praxi typicky nastavený na hodnotu 0.2 při normalizaci embeddingů na jednotkovou délku), který definuje minimální požadovaný odstup. Cílem je, aby negativní vzorek byl od kotvy dál než pozitivní vzorek právě alespoň o tuto hodnotu $\delta$.
 
-- **Cíl a výhoda:** Funkce $\max$ vrací nulu (nulová loss) v momentě, kdy je negativní vzorek od kotvy dál než pozitivní vzorek navýšený o marži $\delta$ . Model tak nemusí tlačit pozitivní dvojice absolutně k nule a negativní do nekonečna, stačí mu zachovat správné relativní pořadí v lokálním okolí .
+Funkce $\max\{0, \dots\}$ rozděluje chování modelu do dvou zásadních scénářů v závislosti na tom, jak jsou body v prostoru aktuálně uspořádány:
+
+1. **Ideální uspořádání (Loss je rovna 0):**
+   Pokud je splněna podmínka, že negativní vzorek je od kotvy dostatečně daleko, tedy platí:
+   $$dist^2(f(x_i^a), f(x_i^n)) > dist^2(f(x_i^a), f(x_i^p)) + \delta$$
+   Pak po odečtení vzdáleností vyjde vnitřek závorky záporný. Funkce $\max\{0, \text{záporné číslo}\}$ vrátí přesnou nulu. Vzorek je penalizován nulovou hodnotou, model je s tímto uspořádáním spokojen a váhy sítě se pro tuto trojici nijak neupravují.
+
+
+2. **Špatné uspořádání (Vzniká penalizace):**
+   Pokud je negativní vzorek ke kotvě příliš blízko (nebo dokonce blíže než pozitivní vzorek), podmínka splněna není a vnitřek závorky vyjde jako kladné číslo. Funkce $\max\{0, \text{kladné číslo}\}$ toto číslo propustí dál jako výslednou ztrátu. 
+   Gradientní sestup pak upraví váhy sítě tak, aby v příští iteraci:
+   - Zmenšil vzdálenost $dist^2(f(x_i^a), f(x_i^p))$ – tedy přitáhl pozitivní vzorek blíž ke kotvě.
+   - Zvětšil vzdálenost $dist^2(f(x_i^a), f(x_i^n))$ – tedy odpudil negativní vzorek dál od kotvy.
+
+<img alt="img.png" src="img/strojove_uceni/tripletloss.png" width="400"/>
 
 Způsob, jakým během trénování vybíráme negativní vzorky do trojic, zásadně ovlivňuje konvergenci sítě :
 - **Hard Negatives ($n_1$):** Vzorky, které jsou ke kotvě blíže než pozitivní vzorek ($dist(a,n) < dist(a,p)$) . Pokud bychom trénovali pouze na nich, hrozí, že síť zkolabuje do stavu, kdy budou všechny embeddingy nulové .
-- **Easy Negatives ($n_3$):** Vzorky, které leží daleko za hranicí marže ($dist(a,p) + \delta < dist(a,n)$) . Pro učení jsou bezvýznamné, protože pro ně vyjde loss rovnou 0 a síť nedostává žádný gradient k úpravě vah .
+- **Easy Negatives ($n_3$):** Vzorky, které leží daleko za hranicí margin ($dist(a,p) + \delta < dist(a,n)$) . Pro učení jsou bezvýznamné, protože pro ně vyjde loss rovnou 0 a síť nedostává žádný gradient k úpravě vah .
 - **Semi-Hard Negatives ($n_2$):** Vzorky, které sice leží dál než pozitivní vzorek, ale spadají do zakázané zóny definované marží $\delta$ ($dist(a,p) < dist(a,n) < dist(a,p) + \delta$) . Tyto vzorky jsou pro trénování **nejvhodnější**, protože vedou ke stabilnímu učení a dobré diskriminační schopnosti sítě .
 
 *Příklad: U vyhledávání obrázků model netrvá na tom, aby „auto v dálce“ mělo identické souřadnice jako „detail kola“. Stačí, když zajistí, že detail kola bude ke kotvě sémanticky blíž než úplně cizí „obrázek lesa“ .*
@@ -214,7 +239,7 @@ Modalita je specifický způsob, jakým je informace vyjádřena nebo vnímána.
 Moderní systémy nestojí na složitých pravidlech, ale na vytvoření společného vnořeného prostoru (Common Embedding Space). V tomto prostoru jsou data z různých modalit reprezentována jako vektory stejné dimenze.
 - Klíčem k úspěchu je "zarovnání" (alignment), kdy sémanticky podobné koncepty leží v prostoru blízko sebe bez ohledu na to, zda jde o obrázek nebo text.
 - Před nástupem CLIPu se k tomuto účelu využívala metoda **Triplet Loss**. Ta pracuje s trojicemi dat: kotva (anchor), pozitivní příklad (shodný s kotvou) a negativní příklad.
-- Model je penalizován, pokud je negativní příklad v prostoru blíže ke kotvě než ten pozitivní (včetně určité bezpečnostní marže).
+- Model je penalizován, pokud je negativní příklad v prostoru blíže ke kotvě než ten pozitivní (včetně určité bezpečnostní marže-margin).
 - *Příklad: Pokud je kotvou obrázek jablka, pozitivním příkladem je slovo "jablko" a negativním slovo "automobil". Model se učí zmenšovat vzdálenost k "jablku" a zvětšovat k "automobilu".*
 
 <img alt="img.png" src="img/strojove_uceni/big picutre.png" width="600"/>
