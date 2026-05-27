@@ -34,8 +34,8 @@ Principiálně odlišný přístup k odhadu parametrů rozdělení. Hledá takov
 
 
 #### 1.1.4 Kovarianční a korelační matice
-Při zkoumání vztahů mezi více proměnnými (bivariate neboli vícerozměrný případ) rozlišujeme teoretické vlastnosti rozdělení (pravděpodobnost) a jejich odhady z dat (statistika). Data uspořádáváme do matice náhodného výběru $Z$, kde každý řádek reprezentuje jedno pozorování a sloupce jednotlivé proměnné.
-Zatímco **výběrová kovariance** měří směr a sílu lineárního vztahu v původních jednotkách, **výběrová korelace** tento vztah standardizuje do bezrozměrného intervalu $\langle -1, 1 \rangle$ a **kovarianční (variační-kovariační) matice** tyto vztahy uspořádává pro více proměnných najednou.
+Při zkoumání vztahů mezi více proměnnými (bivariate neboli vícerozměrný případ) rozlišujeme teoretické vlastnosti rozdělení (pravděpodobnost) a jejich odhady z dat (statistika). Data uspořádáváme do matice náhodného výběru $Z$, kde každý řádek reprezentuje jedno pozorování a sloupce jednotlivé proměnné, zatímco výsledná kovarianční matice je čtvercová a symetrická.
+**Výběrová kovariance** měří směr a sílu lineárního vztahu v původních jednotkách, **výběrová korelace** tento vztah standardizuje do bezrozměrného intervalu $\langle -1, 1 \rangle$ a **kovarianční (variační-kovariační) matice** tyto vztahy uspořádává pro více proměnných najednou.
 
 #### 1. Výběrová kovariance ($S_{XY}$)
 Měří směr a sílu lineárního vztahu mezi dvěma proměnnými $X$ a $Y$. Na rozdíl od rozptylu může být i záporná (když jedna proměnná roste a druhá klesá).
