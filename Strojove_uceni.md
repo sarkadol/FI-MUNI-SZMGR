@@ -13,7 +13,7 @@
 Strojové učení definujeme jako schopnost počítačových systémů zlepšovat svůj výkon při řešení dané úlohy na základě zkušenosti (dat), aniž by byly pro tuto úlohu explicitně naprogramovány. V moderním pojetí jde o hledání matematických funkcí, které nejlépe aproximují vztahy skryté v datech.
 
 ### Supervizované učení
-Učení s učitelem je založeno na trénovací množině párů $(x, y)$, kde $x$ je vstupní vektor příznaků a $y$ je známý label (štítek). Model se snaží minimalizovat ztrátovou funkci (Loss Function), která měří rozdíl mezi predikcí $\hat{y}$ a skutečnou hodnotou $y$. Učení s učitelem je založeno na trénovací množině párů $(x, y)$, kde model minimalizuje ztrátovou funkci (Loss Function). Klíčovým konceptem je **generalizace** – schopnost modelu podávat dobrý výkon na testovacích datech. 
+Učení s učitelem je založeno na trénovací množině párů $(x, y)$, kde $x$ je vstupní vektor příznaků a $y$ je známý label (štítek). Model se snaží minimalizovat ztrátovou funkci (Loss Function), která měří rozdíl mezi predikcí $\hat{y}$ a skutečnou hodnotou $y$. Klíčovým konceptem je **generalizace** – schopnost modelu podávat dobrý výkon na testovacích datech. 
 Pokud se model naučí trénovací data "nazpaměť" včetně šumu, mluvíme o **overfittingu** (přeučení).
 - Proces učení probíhá iterativně (např. pomocí gradientního sestupu), dokud model nedosáhne požadované přesnosti na testovacích datech.
 - Vyžaduje rozsáhlé "gold standard" datasety, které musí často ručně vytvořit experti.
@@ -87,7 +87,7 @@ Jedná se o nejjednodušší formu kontrastivního učení, která optimalizuje 
 - **Pozitivní pár:** Dva podobné objekty. Loss funkce se snaží minimalizovat jejich vzdálenost (stlačit ji k nule).
 - **Negativní pár:** Dva odlišné objekty. Loss funkce se snaží maximalizovat jejich vzdálenost, ale jen do určité **$m$ (margin)**. Pokud jsou již dál než $m$, loss je nulová.
 - **Omezení:** Model se učí pouze v absolutních hodnotách (blízko/daleko), což může být méně stabilní než porovnávání relativní.
-- *Příklad: Pokud porovnáváme podpis majitele s pokusem o padělek, pairwise loss zajistí, aby padělek byl v prostoru od originálu alespoň o hodnotu $m$.*
+- *Příklad: Pokud porovnáváme podpis majitele s pokusem o padělek, pairwise loss zajistí, aby padělek byl v prostoru od originálu alespoň o hodnotu* $m$.
 
 ### Triplet-loss učení a relativní uspořádání
 Triplet-loss posouvá kontrastivní učení k relativnímu porovnávání, což vede k lepším výsledkům v úlohách vyhledávání.
@@ -131,7 +131,7 @@ Vektorová kvantizace funguje jako diskretizace spojitého vysokodimenzionální
 Produktová kvantizace řeší hlavní omezení standardní VQ – neschopnost zachytit jemné rozdíly bez obrovského číselníku. Funguje na principu rozdělení vektoru na menší části.
 - Vstupní vektor o dimenzi $d$ je rozdělen na $m$ podvektorů (sub-vectors). Každý tento podvektor je kvantován nezávisle pomocí vlastního (menšího) číselníku.
 - Výsledná reprezentace vektoru je pak n-tice indexů. Díky kartézskému součinu těchto pod-číselníků dokáže PQ reprezentovat obrovské množství kombinací s minimálními nároky na paměť.
-- *Příklad: Rozdělíme-li 128-rozměrný vektor na 8 částí po 16 dimenzích a pro každou část použijeme 256 centroidů, můžeme reprezentovat $256^8$ unikátních stavů pomocí pouhých 8 bajtů.*
+- *Příklad: Rozdělíme-li 128-rozměrný vektor na 8 částí po 16 dimenzích a pro každou část použijeme 256 centroidů, můžeme reprezentovat* $256^8$ *unikátních stavů pomocí pouhých 8 bajtů.*
 
 <img alt="img.png" src="img/strojove_uceni/pq.png" width="500"/>
 
