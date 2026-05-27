@@ -132,7 +132,7 @@ Kde $dist(f(x), f(y))$ je euklidovská vzdálenost mezi embeddingy a $m$ je mar�
 - **Negativní pár ($y_i=1$):** Aktivuje se pravá část s funkcí $\max$, která penalizuje objekty pouze tehdy, pokud je jejich vzdálenost menší než marže $m$ . Jakmile jsou od sebe dál než $m$, příspěvek k loss je nulový, což zabraňuje plýtvání výpočetní kapacitou na vzorky, které jsou již dostatečně separované .
 - **Omezení:** Model se učí optimalizovat absolutní vzdálenosti v prostoru . Rigidní vynucování fixní marže $m$ pro všechny negativní páry je geometricky méně stabilní než relativní porovnávání.
 
-*Příklad: V doporučovacím systému módního e-shopu pairwise loss zajistí, že embeddingy dvou různých fotografií téže „černé mikiny Nike“ budou přitahovány těsně k sobě ($y=0$). Naopak pro fotografii „červené sukně“ ($y=1$) loss funkce zajistí, že její embedding bude od mikiny odpuzen alespoň do vzdálenosti $m$, ale model už dál neřeší, jestli skončí ve vzdálenosti $m$ nebo $10m$.*
+*Příklad: V doporučovacím systému módního e-shopu pairwise loss zajistí, že embeddingy dvou různých fotografií téže „černé mikiny Nike“ budou přitahovány těsně k sobě (y=0). Naopak pro fotografii „červené sukně“ (y=1) loss funkce zajistí, že její embedding bude od mikiny odpuzen alespoň do vzdálenosti m, ale model už dál neřeší, jestli skončí ve vzdálenosti m nebo 10m.*
 
 <img alt="img.png" src="img/strojove_uceni/pariwiseloss.png" width="600"/>
 
@@ -142,8 +142,13 @@ Triplet-loss posouvá kontrastivní učení k relativnímu porovnávání trojic
 
 - **Struktura:** Pracuje s trojicí embeddingů: **Kotva** (Anchor - $x^a$), **Pozitivní** (Positive - $x^p$, nese stejný label jako kotva) a **Negativní** (Negative - $x^n$, nese jiný label) .
 
-Ztrátová funkce (Triplet Loss) pro dávku o velikosti $N$ trojic je definována jako :
-$$L = \sum_{i=1}^{N} \max \left\{ 0, dist^2(f(x_i^a), f(x_i^p)) - dist^2(f(x_i^a), f(x_i^n)) + \delta \right\}$$
+Ztrátová funkce (Triplet Loss) pro dávku o velikosti $N$ trojic je definována jako:
+
+$$
+L = \sum_{i=1}^{N} \max [ 0, \text{dist}^2(f(x_i^a), f(x_i^p)) - \text{dist}^2(f(x_i^a), f(x_i^n)) + \delta ]
+$$
+
+
 
 Kde jednotlivé komponenty vyjadřují následující vlastnosti:
 - **$f(x_i^a)$, $f(x_i^p)$, $f(x_i^n)$:** Reprezentují embeddingy (vektory) pro kotvu (Anchor), pozitivní vzorek (stejná třída) a negativní vzorek (odlišná třída).
@@ -167,8 +172,8 @@ Funkce $\max\{0, \dots\}$ rozděluje chování modelu do dvou zásadních scén�
 <img alt="img.png" src="img/strojove_uceni/tripletloss.png" width="400"/>
 
 Způsob, jakým během trénování vybíráme negativní vzorky do trojic, zásadně ovlivňuje konvergenci sítě :
-- **Hard Negatives ($n_1$):** Vzorky, které jsou ke kotvě blíže než pozitivní vzorek ($dist(a,n) < dist(a,p)$) . Pokud bychom trénovali pouze na nich, hrozí, že síť zkolabuje do stavu, kdy budou všechny embeddingy nulové .
-- **Easy Negatives ($n_3$):** Vzorky, které leží daleko za hranicí margin ($dist(a,p) + \delta < dist(a,n)$) . Pro učení jsou bezvýznamné, protože pro ně vyjde loss rovnou 0 a síť nedostává žádný gradient k úpravě vah .
+- **Hard Negatives ($n_1$):** Vzorky, které jsou ke kotvě blíže než pozitivní vzorek ( $dist(a,n) < dist(a,p)$ ) . Pokud bychom trénovali pouze na nich, hrozí, že síť zkolabuje do stavu, kdy budou všechny embeddingy nulové .
+- **Easy Negatives ($n_3$):** Vzorky, které leží daleko za hranicí margin ( $dist(a,p) + \delta < dist(a,n)$ ) . Pro učení jsou bezvýznamné, protože pro ně vyjde loss rovnou 0 a síť nedostává žádný gradient k úpravě vah .
 - **Semi-Hard Negatives ($n_2$):** Vzorky, které sice leží dál než pozitivní vzorek, ale spadají do zakázané zóny definované marží $\delta$ ($dist(a,p) < dist(a,n) < dist(a,p) + \delta$) . Tyto vzorky jsou pro trénování **nejvhodnější**, protože vedou ke stabilnímu učení a dobré diskriminační schopnosti sítě .
 
 *Příklad: U vyhledávání obrázků model netrvá na tom, aby „auto v dálce“ mělo identické souřadnice jako „detail kola“. Stačí, když zajistí, že detail kola bude ke kotvě sémanticky blíž než úplně cizí „obrázek lesa“ .*
