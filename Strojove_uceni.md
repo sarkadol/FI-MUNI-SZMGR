@@ -142,7 +142,9 @@ Triplet-loss posouvá kontrastivní učení k relativnímu porovnávání trojic
 
 - **Struktura:** Pracuje s trojicí embeddingů: **Kotva** (Anchor - $x^a$), **Pozitivní** (Positive - $x^p$, nese stejný label jako kotva) a **Negativní** (Negative - $x^n$, nese jiný label) .
 
-Ztrátová funkce (Triplet Loss) pro dávku o velikosti $N$ trojic je definována jako:
+<img alt="img.png" src="img/strojove_uceni/triplet loss.png" width="600"/>
+
+Ztrátová funkce (Triplet Loss) pro batch o velikosti $N$ trojic je definována jako:
 
 $$
 L = \sum_{i=1}^{N} \max [ 0, \text{dist}^2(f(x_i^a), f(x_i^p)) - \text{dist}^2(f(x_i^a), f(x_i^n)) + \delta ]
@@ -244,12 +246,9 @@ Modalita je specifický způsob, jakým je informace vyjádřena nebo vnímána.
 Moderní systémy nestojí na složitých pravidlech, ale na vytvoření společného vnořeného prostoru (Common Embedding Space). V tomto prostoru jsou data z různých modalit reprezentována jako vektory stejné dimenze.
 - Klíčem k úspěchu je "zarovnání" (alignment), kdy sémanticky podobné koncepty leží v prostoru blízko sebe bez ohledu na to, zda jde o obrázek nebo text.
 - Před nástupem CLIPu se k tomuto účelu využívala metoda **Triplet Loss**. Ta pracuje s trojicemi dat: kotva (anchor), pozitivní příklad (shodný s kotvou) a negativní příklad.
-- Model je penalizován, pokud je negativní příklad v prostoru blíže ke kotvě než ten pozitivní (včetně určité bezpečnostní marže-margin).
-- *Příklad: Pokud je kotvou obrázek jablka, pozitivním příkladem je slovo "jablko" a negativním slovo "automobil". Model se učí zmenšovat vzdálenost k "jablku" a zvětšovat k "automobilu".*
 
 <img alt="img.png" src="img/strojove_uceni/big picutre.png" width="600"/>
 
-<img alt="img.png" src="img/strojove_uceni/triplet loss.png" width="600"/>
 
 ### Architektura CLIP (Contrastive Language-Image Pre-training)
 CLIP, představený společností OpenAI v roce 2021, radikálně zjednodušil a škáloval proces učení společných reprezentací. Namísto klasifikace do pevně daných tříd se učí porozumět vztahu mezi obrazem a textem jako celkem.
