@@ -155,23 +155,20 @@ U dvoufaktorové ANOVA rozlišujeme model **bez interakce** a model **s interakc
 ### 2.1 Rozklad variability a F-test
 
 ANOVA rozkládá celkovou variabilitu na dvě základní složky:
-* **Variabilita mezi skupinami ($SS_{between}$):** Rozdíly mezi průměry skupin a celkovým průměrem.
-* **Variabilita uvnitř skupin ($SS_{within}$):** Přirozená variabilita uvnitř jednotlivých skupin (šum).
-
-* **Meziskupinový součet čtverců ($SS_{between}$ / Teoretický):** Vyjadřuje variabilitu způsobenou faktorem (rozdíly mezi skupinami).
+* **Meziskupinový součet čtverců ($SS_{between}$ / Teoretický):** Vyjadřuje variabilitu způsobenou faktorem (rozdíly mezi průměry skupin a celkovým průměrem).
   $$SS_{between} = \sum_{i=1}^{k} n_i (\bar{y}_i - \bar{y})^2$$
 * **Vnitroskupinový součet čtverců ($SS_{within}$ / Reziduální):** Vyjadřuje náhodnou variabilitu (šum uvnitř skupin).
   $$SS_{within} = \sum_{i=1}^{k} \sum_{j=1}^{n_i} (y_{ij} - \bar{y}_i)^2$$
 * **Celkový součet čtverců ($SS_{total}$):** Celková variabilita dat kolem celkového průměru.
   $$SS_{total} = \sum_{i=1}^{k} \sum_{j=1}^{n_i} (y_{ij} - \bar{y})^2$$
+  
+  $$SS_{total} = SS_{between} + SS_{within}$$
 
 Kde $k$ je počet porovnávaných skupin, $n_i$ je rozsah (počet pozorování) v $i$-té skupině a $n$ je celkový počet všech pozorování v experimentu ($n = \sum n_i$).
 
 <img alt="img.png" src="img/statistika/variability.png" width="500"/>
 
 
-Celkový součet čtverců:
-$$SS_{total} = SS_{between} + SS_{within}$$
 
 Z těchto veličin se počítají střední čtverce (MS) podělením příslušnými stupni volnosti:
 $$MS_{between} = \frac{SS_{between}}{k - 1}, \quad MS_{within} = \frac{SS_{within}}{n - k}$$
