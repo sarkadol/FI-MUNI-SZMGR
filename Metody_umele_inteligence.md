@@ -83,6 +83,8 @@ while stopping condition not satisfied do
 end while
 ```
 
+<img alt="landscape.png" src="img/metody_umele_inteligence/landscape.png" width="300"/>
+
 $S$ je stavový prostor (množina všech řešení), $s, s'$ jsou konkrétní stavy, $N(s)$ představuje 
 okolí stavu $s$, $d(s, s')$ je vzdálenost mezi stavy, $\epsilon$ je poloměr okolí, $f(s)$ značí hodnotu účelové funkce a $\Delta f$ 
 je její diferenční změna.
@@ -123,7 +125,7 @@ repeat
     s* = accept(s*, s'_*, search_memory); // Akceptační kritérium
 until stopping_criteria;
 ```
-<img alt="landscape.png" src="img/metody_umele_inteligence/landscape.png" width="600"/>
+
 ---
 
 ## Metaheuristiky s jedním řešením
@@ -221,6 +223,8 @@ pouze z řad potomků, rodiče bezpodmínečně vymírají (vhodné pro dynamick
 * *Genetické programování (Genetic Programming - GP):* Jedinci jsou přímo vykonatelné programy reprezentované nelineárně pomocí stromových 
 grafových struktur (např. symbolická regrese, kde je cílem nalézt matematický vzorec nejlépe odpovídající naměřeným datům).
 
+<img alt="img.png" src="img/metody_umele_inteligence/evolalg.png" width="400"/>
+
 **Strategie výběru rodičů:** Selekční tlak určuje, jakým způsobem jsou upřednostňováni zdatnější jedinci před slabšími při výběru rodičů.
 * *Ruletový výběr (Roulette wheel selection):* Pravděpodobnost výběru jedince je přímo úměrná jeho fitness vůči sumě fitness celé populace: 
 $p_i = f_i / \sum f_j$. Pokud se v populaci objeví jeden dominantní jedinec, strategie ho volí opakovaně, což vede k rychlému zaplavení 
@@ -232,6 +236,9 @@ rodičem. Proces se nezávisle opakuje $\mu$-krát, přičemž velikost turnaje 
 * *Výběr podle pořadí (Rank-based selection):* Jedinci se seřadí podle výkonnosti a pravděpodobnost se počítá z jejich pořadového indexu (ranku), 
 nikoli z absolutní hodnoty fitness. Tím se eliminuje vliv extrémních rozdílů ve fitness hodnotách.
 
+<img alt="roulette-vs-stochast.png" src="img/metody_umele_inteligence/roulette-vs-stochast.png" width="300"/>
+
+
 **Reprodukční a nahrazovací strategie:** Mutace představuje malé stochastické narušení jednoho jedince. Pravděpodobnost se nastavuje nízko, 
 typicky $p_m \approx 1/k$, kde $k$ je počet genů. Křížení kombinuje genetickou informaci dvou rodičů ($p_c \in [0.45, 0.95]$). U lineárních 
 řetězců používáme jednobodové, vícebodové nebo uniformní křížení (o každém genu potomka se rozhoduje nezávisle s $50\%$ pravděpodobností). 
@@ -241,7 +248,7 @@ Při nahrazování volíme mezi *generačním nahrazováním* (potomci kompletn�
 jen nejhorší jedince). Elitářství (elitism) zajišťuje, že nejlepší jedinci z předchozí generace automaticky postupují dál bez rizika, že o ně 
 křížením přijdeme. Urychluje konvergenci, ale zvyšuje riziko uvíznutí v lokálním optimu.
 
-<img alt="img.png" src="img/metody_umele_inteligence/evolalg.png" width="400"/>
+<img alt="img.png" src="img/metody_umele_inteligence/crossover.png" width="700"/>
 
 ---
 
@@ -344,8 +351,6 @@ aplikací všech akcí, které jsou v daném uzlu proveditelné. Je korektní a 
 – počáteční stav může generovat množství aplikovatelných akcí nesouvisejících s cílem. V reálných plánovačích se proto dopředné prohledávání 
 kombinuje s algoritmem $A^*$, pokročilými doménově nezávislými heuristikami a detekcí duplicitních stavů.
 
-<img alt="img.png" src="img/metody_umele_inteligence/forward.png" width="400"/>
-
 **2. Zpětné plánování (Backward Planning / Regression):** Startuje od popisu cíle $g$ a postupuje pozpátku k počátečním stavům vytvářením 
 podcílů. V každém kroku vybere pouze takovou akci, která je pro aktuální cíl relevantní ($g \cap \text{effects}(a) \neq \emptyset$ a efekty 
 nejsou v přímém konfliktu s cílem). Výsledkem je regresní množina, která reprezentuje nový podcíl: 
@@ -353,13 +358,13 @@ $$\gamma^{-1}(g, a) = (g \setminus \text{effects}(a)) \cup \text{precond}(a)$$
 Zpětný přístup vykazuje menší faktor větvení než dopředné plánování, protože vůbec neuvažuje irelevantní akce, ale vyžaduje striktní 
 implementaci detekce cyklů na prohledávané větvi.
 
-<img alt="img_1.png" src="img/metody_umele_inteligence/backward.png" width="400"/>
-
 **3. Částečně instanciované zpětné plánování (Lifted Backward Planning):** Tato technika odstraňuje zbytečné větvení zpětného plánování 
-tím, že nedosazuje konstanty okamžitě, ale ponechává parametry akcí jako volné proměnné, dokud to není nutné. Využívá **MGU (Most General Unifier 
-- nejobecnější unifikátor)**, což je minimální nutná substituce proměnných, která sjednotí atom v cíli s atomem v efektech operátoru. 
+tím, že nedosazuje konstanty okamžitě, ale ponechává parametry akcí jako volné proměnné, dokud to není nutné. Využívá 
+**MGU (Most General Unifier - nejobecnější unifikátor)**, což je minimální nutná substituce proměnných, která sjednotí atom v cíli s atomem v efektech operátoru. 
 Tímto způsobem dokáže algoritmus v jednom kroku pokrýt celou sadu potenciálních objektů bez větvení stromu, výměnou za složitější 
 správu unifikačních omezení.
+
+<img alt="img.png" src="img/metody_umele_inteligence/back-for-plan.png" width="800"/>
 
 ---
 
@@ -399,7 +404,7 @@ Díky této dekompozici klesá paměťová náročnost z původních $2^n$ na po
 Při stavbě sítě se doporučuje volit *kauzální směr* (od příčin k efektům) $\rightarrow$ vede k řídkým grafům s minimem hran. Diagnostické 
 řazení (od efektů k příčinám) generuje hustě propojené sítě s mnoha redundantními závislostmi.
 
-<img alt="cpt.png" src="img/metody_umele_inteligence/cpt.png" width="400"/>
+<img alt="cpt.png" src="img/metody_umele_inteligence/cpt.png" width="300"/>
 
 ---
 
@@ -431,6 +436,8 @@ s pozorovanou evidencí $e$, okamžitě ho zamítne (zahodí). Pokud je evidence
 * *Váhová věrohodnost (Likelihood weighting):* Algoritmus, který předchází plýtvání vzorky. Proměnné obsažené v evidenci $e$ zafixuje napevno 
 a náhodně vzorkuje pouze volné proměnné. Každému vzorku přiřadí váhu $w$, jež odpovídá součinu podmíněných pravděpodobností všech fixovaných 
 proměnných v momentě průchodu. Výsledná distribuce se následně normalizuje přes sumu těchto vah.
+
+<img alt="img.png" src="img/metody_umele_inteligence/directsampl-likelweigh.png" width="600"/>
 
 ---
 
@@ -572,6 +579,8 @@ $q_I$ představuje počáteční stav (konfiguraci) robota a $q_G$ vyjadřuje c�
 
 Spojitý prostor nelze prohledávat přímo, proto je nutné provést jeho diskretizaci (převod na graf či mřížku) a následně aplikovat vyhledávací 
 algoritmy typu $A^*$ nebo prohledávání do šířky (BFS).
+
+<img alt="img.png" src="img/metody_umele_inteligence/planning.png" width="400"/>
 
 ---
 
