@@ -437,7 +437,7 @@ s pozorovanou evidencí $e$, okamžitě ho zamítne (zahodí). Pokud je evidence
 a náhodně vzorkuje pouze volné proměnné. Každému vzorku přiřadí váhu $w$, jež odpovídá součinu podmíněných pravděpodobností všech fixovaných 
 proměnných v momentě průchodu. Výsledná distribuce se následně normalizuje přes sumu těchto vah.
 
-<img alt="img.png" src="img/metody_umele_inteligence/directsampl-likelweigh.png" width="600"/>
+<img alt="img.png" src="img/metody_umele_inteligence/directsampl-likelweigh.png" width="800"/>
 
 ---
 
