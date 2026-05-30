@@ -20,9 +20,8 @@ a $n$ počet úloh či prvků.
 
 * **Heuristické algoritmy (Heuristic algorithms):** Specifické postupy navržené pro konkrétní problém. Využívají jeho vnitřní 
 strukturu a specifické vlastnosti (tzv. „art of discovering“). Neposkytují teoretickou záruku kvality výsledku ani dosažení 
-globálního optima, ale vynikají výpočetní rychlostí.
-    * *Příklad:* Pravidlo *Earliest Due Date* v rozvrhování úloh (jako první se zpracuje úloha s nejbližším termínem dokončení) 
-    nebo přiřazování prostorově nejbližší zastávky u plánování tras vozidel.
+globálního optima, ale vynikají výpočetní rychlostí. *Příklad:* Pravidlo *Earliest Due Date* v rozvrhování úloh (jako první se zpracuje úloha s nejbližším termínem dokončení) 
+nebo přiřazování prostorově nejbližší zastávky u plánování tras vozidel.
 * **Metaheuristiky (Metaheuristics):** Obecné řídicí strategie a šablony vyšší úrovně, které jsou nezávislé na konkrétní 
 problémové doméně. Neřeší problém přímo, ale vedou a propojují podřízené heuristiky. Díky této abstrakci jsou široce 
 aplikovatelné (např. stejný algoritmus simulovaného žíhání lze aplikovat na rozvrhování zkoušek i na problém obchodního cestujícího).
@@ -53,10 +52,13 @@ zmenšit velikost prohledávaného prostoru ještě před spuštěním samotnéh
 3. Permutace: Zákaz sdílení stejného řádku omezuje prostor na čistou permutaci indexů $\rightarrow 8! = 40\,320$ stavů.
 
 **Práce s omezeními (Constraint Handling):** Reálné optimalizační úlohy obsahují omezující podmínky. Pokud algoritmus vygeneruje 
-nepřípustné řešení, uplatňují se následující strategie. *Reject strategie (Reject strategy)* generuje a udržuje striktně pouze přípustná 
-řešení a jakýkoli nepřípustný krok okamžitě zahazuje. *Penalizační strategie (Penalty strategy)* rozšiřuje prohledávací prostor 
+nepřípustné řešení, uplatňují se následující strategie. 
+* *Reject strategie (Reject strategy)* generuje a udržuje striktně pouze přípustná 
+řešení a jakýkoli nepřípustný krok okamžitě zahazuje. 
+* *Penalizační strategie (Penalty strategy)* rozšiřuje prohledávací prostor 
 i o nepřípustná řešení, ale hodnota účelové funkce je penalizována za každé porušené omezení. Váhy penalizací bývají vysoké, aby byl 
-algoritmus směrován zpět do přípustné oblasti. *Opravné strategie (Repair strategy)* aplikují specifickou opravnou heuristiku, která 
+algoritmus směrován zpět do přípustné oblasti. 
+* *Opravné strategie (Repair strategy)* aplikují specifickou opravnou heuristiku, která 
 nepřípustné řešení transformuje na platný stav.
 
 **Účelová funkce (Objective Function):** Účelová funkce přiřazuje každému stavu číselné hodnocení, které definuje kvalitu řešení 
@@ -238,15 +240,16 @@ nikoli z absolutní hodnoty fitness. Tím se eliminuje vliv extrémních rozdíl
 
 <img alt="roulette-vs-stochast.png" src="img/metody_umele_inteligence/roulette-vs-stochast.png" width="300"/>
 
+**Reprodukční strategie:** Genetické operátory (křížení a mutace) zajišťují vznik nového potomstva prostřednictvím kombinace a drobných úprav genetické informace rodičů.
+* *Křížení lineárních řetězců (Linear crossover):* Kombinuje genetickou informaci dvou rodičů s pravděpodobností $p_c \in [0.45, 0.95]$. 
+Používá se jednobodové, vícebodové nebo uniformní křížení, kde se o každém genu potomka rozhoduje nezávisle s 50% pravděpodobností.
+* *Pořadové křížení (Order Crossover - OX):* Specifická metoda pro permutační křížení. Standardní metody by u permutací způsobily duplicitu prvků, OX proto zachovává vybraný souvislý úsek od prvního rodiče a zbytek pozic doplní z druhého rodiče cyklicky bez vzniku duplicit.
+* *Mutace (Mutation):* Představuje malé stochastické narušení jednoho jedince. Pravděpodobnost se záměrně nastavuje nízko, typicky $p_m \approx 1/k$, kde $k$ vyjadřuje celkový počet genů.
 
-**Reprodukční a nahrazovací strategie:** Mutace představuje malé stochastické narušení jednoho jedince. Pravděpodobnost se nastavuje nízko, 
-typicky $p_m \approx 1/k$, kde $k$ je počet genů. Křížení kombinuje genetickou informaci dvou rodičů ($p_c \in [0.45, 0.95]$). U lineárních 
-řetězců používáme jednobodové, vícebodové nebo uniformní křížení (o každém genu potomka se rozhoduje nezávisle s $50\%$ pravděpodobností). 
-U permutačních křížení standardní metody způsobují duplicitu prvků, proto se používá např. *Pořadové křížení (Order Crossover - OX)*, které 
-zachovává vybraný souvislý úsek od prvního rodiče a zbytek pozic doplní z druhého rodiče cyklicky bez vzniku duplicit. 
-Při nahrazování volíme mezi *generačním nahrazováním* (potomci kompletně nahradí rodiče) a *ustáleným stavem (steady-state)* (potomci nahradí 
-jen nejhorší jedince). Elitářství (elitism) zajišťuje, že nejlepší jedinci z předchozí generace automaticky postupují dál bez rizika, že o ně 
-křížením přijdeme. Urychluje konvergenci, ale zvyšuje riziko uvíznutí v lokálním optimu.
+**Nahrazovací strategie:** Určují mechanismus a pravidla, podle kterých nově vytvoření potomci nahrazují stávající jedince v populaci pro další generaci.
+* *Generační nahrazování (Generational replacement):* Strategie, při které nově vzniklí potomci kompletně nahradí celou původní generaci rodičů.
+* *Ustálený stav (Steady-state):* Konzervativní přístup, kde noví potomci v populaci nahradí pouze vybrané nejhorší jedince, zatímco zbytek populace zůstává.
+* *Elitářství (Elitism):* Zajišťuje, že nejlepší jedinci z předchozí generace automaticky postupují dál bez rizika, že o ně křížením přijdeme. Urychluje konvergenci, ale zvyšuje riziko uvíznutí v lokálním optimu.
 
 <img alt="img.png" src="img/metody_umele_inteligence/crossover.png" width="700"/>
 
@@ -267,9 +270,11 @@ pomocí vylučování chemické stopy – feromonu. Feromon se v čase přirozen
 stopa se tam vrství intenzivněji a vyšší koncentrace následně přitahuje další mravence.
 * Odpařování: Provádí se plošně na všech hranách optimalizačního grafu, což umožňuje únik z lokálních optim: 
 $$\tau_{ij} = (1 - \rho)\tau_{ij}$$
-* Posílení: Přidání feromonu na hrany. Nejčastější je *off-line aktualizace* na konci generace, kdy se posílení provede pouze na hranách, 
-které tvoří historicky nejlepší nalezenou trasu: 
-$$\tau_{ij} = \tau_{ij} + \Delta \quad \forall (i, j) \in \text{best\_solution}$$
+* Posílení: Přidání feromonu na hrany. Nejčastější je *off-line aktualizace* na konci generace, kdy se posílení provede pouze na hranách, které tvoří historicky nejlepší nalezenou trasu:
+
+  $$
+  \tau_{ij} = \tau_{ij} + \Delta \quad \forall (i, j) \in \text{best\_solution}
+  $$
 
 Při aplikaci na Problém obchodního cestujícího (TSP) si mravenec v uzlu $i$ vybírá následující město $j$ z množiny dosud nenavštívených měst 
 $S$ na základě kombinace feromonové stopy a lokální viditelnosti $\eta_{ij} = 1/d_{ij}$:
