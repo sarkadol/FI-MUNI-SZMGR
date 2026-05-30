@@ -38,10 +38,10 @@ velikost prohledávacího prostoru a výpočetní složitost matematických oper
 * **Lineární reprezentace:** Využívá řetězce symbolů.
     * *Binární kódování (Binary encoding):* Každá rozhodovací proměnná nabývá hodnoty $s_i \in \{0, 1\}$. Vhodné pro Problém batohu 
     (Knapsack problem), kde hodnoty indikují zařazení či nezařazení předmětu.
-    * *Diskrétní kódování (Discrete encoding):* Zobecnění binárního kódování do konečných diskrétních domén. Vhodné pro alokaci zdrojů 
-    (vektor udává, kterému z $m$ agentů je přiřazena $i$-tá úloha).
+    * *Diskrétní kódování (Discrete encoding):* Zobecnění binárního kódování do konečných diskrétních domén. Vhodné pro alokaci zdrojů (vektor udává, kterému z $m$ agentů je přiřazena $i$-tá úloha). *Vektor `[2, 1, 3, 2, 1]` přiřazuje pěti nezávislým úlohám konkrétní ID agentů (1, 2 nebo 3), kteří je budou zpracovávat.*
     * *Reprezentace permutací (Permutation representation):* Každý prvek se v zápisu vyskytuje právě jednou. Modeluje sekvenční úlohy, 
-    jako je Problém obchodního cestujícího (Traveling Salesperson Problem - TSP).
+    jako je Problém obchodního cestujícího (Traveling Salesperson Problem - TSP).*Vektor `[4, 1, 3, 2]` určuje přesné pořadí návštěvy čtyř měst na uzavřené okružní trase bez možnosti jakékoliv duplicity.*
+* 
 * **Nelineární reprezentace (Non-linear representation):** Využívá složitější struktury, nejčastěji grafy nebo stromy (např. v 
 genetickém programování).
 
