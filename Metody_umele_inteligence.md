@@ -123,7 +123,7 @@ repeat
     s* = accept(s*, s'_*, search_memory); // Akceptační kritérium
 until stopping_criteria;
 ```
-
+<img alt="landscape.png" src="img/metody_umele_inteligence/landscape.png" width="600"/>
 ---
 
 ## Metaheuristiky s jedním řešením
@@ -399,6 +399,8 @@ Díky této dekompozici klesá paměťová náročnost z původních $2^n$ na po
 Při stavbě sítě se doporučuje volit *kauzální směr* (od příčin k efektům) $\rightarrow$ vede k řídkým grafům s minimem hran. Diagnostické 
 řazení (od efektů k příčinám) generuje hustě propojené sítě s mnoha redundantními závislostmi.
 
+<img alt="cpt.png" src="img/metody_umele_inteligence/cpt.png" width="400"/>
+
 ---
 
 ## Exaktní a aproximační odvozování
@@ -417,6 +419,8 @@ počítá identické podvýrazy v různých větvích.
 jsou uvažovány jako matematické faktory (matice). Výpočet probíhá zdola nahoru pomocí operace bodového součinu souvisejících faktorů a následného 
 vysčítání (eliminace) skrytých proměnných. Pro sítě s topologií stromu (poly-trees) je složitost lineární vůči velikosti sítě ($O(n \cdot d^k)$). 
 Pro obecné, vícenásobně propojené sítě je tento problém NP-těžký, přičemž náročnost diktuje velikost největšího faktoru vytvořeného během eliminace.
+
+<img alt="img.png" src="img/metody_umele_inteligence/inf-by-enum.png" width="400"/>
 
 **2. Aproximační odvozování (Approximate Inference):** Pro rozsáhlé sítě je exaktní výpočet nezvládnutelný, využívají se proto stochastické 
 Monte Carlo algoritmy, které generují velké množství náhodných vzorků a výsledek odhadují z jejich statistické četnosti.
@@ -477,6 +481,9 @@ což znamená, že přírůstek bohatství přináší klesající marginální 
 * **Rozhodovací sítě (Decision Networks / Influence Diagrams):** Mechanismus pro výpočet optimálních rozhodnutí, který rozšiřuje klasické 
 Bayesovské sítě o rozhodovací uzly (obdélníky – body volby akce agenta) a užitkové uzly (kosočtverce – vyjadřují užitkovou funkci).
 
+
+<img alt="img.png" src="img/metody_umele_inteligence/decision net.png" width="400"/>
+
 ---
 
 ## Markovský rozhodovací proces
@@ -487,6 +494,8 @@ stochastickém prostředí s Markovským přechodovým modelem a aditivními odm
 $S$ představuje množinu všech stavů, $A(s)$ značí množinu akcí dostupných ve stavu $s$, $P(s' \mid s, a)$ 
 vyjadřuje pravděpodobnost přechodu ze stavu $s$ do $s'$ pomocí akce $a$, $R(s)$ představuje funkci odměny, $\pi(s)$ značí strategii, $\pi^*$ 
 vyjadřuje optimální strategii a $\gamma$ představuje diskontní faktor.
+
+<img alt="gridworld-example.png" src="img/metody_umele_inteligence/gridworld-example.png" width="400"/>
 
 Řešením MDP není fixní posloupnost akcí, ale strategie $\pi(s)$ – funkce, která doporučuje nejlepší akci pro každý představitelný stav. 
 Optimální strategie $\pi^*$ maximalizuje očekávaný kumulativní užitek. Při nekonečném časovém horizontu modeluje preferenci okamžitých 
@@ -601,6 +610,9 @@ eliminovány. Vždy garantuje nalezení nejkratší možné cesty, ale dráha ve
 ve vyšších dimenzích.
 * *Voronoiův diagram (Voronoi diagram):* Generuje cestovní mapu složenou z bodů, které mají přesně stejnou vzdálenost od dvou nebo více 
 nejbližších překážek. Maximalizuje bezpečnostní odstup (*clearance*), ale cesty nejsou nejkratší a jsou vysoce citlivé na změny v pozici překážek.
+
+<img alt="vis vs voron.png" src="img/metody_umele_inteligence/vis%20vs%20voron.png" width="700"/>
+
 * *Dekompozice na buňky (Cell Decomposition):* Rozdeluje prostor na konečný počet nepřekrývajících se legálních oblastí (buněk). Exaktní dekompozice 
 řeší svislé řezy v místech geometrických vrcholů a středy buněk propojí do grafu. Aproximační dekompozice (např. Quadtree/Octree) rekurzivně 
 dělí prostor na pravidelné sub-buňky; smíšené buňky se dělí hlouběji, dokud se nenajde čistá cesta nebo se nenarazí na limit rozlišení.
@@ -608,7 +620,7 @@ dělí prostor na pravidelné sub-buňky; smíšené buňky se dělí hlouběji,
 překážky generují repulzivní pole (odtlačují ho). Robot se pohybuje ve směru gradientu výsledného pole. Metoda je rychlá, ale hrozí uvíznutí 
 v lokálních minimech, kde se síly navzájem vyruší před dosažením cíle.
 
-<img alt="img.png" src="img/metody_umele_inteligence/cell-decomp.png" width="400"/>
+<img alt="img.png" src="img/metody_umele_inteligence/cell-decomp.png" width="800"/>
 
 **2. Pravděpodobnostní přístupy (Sampling-based):** Namísto exaktní konstrukce překážek náhodně vzorkují konfigurace v $C$-prostoru a testují je 
 kolizním detektorem. Poskytují pravděpodobnostní úplnost (s rostoucím počtem vzorků pravděpodobnost nalezení existujícího řešení konverguje k 1). 
@@ -624,3 +636,5 @@ Je vhodný pro dynamická prostředí a zohlednění kinematických limitů. V c
 uzel $q_{near}$, který je geometricky nejblíže k $q_{new}$ a strom rozšíří z bodu $q_{near}$ malým krokem směrem k $q_{new}$ (vzniká nový platný uzel, 
 ověřený kolizním detektorem). Proces se opakuje, dokud se větev stromu nedostane do dostatečné blízkosti cíle. Poskytuje přípustné, ale často 
 neoptimální (klikaté) řešení.
+
+<img alt="rrtconstuct.png" src="img/metody_umele_inteligence/rrtconstuct.png" width="400"/>
