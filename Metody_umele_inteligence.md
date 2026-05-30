@@ -41,7 +41,7 @@ velikost prohledávacího prostoru a výpočetní složitost matematických oper
     * *Diskrétní kódování (Discrete encoding):* Zobecnění binárního kódování do konečných diskrétních domén. Vhodné pro alokaci zdrojů (vektor udává, kterému z $m$ agentů je přiřazena $i$-tá úloha). *Vektor `[2, 1, 3, 2, 1]` přiřazuje pěti nezávislým úlohám konkrétní ID agentů (1, 2 nebo 3), kteří je budou zpracovávat.*
     * *Reprezentace permutací (Permutation representation):* Každý prvek se v zápisu vyskytuje právě jednou. Modeluje sekvenční úlohy, 
     jako je Problém obchodního cestujícího (Traveling Salesperson Problem - TSP).*Vektor `[4, 1, 3, 2]` určuje přesné pořadí návštěvy čtyř měst na uzavřené okružní trase bez možnosti jakékoliv duplicity.*
-* 
+
 * **Nelineární reprezentace (Non-linear representation):** Využívá složitější struktury, nejčastěji grafy nebo stromy (např. v 
 genetickém programování).
 
@@ -54,12 +54,12 @@ zmenšit velikost prohledávaného prostoru ještě před spuštěním samotnéh
 **Práce s omezeními (Constraint Handling):** Reálné optimalizační úlohy obsahují omezující podmínky. Pokud algoritmus vygeneruje 
 nepřípustné řešení, uplatňují se následující strategie. 
 * *Reject strategie (Reject strategy)* generuje a udržuje striktně pouze přípustná 
-řešení a jakýkoli nepřípustný krok okamžitě zahazuje. 
+řešení a jakýkoli nepřípustný krok okamžitě zahazuje. *Přidání dalšího zákazníka na trasu kamionu by překročilo jeho maximální kapacitu 10 tun, takže je tento rozvrh okamžitě smazán a algoritmus musí zkusit jinou možnost.*
 * *Penalizační strategie (Penalty strategy)* rozšiřuje prohledávací prostor 
 i o nepřípustná řešení, ale hodnota účelové funkce je penalizována za každé porušené omezení. Váhy penalizací bývají vysoké, aby byl 
-algoritmus směrován zpět do přípustné oblasti. 
+algoritmus směrován zpět do přípustné oblasti. *Rozvrh zkoušek, ve kterém profesor zkouší 6 hodin namísto povolených 4, se nezahodí, ale jeho výsledná kvalita se drasticky sníží o trestné body.*
 * *Opravné strategie (Repair strategy)* aplikují specifickou opravnou heuristiku, která 
-nepřípustné řešení transformuje na platný stav.
+nepřípustné řešení transformuje na platný stav. *Pokud celková váha věcí v batohu překročí limit, specifické pravidlo začne ty nejméně hodnotné předměty z batohu vyhazovat, dokud se hmotnost nedostane do povolené normy.*
 
 **Účelová funkce (Objective Function):** Účelová funkce přiřazuje každému stavu číselné hodnocení, které definuje kvalitu řešení 
 a určuje směr prohledávání. Může být *samospustitelná (self-sufficient)*, kdy původní matematické kritérium problému lze přímo použít 
