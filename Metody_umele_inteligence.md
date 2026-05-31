@@ -106,7 +106,7 @@ U permutačních problémů využíváme *poziční okolí* založené na operá
 nebo *pořadové okolí* využívající operátor výměny (**swap/exchange** – prohození dvou prvků) či otočení podsekvence (**inversion**). 
 U Problému obchodního cestujícího (TSP) definujeme okolí jako $k$-distance (výměna pozic $k$ měst, kde pro $2$-distance je velikost 
 okolí $\frac{n(n - 1)}{2}$) nebo $k$-opt (odstranění $k$ hran a jejich nahrazení jinými tak, aby vznikla nová platná okružní cesta, 
-kde pro $2$-opt je velikost okolí rovna $\left[\frac{n(n - 1)}{2} - n\right]$).
+kde pro $2$-opt je velikost okolí rovna $\left[\frac{n(n - 1)}{2} - n\right]$ ).
 
 **Inkrementální vyhodnocování okolí (Incremental Evaluation):** Výpočet hodnoty účelové funkce od nuly pro každého kandidáta v okolí 
 je výpočetně velmi náročný. Efektivní algoritmy implementují inkrementální vyhodnocení pomocí výpočtu pouhé diferenční změny $\Delta f$. 
@@ -135,7 +135,7 @@ until stopping_criteria;
 Pokročilé metody s jedním řešením umožňují průběžný únik z lokálních optim tím, že za určitých podmínek dovolují přechod na horší 
 sousední stav, čímž rozšiřují pole působnosti algoritmu.
 
-$T$ představuje globální parametr teploty, $\Delta f$ značí míru zhoršení účelové funkce ($f(s') - f(s)$), 
+$T$ představuje globální parametr teploty, $\Delta f$ značí míru zhoršení účelové funkce ( $f(s') - f(s)$ ), 
 $D$ je pevná prahová odchylka a `LEVEL` představuje aktuální výšku hladiny (strop).
 
 **Simulované žíhání (Simulated Annealing - SA):** Stochastická metaheuristika inspirovaná procesem ochlazování kovů v metalurgii. 
@@ -155,7 +155,7 @@ výpočtu a kvalitou výsledku.
 přípustného souseda ze všech dostupných, i když přináší zhoršení účelové funkce. *Tabu list* je FIFO fronta uchovávající atributy posledních 
 provedených tahů (např. prohozené dvojice prvků u TSP). Tyto atributy jsou po určitý počet iterací zakázané, což brání zacyklení výpočtu. 
 *Aspirační kritérium (Aspiration criterion)* představuje podmínku umožňující ignorovat tabu status, nejčastěji pokud daný tah vede na 
-řešení lepší než dosavadní historické maximum ($f(s') < f(s_{best})$).
+řešení lepší než dosavadní historické maximum ( $f(s') < f(s_{best})$ ).
 
 **Prohledávání s velmi velkým okolím (Very Large-Scale Neighborhood Search - VLNS):** Využívá se, pokud velikost okolí roste exponenciálně 
 nebo jako vysoký polynom. Cílem je najít zlepšujícího souseda efektivně bez kompletní enumerace.
@@ -272,9 +272,9 @@ stopa se tam vrství intenzivněji a vyšší koncentrace následně přitahuje 
 $$\tau_{ij} = (1 - \rho)\tau_{ij}$$
 * Posílení: Přidání feromonu na hrany. Nejčastější je *off-line aktualizace* na konci generace, kdy se posílení provede pouze na hranách, které tvoří historicky nejlepší nalezenou trasu:
 
-  $$
-  \tau_{ij} = \tau_{ij} + \Delta \quad \forall (i, j) \in \text{best\_solution}
-  $$
+$$
+\tau_{ij} = \tau_{ij} + \Delta \quad \forall (i, j) \in \text{best-solution}
+$$
 
 Při aplikaci na Problém obchodního cestujícího (TSP) si mravenec v uzlu $i$ vybírá následující město $j$ z množiny dosud nenavštívených měst 
 $S$ na základě kombinace feromonové stopy a lokální viditelnosti $\eta_{ij} = 1/d_{ij}$:
@@ -427,7 +427,7 @@ určené k eliminaci, $y$ je konkrétní hodnota skrytých proměnných, $\alpha
 počítá identické podvýrazy v různých větvích.
 * *Eliminace proměnných (Variable elimination):* Algoritmus založený na principu dynamického programování. Pravděpodobnostní tabulky (CPTs) 
 jsou uvažovány jako matematické faktory (matice). Výpočet probíhá zdola nahoru pomocí operace bodového součinu souvisejících faktorů a následného 
-vysčítání (eliminace) skrytých proměnných. Pro sítě s topologií stromu (poly-trees) je složitost lineární vůči velikosti sítě ($O(n \cdot d^k)$). 
+vysčítání (eliminace) skrytých proměnných. Pro sítě s topologií stromu (poly-trees) je složitost lineární vůči velikosti sítě ( $O(n \cdot d^k)$ ). 
 Pro obecné, vícenásobně propojené sítě je tento problém NP-těžký, přičemž náročnost diktuje velikost největšího faktoru vytvořeného během eliminace.
 
 <img alt="img.png" src="img/metody_umele_inteligence/inf-by-enum.png" width="400"/>
