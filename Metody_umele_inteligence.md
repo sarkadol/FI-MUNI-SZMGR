@@ -487,6 +487,9 @@ vygenerovala danou sekvenci pozorování (řeší se Viterbiho algoritmem).
 <details>
 <summary>Zobrazit případovou studii: Uvažování v čase (Svět s deštníkem)</summary>
 
+<img alt="filt, smoot example.png" src="img/metody_umele_inteligence/filt%2C%20smoot%20example.png" width="800"/>
+
+
 ### Případová studie: Uvažování v čase (Svět s deštníkem)
 
 Pro demonstraci temporálního odvozování použijeme klasický učebnicový příklad **Umbrella World**. 
@@ -617,7 +620,6 @@ Výpočet provádí rekurzivní vyhodnocování maximální cesty (Viterbiho alg
 
 **Závěr:** Nejpravděpodobnějším celkovým vysvětlením pro sekvenci dvou deštníků je historický scénář **`[prší, prší]`** s absolutní (nenormalizovanou) pravděpodobností přibližně $0.198$.
 
-<img alt="filt, smoot example.png" src="img/metody_umele_inteligence/filt%2C%20smoot%20example.png" width="800"/>
 
 </details>
 
@@ -681,6 +683,13 @@ Bellmanova aktualizace vykazuje matematickou vlastnost kontrakce s faktorem $\ga
 nezávisle na počátečních hodnotách. Iterace končí, jakmile je maximální změna užitku menší než stanovená mez: $\delta < \epsilon(1-\gamma)/\gamma$. 
 Odvozená strategie $\pi_i$ v praxi konverguje k optimální verzi mnohem dříve, než plně zkonvergují samotné numerické hodnoty užitků $U_i$.
 
+*Protože optimální chování konverguje mnohem dříve než přesné číselné hodnoty užitků, je v praxi často výhodnější se namísto zdlouhavého zpřesňování čísel zaměřit přímo na stabilizaci pravidel v navazující **Iteraci strategie**.*
+
+### Příklady využití z praxe:
+* * **Optimalizace skladových zásob při stochastické poptávce:** Sklady potřebují znát přesnou dlouhodobou finanční hodnotu (užitek) stavu „mám aktuálně na skladě $X$ kusů zboží“. Iterace hodnot pomáhá přesně spočítat očekávané náklady na skladování a ztráty z nedostatku zboží v situaci, kdy se nákupní chování zákazníků mění podle pravděpodobnostního modelu. Přesná hodnota užitku každého stavu je zde kritická pro správné účetní a logistické plánování.*
+* * **Navigace mobilního robota v měnícím se prostředí:** Pokud se robot (např. autonomní vysavač nebo doručovací rover) pohybuje po diskretizované mřížce, kde hrozí uklouznutí kol nebo neočekávané zablokování cesty, iterace hodnot průběžně přepočítává absolutní bezpečnostní ohodnocení každého čtverce prostoru. Výsledná mapa užitků dává robotovi přesné vodítko, jak moc riskantní je dané místo v porovnání s alternativami.*
+* * **Oceňování finančních derivátů a opcí:** V ekonomických modelech se iterace hodnot využívá k určení exaktní vnitřní hodnoty finanční opce v závislosti na stochastickém vývoji tržních cen (např. u amerických opcí, které lze uplatnit kdykoli před vypršením). Pro investora je klíčové znát přesnou peněžní hodnotu stavu, aby věděl, zda opci držet, nebo prodat.*
+
 ---
 
 ## Iterace strategie
@@ -702,6 +711,10 @@ Algoritmus končí v momentě, kdy v kroku greedy aktualizace nedojde k žádné
 konečný a každá iterace přináší strukturální zlepšení, algoritmus garantovaně konverguje a v praxi vyžaduje podstatně méně iterací než čistá 
 iterace hodnot.
 
+### Příklady využití z praxe:
+* * **Řízení robotických paží a manipulátorů (Motion Control):** Pro mechanické systémy s mnoha stupni volnosti je prohledávání všech možných silových akcí v každém kroku (operátor max u iterace hodnot) výpočetně neúnosné. Iterace strategie vezme stávající stabilní chování (např. „udržuj plynulý směr k cíli“), vyhodnotí jeho celkový efekt a v jednom kroku ho globálně vylepší. Hledá se stabilní fyzická odezva, přičemž přesná čísla užitku jednotlivých mikropozic nejsou podstatná.*
+* * **Dynamické směrování paketů v počítačových sítích:** Síťové routery vyžadují stabilní pravidla (strategii) pro předávání dat, která nezačnou chaoticky oscilovat při každém drobném zakolísání šířky pásma. Pomocí iterace strategie se vyhodnotí aktuální směrovací tabulky, a pokud se prokáže, že pro daný uzel existuje dlouhodobě propustnější cesta, pravidla se skokově aktualizují. Algoritmus konverguje v minimu kroků, což je pro vysokorychlostní sítě klíčové.*
+* * **Hraní deskových her a herní AI (např. Backgammon):** Herní agent nepotřebuje znát absolutní matematickou hodnotu šachovnice na tisíciny procenta, ale potřebuje jasnou a stabilní strategii – vědět, jakým konkrétním tahem reagovat na tah soupeře. Iterace strategie umožňuje AI zkonvergovat k optimálnímu hernímu stylu mnohem dříve, než by se stihly dopočítat přesné hodnoty všech miliard teoreticky možných herních stavů.*
 
 ---
 
