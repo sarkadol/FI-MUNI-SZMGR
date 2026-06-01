@@ -246,12 +246,13 @@ Používá se jednobodové, vícebodové nebo uniformní křížení, kde se o k
 * *Pořadové křížení (Order Crossover - OX):* Specifická metoda pro permutační křížení. Standardní metody by u permutací způsobily duplicitu prvků, OX proto zachovává vybraný souvislý úsek od prvního rodiče a zbytek pozic doplní z druhého rodiče cyklicky bez vzniku duplicit.
 * *Mutace (Mutation):* Představuje malé stochastické narušení jednoho jedince. Pravděpodobnost se záměrně nastavuje nízko, typicky $p_m \approx 1/k$, kde $k$ vyjadřuje celkový počet genů.
 
+<img alt="img.png" src="img/metody_umele_inteligence/crossover.png" width="700"/>
+
 **Nahrazovací strategie:** Určují mechanismus a pravidla, podle kterých nově vytvoření potomci nahrazují stávající jedince v populaci pro další generaci.
 * *Generační nahrazování (Generational replacement):* Strategie, při které nově vzniklí potomci kompletně nahradí celou původní generaci rodičů.
 * *Ustálený stav (Steady-state):* Konzervativní přístup, kde noví potomci v populaci nahradí pouze vybrané nejhorší jedince, zatímco zbytek populace zůstává.
 * *Elitářství (Elitism):* Zajišťuje, že nejlepší jedinci z předchozí generace automaticky postupují dál bez rizika, že o ně křížením přijdeme. Urychluje konvergenci, ale zvyšuje riziko uvíznutí v lokálním optimu.
 
-<img alt="img.png" src="img/metody_umele_inteligence/crossover.png" width="700"/>
 
 ---
 
@@ -422,6 +423,7 @@ $$P(X \mid e) = \alpha \sum_{y} P(X, e, y)$$
 $X$ představuje dotazovanou proměnnou, $e$ značí pozorovanou pevnou evidenci, $Y$ vyjadřuje skryté proměnné 
 určené k eliminaci, $y$ je konkrétní hodnota skrytých proměnných, $\alpha$ je normalizační konstanta a $w$ vyjadřuje přiřazenou váhu vzorku.
 
+
 **1. Exaktní odvozování (Exact Inference):** Cílem exaktních metod je určit matematicky přesný výsledek distribuce.
 * *Odvozování výčtem (Inference by enumeration):* Top-down rekurzivní procházení stromu možných stavů. Je neefektivní, protože opakovaně 
 počítá identické podvýrazy v různých větvích.
@@ -461,8 +463,14 @@ $P(X_t \mid X_{0:t-1}) = P(X_t \mid X_{t-1})$. Starší historie nemá na budouc
 * *Senzorický Markovský předpoklad (Sensor Markov assumption):* Evidence $E_t$ v čase $t$ závisí výhradně na současném skrytém stavu světa $X_t$: 
 $P(E_t \mid X_{0:t}, E_{1:t-1}) = P(E_t \mid X_t)$.
 
+
+<img alt="img.png" src="img/metody_umele_inteligence/markov.png" width="400"/>
+
 Celý časový vývoj lze popsat dynamickou Bayesovskou sítí jako součin lokálních přechodových a senzorických modelů: 
 $$P(X_{0:t}, E_{1:t}) = P(X_0) \prod_{i=1}^{t} P(X_i \mid X_{i-1}) P(E_i \mid X_i)$$
+
+<img alt="img.png" src="img/metody_umele_inteligence/bayes.png" width="400"/>
+
 
 Nad tímto časovým modelem rekurzivně řešíme čtyři základní úlohy:
 1. Filtrace (Filtering): Výpočet aktuálního stavu víry na základě všech dosavadních pozorování: $P(X_t \mid e_{1:t})$. Využívá rekurzivní odhad 
@@ -473,6 +481,147 @@ evidence distribuce v čase konverguje ke stacionárnímu rozdělení.
 Počítá se pomocí obousměrného posílání zpráv (*forward-backward* průchod).
 4. Nejpravděpodobnější vysvětlení (Most likely explanation): Hledání ucelené sekvence skrytých stavů, která s nejvyšší pravděpodobností 
 vygenerovala danou sekvenci pozorování (řeší se Viterbiho algoritmem).
+
+<img alt="img.png" src="img/metody_umele_inteligence/filt, pred, smoot.png" width="800"/>
+
+<details>
+<summary>Zobrazit případovou studii: Uvažování v čase (Svět s deštníkem)</summary>
+
+<img alt="filt, smoot example.png" src="img/metody_umele_inteligence/filt%2C%20smoot%20example.png" width="800"/>
+
+
+### Případová studie: Uvažování v čase (Svět s deštníkem)
+
+Pro demonstraci temporálního odvozování použijeme klasický učebnicový příklad **Umbrella World**. 
+
+**Kontext:** Strážný v podzemním bunkru bez oken se pokouší zjistit aktuální počasí venku. Jedinou dostupnou evidencí (pozorováním) je, zda si jeho nadřízený ráno přinese do práce deštník.
+
+* **Skrytý stav ($X_t \rightarrow R_t$):** $R_t$ (venku prší), $\neg R_t$ (venku neprší).
+* **Pozorování / Evidence ($E_t \rightarrow U_t$):** $u_t$ (nadřízený má deštník), $\neg u_t$ (nadřízený nemá deštník).
+* **Zápis vektorů:** Pravděpodobnostní distribuce zapisujeme jako dvousložkové vektory: $\langle \text{prší}, \text{neprší} \rangle$.
+
+#### Vstupní pravděpodobnostní modely:
+1.  **Počáteční stav (Den 0):** Na začátku předpokládáme čistou padesátiprocentní šanci:
+    $$P(R_0) = \langle 0.5, \ 0.5 \rangle$$
+2.  **Přechodový model (Pravděpodobnost změny počasí):**
+    * Pokud včera pršelo, dnes bude pršet s pravděpodobností $0.7$ (nepršet $0.3$).
+    * Pokud včera nepršelo, dnes bude pršet s pravděpodobností $0.3$ (nepršet $0.7$).
+3.  **Senzorický model (Spolehlivost pozorování):**
+    * Pokud prší, nadřízený si vezme deštník s pravděpodobností $0.9$.
+    * Pokud neprší, nadřízený si vezme deštník s pravděpodobností $0.2$ (např. jako módní doplněk).
+    * Vektorově pro případ, že vidíme deštník ($u_t$): $P(u_t \mid R_t) = \langle 0.9, \ 0.2 \rangle$.
+
+---
+
+### 1. Filtrace (Filtering)
+
+**Definice:** Výpočet aktuálního stavu víry na základě všech dosavadních pozorování od začátku až do současnosti: $P(X_t \mid e_{1:t})$. Výpočet probíhá rekurzivně dopředu v čase krok po kroku skrze cyklus **Predikce $\rightarrow$ Aktualizace**.
+
+**Úloha:** Spočítej aktuální stav počasí ve 2. dni, pokud nadřízený přinesl deštník v 1. i ve 2. dni. Hledáme $P(R_2 \mid u_1, u_2)$.
+
+#### DEN 1
+* **Krok 1a (Predikce):** Promítneme stav z Dne 0 $\langle 0.5, 0.5 \rangle$ skrze přechodový model:
+    * $\text{Prší}: (0.7 \times 0.5) + (0.3 \times 0.5) = 0.5$
+    * $\text{Neprší}: (0.3 \times 0.5) + (0.7 \times 0.5) = 0.5 \implies P(R_1) = \langle 0.5, \ 0.5 \rangle$
+* **Krok 1b (Aktualizace):** Zapojíme dnešní deštník ($u_1$). Vynásobíme složky naší predikce a senzorického modelu $\langle 0.9, 0.2 \rangle$:
+    * Nenormalizovaný vektor: $\langle 0.9 \times 0.5, \ 0.2 \times 0.5 \rangle = \langle 0.45, \ 0.10 \rangle$
+    * Normalizace ($\alpha$): Složky podělíme jejich součtem ($0.45 + 0.10 = 0.55$).
+    * **Filtrovaný stav pro Den 1:** $P(R_1 \mid u_1) = \langle \frac{0.45}{0.55}, \frac{0.10}{0.55} \rangle = \mathbf{\langle 0.818, \ 0.182 \rangle}$ (Jistota deště je 81,8 %).
+
+#### DEN 2
+* **Krok 2a (Predikce):** Promítneme upřesněný stav z konce Dne 1 do přechodového modelu:
+    * $\text{Prší}: (0.7 \times 0.818) + (0.3 \times 0.182) = 0.5726 + 0.0546 = 0.6272$
+    * $\text{Neprší}: (0.3 \times 0.818) + (0.7 \times 0.182) = 0.2454 + 0.1274 = 0.3728$
+    * $P(R_2 \mid u_1) = \langle 0.627, \ 0.373 \rangle$ (Přes noc jistota mírně klesla, protože mohlo přestat pršet).
+* **Krok 2b (Aktualizace):** Zapojíme deštník z druhého dne ($u_2$) s váhou $\langle 0.9, 0.2 \rangle$:
+    * Nenormalizovaný vektor: $\langle 0.9 \times 0.6272, \ 0.2 \times 0.3728 \rangle = \langle 0.5645, \ 0.0746 \rangle$
+    * Normalizace ($\alpha$): Součet složek je $0.5645 + 0.0746 = 0.6391$.
+    * **Finální filtrovaný stav pro Den 2:** $P(R_2 \mid u_1, u_2) = \langle \frac{0.5645}{0.6391}, \frac{0.0746}{0.6391} \rangle = \mathbf{\langle 0.883, \ 0.117 \rangle}$
+
+**Závěr:** Pravděpodobnost, že ve 2. dni prší, je **88,3 %**. Díky dvěma po sobě jdoucím deštníkům jistota strážného stoupla.
+
+---
+
+### 2. Predikce (Prediction)
+
+**Definice:** Výpočet pravděpodobnostního rozdělení budoucího stavu $k$ kroků dopředu na základě dosavadní evidence: $P(X_{t+k} \mid e_{1:t})$ pro $k > 0$. Chová se identicky jako filtrace, ale **zcela bez zapojení nové evidence** (neprovádí se krok aktualizace, pouze se rekurzivně řetězí krok predikce).
+
+**Úloha:** Na konci 2. dne (s historií deštníků $u_1, u_2$) chce strážný předpovědět, jaká je šance, že bude pršet ve **Dni 3** a ve **Dni 4**. Vycházíme z konce filtrovaného Dne 2: $\langle 0.883, 0.117 \rangle$.
+
+#### PREDIKCE NA DEN 3 ($k=1$)
+Aplikujeme pouze přechodový model počasí na stav z konce Dne 2:
+* $\text{Prší}: (0.7 \times 0.883) + (0.3 \times 0.117) = 0.6181 + 0.0351 = 0.6532$
+* $\text{Neprší}: (0.3 \times 0.883) + (0.7 \times 0.117) = 0.2649 + 0.0819 = 0.3468$
+* **Předpověď na Den 3:** $P(R_3 \mid u_1, u_2) = \mathbf{\langle 0.653, \ 0.347 \rangle}$ (Šance na déšť je 65,3 %).
+
+#### PREDIKCE NA DEN 4 ($k=2$)
+Vezmeme právě vypočtenou předpověď pro Den 3 a znovu ji pošleme přes přechodový model:
+* $\text{Prší}: (0.7 \times 0.6532) + (0.3 \times 0.3468) = 0.4572 + 0.1040 = 0.5612$
+* $\text{Neprší}: (0.3 \times 0.6532) + (0.7 \times 0.3468) = 0.1960 + 0.2428 = 0.4388$
+* **Předpověď na Den 4:** $P(R_4 \mid u_1, u_2) = \mathbf{\langle 0.561, \ 0.439 \rangle}$ (Šance na déšť klesla na 56,1 %).
+
+**Důležitá vlastnost (Mixing time):** S rostoucím $k$ (předpověď dál do budoucnosti) vliv původních pozorování slábne. Distribuce nevyhnutelně konverguje ke stacionárnímu rozdělení samotného Markovského řetězce (zde k čisté padesátiprocentní šanci $\langle 0.5, 0.5 \rangle$).
+
+---
+
+### 3. Vyhlazování (Smoothing)
+
+**Definice:** Výpočet pravděpodobnostního rozdělení stavu v minulosti na základě evidence nasbírané až do současnosti: $P(X_k \mid e_{1:t})$ pro $0 \le k < t$. 
+
+**Úloha:** Nabízí se situace, kdy je strážný na konci Dne 2 a ví, že nadřízený měl deštník v Den 1 i v Den 2. Chce zpětně přehodnotit, jaká byla pravděpodobnost, že pršelo v **Den 1**. Hledáme $P(R_1 \mid u_1, u_2)$.
+
+Vyhlazování kombinuje dopředný průchod (filtraci do času $k$) a zpětný průchod (zpětná zpráva z budoucnosti od času $t$ do $k+1$):
+$$P(R_1 \mid u_1, u_2) = \alpha \times \underbrace{P(R_1 \mid u_1)}_{\text{Dopředná zpráva } f_{1:1}} \times \underbrace{P(u_2 \mid R_1)}_{\text{Zpětná zpráva } b_{2:2}}$$
+
+1.  **Dopředná zpráva (z Filtrace):** Známe z prvního dne: $f_{1:1} = \langle 0.818, \ 0.182 \rangle$.
+2.  **Výpočet zpětné zprávy ($b_{2:2}$):** Zpětná zpráva zjišťuje, jak pravděpodobné je pozorování zítřejšího deštníku ($u_2$) pro obě varianty dnešního počasí ($R_1$):
+    * *Pokud dnes ($R_1$) prší:* Zítra bude pršet s šancí $0.7$ (deštník $0.9$) OR zítra nebude pršet s šancí $0.3$ (deštník $0.2$).
+        $$b_2(\text{true}) = (0.7 \times 0.9) + (0.3 \times 0.2) = 0.63 + 0.06 = 0.69$$
+    * *Pokud dnes ($R_1$) neprší:* Zítra bude pršet s šancí $0.3$ (deštník $0.9$) OR zítra nebude pršet s šancí $0.7$ (deštník $0.2$).
+        $$b_2(\text{false}) = (0.3 \times 0.9) + (0.7 \times 0.2) = 0.27 + 0.14 = 0.41 \implies b_{2:2} = \langle 0.69, \ 0.41 \rangle$$
+3.  **Sjednocení (Bodový součin složek):**
+    * Nenormalizovaný vektor: $\langle 0.818 \times 0.69, \ 0.182 \times 0.41 \rangle = \langle 0.5644, \ 0.0746 \rangle$
+    * Normalizace: Součet složek je $0.5644 + 0.0746 = 0.6390$.
+    * **Vyhlazený odhad pro Den 1:** $P(R_1 \mid u_1, u_2) = \langle \frac{0.5644}{0.6390}, \frac{0.0746}{0.6390} \rangle = \mathbf{\langle 0.883, \ 0.117 \rangle}$
+
+**Závěr:** Původní filtrovaný odhad pro Den 1 byl $81.8\ \% $. Protože ale víme, že i druhý den ředitel přinesl deštník (což indikuje vysokou šanci, že pršelo i druhý den a počasí má setrvačnost), zpětně se naše jistota o dešti v Den 1 zvýšila na **88,3 %**.
+
+---
+
+### 4. Nejpravděpodobnější vysvětlení (Most Likely Explanation)
+
+**Definice:** Hledání ucelené historické *posloupnosti* skrytých stavů, která s nejvyšší pravděpodobností vygenerovala danou řadu pozorování jako celek: $\arg\max_{x_{1:t}} P(x_{1:t} \mid e_{1:t})$. Algoritmus (Viterbi) porovnává pravděpodobnosti celých cest, nikoli pouze nezávislé dny odděleně.
+
+**Úloha:** Pro pozorování $[u_1, u_2]$ existují 4 teoretické sekvence počasí:
+1.  `[prší, prší]`
+2.  `[prší, neprší]`
+3.  `[neprší, prší]`
+4.  `[neprší, neprší]`
+Který z těchto historických scénářů je matematicky nejpravděpodobnější?
+
+Výpočet provádí rekurzivní vyhodnocování maximální cesty (Viterbiho algoritmus). Pro každou finální možnost drží informaci o té nejlepší trajektorii, která do ní vedla:
+
+#### DEN 1 (Začátek z $P(R_0) = \langle 0.5, 0.5 \rangle$)
+* Cesta končící v $R_1 = \text{true}$ (přes start $R_0$):
+    $$\max [ \underbrace{0.5 \times 0.7}_{\text{bylo pršet}}, \ \underbrace{0.5 \times 0.3}_{\text{bylo nepršet}} ] \times 0.9 (\text{deštník}) = 0.35 \times 0.9 = 0.315 \quad (\text{nejlepší předchůdce: prší})$$
+* Cesta končící v $R_1 = \text{false}$:
+    $$\max [ 0.5 \times 0.3, \ 0.5 \times 0.7 ] \times 0.2 (\text{deštník}) = 0.35 \times 0.2 = 0.070 \quad (\text{nejlepší předchůdce: neprší})$$
+
+#### DEN 2 (Vycházíme z hodnot Dne 1: $\text{true} \rightarrow 0.315$, $\text{false} \rightarrow 0.070$)
+* Cesta končící v $R_2 = \text{true}$:
+    $$\max [ \underbrace{0.315 \times 0.7}_{R_1 \text{ pršelo}}, \ \underbrace{0.070 \times 0.3}_{R_1 \text{ nepršelo}} ] \times 0.9 (\text{deštník}) = \max [0.2205, \ 0.0210] \times 0.9 = 0.2205 \times 0.9 = \mathbf{0.19845}$$
+    (Vítězná cesta do stavu "2. den prší" vede přes stav "1. den pršelo").
+* Cesta končící v $R_2 = \text{false}$:
+    $$\max [ 0.315 \times 0.3, \ 0.070 \times 0.7 ] \times 0.2 (\text{deštník}) = \max [0.0945, \ 0.0490] \times 0.2 = 0.0945 \times 0.2 = \mathbf{0.01890}$$
+
+#### Zpětný průchod (Backpointer tracking)
+1.  Porovnáme finální hodnoty pro Den 2: $0.19845$ (pro déšť) > $0.01890$ (pro sucho). Den 2 byl tedy **déšť ($R_2 = \text{true}$)**.
+2.  Podíváme se, kdo byl nejlepším předchůdcem pro déšť ve Dni 2. Z výpočtu výše vidíme, že to byl stav, kdy v Den 1 rovněž pršelo.
+
+**Závěr:** Nejpravděpodobnějším celkovým vysvětlením pro sekvenci dvou deštníků je historický scénář **`[prší, prší]`** s absolutní (nenormalizovanou) pravděpodobností přibližně $0.198$.
+
+
+</details>
 
 ---
 
@@ -534,6 +683,13 @@ Bellmanova aktualizace vykazuje matematickou vlastnost kontrakce s faktorem $\ga
 nezávisle na počátečních hodnotách. Iterace končí, jakmile je maximální změna užitku menší než stanovená mez: $\delta < \epsilon(1-\gamma)/\gamma$. 
 Odvozená strategie $\pi_i$ v praxi konverguje k optimální verzi mnohem dříve, než plně zkonvergují samotné numerické hodnoty užitků $U_i$.
 
+*Protože optimální chování konverguje mnohem dříve než přesné číselné hodnoty užitků, je v praxi často výhodnější se namísto zdlouhavého zpřesňování čísel zaměřit přímo na stabilizaci pravidel v navazující **Iteraci strategie**.*
+
+### Příklady využití z praxe:
+* * **Optimalizace skladových zásob při stochastické poptávce:** Sklady potřebují znát přesnou dlouhodobou finanční hodnotu (užitek) stavu „mám aktuálně na skladě $X$ kusů zboží“. Iterace hodnot pomáhá přesně spočítat očekávané náklady na skladování a ztráty z nedostatku zboží v situaci, kdy se nákupní chování zákazníků mění podle pravděpodobnostního modelu. Přesná hodnota užitku každého stavu je zde kritická pro správné účetní a logistické plánování.*
+* * **Navigace mobilního robota v měnícím se prostředí:** Pokud se robot (např. autonomní vysavač nebo doručovací rover) pohybuje po diskretizované mřížce, kde hrozí uklouznutí kol nebo neočekávané zablokování cesty, iterace hodnot průběžně přepočítává absolutní bezpečnostní ohodnocení každého čtverce prostoru. Výsledná mapa užitků dává robotovi přesné vodítko, jak moc riskantní je dané místo v porovnání s alternativami.*
+* * **Oceňování finančních derivátů a opcí:** V ekonomických modelech se iterace hodnot využívá k určení exaktní vnitřní hodnoty finanční opce v závislosti na stochastickém vývoji tržních cen (např. u amerických opcí, které lze uplatnit kdykoli před vypršením). Pro investora je klíčové znát přesnou peněžní hodnotu stavu, aby věděl, zda opci držet, nebo prodat.*
+
 ---
 
 ## Iterace strategie
@@ -555,7 +711,10 @@ Algoritmus končí v momentě, kdy v kroku greedy aktualizace nedojde k žádné
 konečný a každá iterace přináší strukturální zlepšení, algoritmus garantovaně konverguje a v praxi vyžaduje podstatně méně iterací než čistá 
 iterace hodnot.
 
-<img alt="img.png" src="img/metody_umele_inteligence/markov.png" width="400"/>
+### Příklady využití z praxe:
+* * **Řízení robotických paží a manipulátorů (Motion Control):** Pro mechanické systémy s mnoha stupni volnosti je prohledávání všech možných silových akcí v každém kroku (operátor max u iterace hodnot) výpočetně neúnosné. Iterace strategie vezme stávající stabilní chování (např. „udržuj plynulý směr k cíli“), vyhodnotí jeho celkový efekt a v jednom kroku ho globálně vylepší. Hledá se stabilní fyzická odezva, přičemž přesná čísla užitku jednotlivých mikropozic nejsou podstatná.*
+* * **Dynamické směrování paketů v počítačových sítích:** Síťové routery vyžadují stabilní pravidla (strategii) pro předávání dat, která nezačnou chaoticky oscilovat při každém drobném zakolísání šířky pásma. Pomocí iterace strategie se vyhodnotí aktuální směrovací tabulky, a pokud se prokáže, že pro daný uzel existuje dlouhodobě propustnější cesta, pravidla se skokově aktualizují. Algoritmus konverguje v minimu kroků, což je pro vysokorychlostní sítě klíčové.*
+* * **Hraní deskových her a herní AI (např. Backgammon):** Herní agent nepotřebuje znát absolutní matematickou hodnotu šachovnice na tisíciny procenta, ale potřebuje jasnou a stabilní strategii – vědět, jakým konkrétním tahem reagovat na tah soupeře. Iterace strategie umožňuje AI zkonvergovat k optimálnímu hernímu stylu mnohem dříve, než by se stihly dopočítat přesné hodnoty všech miliard teoreticky možných herních stavů.*
 
 ---
 
