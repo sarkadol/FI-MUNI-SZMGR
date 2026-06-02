@@ -251,9 +251,9 @@ Používá se jednobodové, vícebodové nebo uniformní křížení, kde se o k
 **Nahrazovací strategie:** Určují mechanismus a pravidla, podle kterých nově vytvoření potomci nahrazují stávající jedince v populaci pro další generaci.
 * *Generační nahrazování (Generational replacement):* Strategie, při které nově vzniklí potomci kompletně nahradí celou původní generaci rodičů.
 * *Ustálený stav (Steady-state):* Konzervativní přístup, kde noví potomci v populaci nahradí pouze vybrané nejhorší jedince, zatímco zbytek populace zůstává.
-* *Elitářství (Elitism):* Zajišťuje, že nejlepší jedinci z předchozí generace automaticky postupují dál bez rizika, že o ně křížením přijdeme. Urychluje konvergenci, ale zvyšuje riziko uvíznutí v lokálním optimu.
-
-
+* *Mezi těmito extrémy existuje řada schémat:* 
+    * *Nahrazování pevného počtu jedinců:* Nahrazuje se přesně definovaný počet $\lambda$ jedinců v populaci o velikosti $\mu$ (kde $1 < \lambda < \mu$).
+    * *Elitářství (Elitism):* Strategie, která vybírá ty nejlepší jedince napříč populací rodičů i potomků dohromady. Zajišťuje, že o nejkvalitnější řešení nepřijdeme, což sice urychluje konvergenci, ale zvyšuje riziko předčasného uvíznutí (premature convergence) v lokálním optimu.
 ---
 
 ## Inteligence hejna
@@ -282,6 +282,8 @@ $S$ na základě kombinace feromonové stopy a lokální viditelnosti $\eta_{ij}
 $$p_{ij} = \frac{\tau_{ij}^\alpha \times \eta_{ij}^\beta}{\sum_{k \in S} \tau_{ik}^\alpha \times \eta_{ik}^\beta}$$
 Explicitní parametry $\alpha$ a $\beta$ definují relativní váhu obou složek. Pokud je $\alpha = 0$, algoritmus se chová jako čistě stochastické 
 greedy prohledávání podle geografické blízkosti.
+
+<img alt="img.png" src="img/metody_umele_inteligence/hejno.png" width="300"/>
 
 ---
 
@@ -683,12 +685,14 @@ Bellmanova aktualizace vykazuje matematickou vlastnost kontrakce s faktorem $\ga
 nezávisle na počátečních hodnotách. Iterace končí, jakmile je maximální změna užitku menší než stanovená mez: $\delta < \epsilon(1-\gamma)/\gamma$. 
 Odvozená strategie $\pi_i$ v praxi konverguje k optimální verzi mnohem dříve, než plně zkonvergují samotné numerické hodnoty užitků $U_i$.
 
+### Příklady využití z praxe:
+* **Optimalizace skladových zásob při stochastické poptávce:** Sklady potřebují znát přesnou dlouhodobou finanční hodnotu (užitek) stavu „mám aktuálně na skladě $X$ kusů zboží“. Iterace hodnot pomáhá přesně spočítat očekávané náklady na skladování a ztráty z nedostatku zboží v situaci, kdy se nákupní chování zákazníků mění podle pravděpodobnostního modelu. Přesná hodnota užitku každého stavu je zde kritická pro správné účetní a logistické plánování.*
+* **Navigace mobilního robota v měnícím se prostředí:** Pokud se robot (např. autonomní vysavač nebo doručovací rover) pohybuje po diskretizované mřížce, kde hrozí uklouznutí kol nebo neočekávané zablokování cesty, iterace hodnot průběžně přepočítává absolutní bezpečnostní ohodnocení každého čtverce prostoru. Výsledná mapa užitků dává robotovi přesné vodítko, jak moc riskantní je dané místo v porovnání s alternativami.*
+* **Oceňování finančních derivátů a opcí:** V ekonomických modelech se iterace hodnot využívá k určení exaktní vnitřní hodnoty finanční opce v závislosti na stochastickém vývoji tržních cen (např. u amerických opcí, které lze uplatnit kdykoli před vypršením). Pro investora je klíčové znát přesnou peněžní hodnotu stavu, aby věděl, zda opci držet, nebo prodat.*
+
 *Protože optimální chování konverguje mnohem dříve než přesné číselné hodnoty užitků, je v praxi často výhodnější se namísto zdlouhavého zpřesňování čísel zaměřit přímo na stabilizaci pravidel v navazující **Iteraci strategie**.*
 
-### Příklady využití z praxe:
-* * **Optimalizace skladových zásob při stochastické poptávce:** Sklady potřebují znát přesnou dlouhodobou finanční hodnotu (užitek) stavu „mám aktuálně na skladě $X$ kusů zboží“. Iterace hodnot pomáhá přesně spočítat očekávané náklady na skladování a ztráty z nedostatku zboží v situaci, kdy se nákupní chování zákazníků mění podle pravděpodobnostního modelu. Přesná hodnota užitku každého stavu je zde kritická pro správné účetní a logistické plánování.*
-* * **Navigace mobilního robota v měnícím se prostředí:** Pokud se robot (např. autonomní vysavač nebo doručovací rover) pohybuje po diskretizované mřížce, kde hrozí uklouznutí kol nebo neočekávané zablokování cesty, iterace hodnot průběžně přepočítává absolutní bezpečnostní ohodnocení každého čtverce prostoru. Výsledná mapa užitků dává robotovi přesné vodítko, jak moc riskantní je dané místo v porovnání s alternativami.*
-* * **Oceňování finančních derivátů a opcí:** V ekonomických modelech se iterace hodnot využívá k určení exaktní vnitřní hodnoty finanční opce v závislosti na stochastickém vývoji tržních cen (např. u amerických opcí, které lze uplatnit kdykoli před vypršením). Pro investora je klíčové znát přesnou peněžní hodnotu stavu, aby věděl, zda opci držet, nebo prodat.*
+<img alt="img.png" src="img/metody_umele_inteligence/vi-pi.png" width="800"/>
 
 ---
 
@@ -712,9 +716,9 @@ konečný a každá iterace přináší strukturální zlepšení, algoritmus ga
 iterace hodnot.
 
 ### Příklady využití z praxe:
-* * **Řízení robotických paží a manipulátorů (Motion Control):** Pro mechanické systémy s mnoha stupni volnosti je prohledávání všech možných silových akcí v každém kroku (operátor max u iterace hodnot) výpočetně neúnosné. Iterace strategie vezme stávající stabilní chování (např. „udržuj plynulý směr k cíli“), vyhodnotí jeho celkový efekt a v jednom kroku ho globálně vylepší. Hledá se stabilní fyzická odezva, přičemž přesná čísla užitku jednotlivých mikropozic nejsou podstatná.*
-* * **Dynamické směrování paketů v počítačových sítích:** Síťové routery vyžadují stabilní pravidla (strategii) pro předávání dat, která nezačnou chaoticky oscilovat při každém drobném zakolísání šířky pásma. Pomocí iterace strategie se vyhodnotí aktuální směrovací tabulky, a pokud se prokáže, že pro daný uzel existuje dlouhodobě propustnější cesta, pravidla se skokově aktualizují. Algoritmus konverguje v minimu kroků, což je pro vysokorychlostní sítě klíčové.*
-* * **Hraní deskových her a herní AI (např. Backgammon):** Herní agent nepotřebuje znát absolutní matematickou hodnotu šachovnice na tisíciny procenta, ale potřebuje jasnou a stabilní strategii – vědět, jakým konkrétním tahem reagovat na tah soupeře. Iterace strategie umožňuje AI zkonvergovat k optimálnímu hernímu stylu mnohem dříve, než by se stihly dopočítat přesné hodnoty všech miliard teoreticky možných herních stavů.*
+* **Řízení robotických paží a manipulátorů (Motion Control):** Pro mechanické systémy s mnoha stupni volnosti je prohledávání všech možných silových akcí v každém kroku (operátor max u iterace hodnot) výpočetně neúnosné. Iterace strategie vezme stávající stabilní chování (např. „udržuj plynulý směr k cíli“), vyhodnotí jeho celkový efekt a v jednom kroku ho globálně vylepší. Hledá se stabilní fyzická odezva, přičemž přesná čísla užitku jednotlivých mikropozic nejsou podstatná.*
+* **Dynamické směrování paketů v počítačových sítích:** Síťové routery vyžadují stabilní pravidla (strategii) pro předávání dat, která nezačnou chaoticky oscilovat při každém drobném zakolísání šířky pásma. Pomocí iterace strategie se vyhodnotí aktuální směrovací tabulky, a pokud se prokáže, že pro daný uzel existuje dlouhodobě propustnější cesta, pravidla se skokově aktualizují. Algoritmus konverguje v minimu kroků, což je pro vysokorychlostní sítě klíčové.*
+* **Hraní deskových her a herní AI (např. Backgammon):** Herní agent nepotřebuje znát absolutní matematickou hodnotu šachovnice na tisíciny procenta, ale potřebuje jasnou a stabilní strategii – vědět, jakým konkrétním tahem reagovat na tah soupeře. Iterace strategie umožňuje AI zkonvergovat k optimálnímu hernímu stylu mnohem dříve, než by se stihly dopočítat přesné hodnoty všech miliard teoreticky možných herních stavů.*
 
 ---
 
@@ -795,19 +799,33 @@ v lokálních minimech, kde se síly navzájem vyruší před dosažením cíle.
 
 <img alt="img.png" src="img/metody_umele_inteligence/cell-decomp.png" width="800"/>
 
-**2. Pravděpodobnostní přístupy (Sampling-based):** Namísto exaktní konstrukce překážek náhodně vzorkují konfigurace v $C$-prostoru a testují je 
-kolizním detektorem. Poskytují pravděpodobnostní úplnost (s rostoucím počtem vzorků pravděpodobnost nalezení existujícího řešení konverguje k 1). 
-Jsou efektivní ve vysokých dimenzích (4 a více DoF), ale jejich slabinou je prohledávání úzkých průchodů (*narrow passages*).
-* *Probabilistická cestovní mapa (Probabilistic Roadmap - PRM) — Multi-query strategie:* Navržena pro statická prostředí, kde se plánuje opakovaně 
-(vytvoří se jedna robustní mapa a nad ní se provádějí rychlé dotazy). Ve fázi učení se vygeneruje $n$ náhodných bodů v $C_{free}$ a lokální plánovač 
+
+**2. Pravděpodobnostní přístupy (Sampling-based):** Namísto exaktní konstrukce překážek náhodně vzorkují konfigurace v $C$-prostoru a testují je kolizním detektorem. Poskytují pravděpodobnostní úplnost – s rostoucím počtem vzorků pravděpodobnost nalezení existujícího řešení konverguje k 1. Jsou vysoce efektivní ve vysokých dimenzích (4 a více DoF), ale jejich hlavní slabinou je prohledávání úzkých průchodů (*narrow passages*).
+Podle způsobu využití vytvořených map se pravděpodobnostní algoritmy dělí na dvě základní strategie:
+* **Multi-query strategie:** Algoritmus nejprve vybuduje jednu robustní, reprezentativní cestovní mapu (graf) celého prostředí. Tuto hotovou mapu pak plánovač využívá opakovaně pro rychlé odbavování různých plánovacích dotazů (změny startu a cíle) v konstantním prostředí. Typickým představitelem je **PRM**.
+* **Single-query strategie:** Pro každé jedno konkrétní zadání (jeden dotaz) se staví zcela nová, samostatná vyhledávací struktura (strom). Zaměřuje se pouze na charakteristický podprostor relevantní pro danou trasu, což je ideální pro dynamická prostředí. Typickým představitelem je **RRT**.
+
+*Strategie vzorkování (Sampling strategies)*
+Pravděpodobnostní plánovače implicitně nevyjadřují překážky $C_{obs}$, ale využívají geometrické modely jako „black-box“ pro ověřování kolizí. Distribuce a způsob generování vzorků zásadně ovlivňují schopnost algoritmu najít cestu (zejména skrze úzké průchody):
+
+* *Uniformní / Náhodné vzorkování (Uniform / Random sampling):* Základní naivní přístup, kde má každé místo v prostoru stejnou pravděpodobnost výběru. Vyžaduje opatrnost při parametrizaci – například uniformní vzorkování rotací v 3D pomocí Eulerových úhlů paradoxně nevede k rovnoměrnému pokrytí, nýbrž k nežádoucímu shlukování vzorků (slajd 287).
+* *Vzorkování u překážek (Obstacle-based sampling):* Cíleně generuje větší množství vzorků v těsné blízkosti hranic překážek ($C_{obs}$). Pomáhá odhalit volné štěrbiny tam, kde by uniformní distribuce statisticky selhala.
+* *Gaussovské vzorkování (Gaussian sampling):* Generuje dvojice vzorků v těsné blízkosti. Pokud jeden bod leží v překážce a druhý mimo ni, vzorek se zachová. Tím se body přirozeně koncentrují podél stěn překážek a v úzkých průchodech.
+* *Mřížkové vzorkování (Grid-based sampling):* Deterministická alternativa k čisté náhodnosti. Využívá sekvence s nízkým nesouladem (low-discrepancy sequences), které prostor pokrývají rovnoměrněji, bez vzniku prázdných děr nebo naopak shluků bodů.
+
+
+Konkrétní algoritmy:
+* **Probabilistická cestovní mapa (Probabilistic Roadmap - PRM):** Konkrétní implementace *Multi-query* strategie. 
+Ve fázi učení se vygeneruje $n$ náhodných bodů v $C_{free}$ a lokální plánovač 
 se pokusí propojit blízké uzly v definovaném poloměru $\rho$ do grafu. Klasické PRM vytvoří vazbu pouze tehdy, pokud kandidáti dosud neleží ve stejné 
 komponentě souvislosti (šetří se drahé kolizní testy). Ve fázi dotazu se startovní a cílová konfigurace připojí k hotové mapě a cesta se vyhledá 
-pomocí grafového vyhledávání ($A^*$, Dijkstra).
-* *Rychle se rozrůstající náhodné stromy (Rapidly-exploring Random Trees - RRT) — Single-query strategie:* Konstruuje nový graf (strom) pro každou 
-úlohu zvlášť, přičemž se rozrůstá z počáteční konfigurace $q_{init}$ přímo směrem do volného prostoru (velmi rychle expanduje do neprozkoumaných oblastí). 
-Je vhodný pro dynamická prostředí a zohlednění kinematických limitů. V cyklu vygeneruje náhodnou konfiguraci $q_{new}$ v $C_{free}$, ve stromu vyhledá 
+pomocí grafového vyhledávání ($A^*$, Dijkstra). *sPRM (Simplified PRM):* Zjednodušená verze, která na rozdíl od klasické PRM zkouší propojit každý vzorek se všemi sousedy v poloměru $\rho$ bez ohledu na komponenty souvislosti. Je asymptoticky optimální, ale výpočetně dražší na kolizní testy.
+
+* **Rychle se rozrůstající náhodné stromy (Rapidly-exploring Random Trees - RRT):** Konkrétní implementace *Single-query* strategie. Konstruuje nový graf (strom) z počáteční konfigurace $q_{init}$ a inkrementálně roste směrem do neprozkoumaných oblastí volného prostoru. Je vhodný pro zohlednění kinodynamických limitů a řízení robotů.
+Algoritmus vygeneruje náhodnou konfiguraci $q_{new}$ v $C_{free}$, ve stromu vyhledá 
 uzel $q_{near}$, který je geometricky nejblíže k $q_{new}$ a strom rozšíří z bodu $q_{near}$ malým krokem směrem k $q_{new}$ (vzniká nový platný uzel, 
 ověřený kolizním detektorem). Proces se opakuje, dokud se větev stromu nedostane do dostatečné blízkosti cíle. Poskytuje přípustné, ale často 
 neoptimální (klikaté) řešení.
 
-<img alt="rrtconstuct.png" src="img/metody_umele_inteligence/rrtconstuct.png" width="400"/>
+
+<img alt="rrtconstuct.png" src="img/metody_umele_inteligence/rrtconstuct.png" width="800"/>
