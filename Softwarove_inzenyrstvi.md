@@ -107,7 +107,7 @@ vizuální modelování využívá jazyk **UML** (Unified Modeling Language).
 5. **Test:** Verifikace a validace systému, hledání chyb.
 6. **Deployment:** Balení, distribuce, instalace a migrace softwaru k uživateli.
 
-<img alt="rup.png" src="img/swing/rup.png" width="300"/>
+<img alt="rup.png" src="img/swing/rup.png" width="500"/>
 
 ---
 
@@ -152,7 +152,6 @@ Agilní metodika orientovaná na klientem oceňované vlastnosti (funkcionality)
 4. Návrh podle vlastností (Design by feature).
 5. Realizace podle vlastností (Build by feature).
 
-<img alt="kanban.png" src="img/swing/kanban.png" width="200"/>
 
 #### Extrémní programování (XP)
 Metodika zaměřená na technickou excelenci vývojářů a inženýrské praktiky, která staví na principu „co se v praxi osvědčuje, dovedeme do extrému“:
@@ -177,6 +176,9 @@ Testování je proces exekuce systému s cílem detekovat defekty a ověřit sho
 4. **Akceptační testy (Acceptance Testing):** Ověření zákazníkem, zda systém splňuje kontrakt a zadání (UAT).
     * *Alpha testování:* Prováděno interními lidmi (vývojáři/testery) v prostředí vývojáře.
     * *Beta testování:* Prováděno reálnými koncovými uživateli v reálném provozu před finálním vydáním. *Příklad: Skupina vybraných hráčů dostane přístup k rozpracované verzi videohry, aby v reálném domácím prostředí odhalili skryté chyby.*
+
+<img alt="vmodel.png" src="img/swing/vmodel.png" width="500"/>
+
 
 ### Typy testů podle přístupu k vnitřní struktuře
 
@@ -212,7 +214,6 @@ Chyby zjištěné při testování se evidují a dělí podle závažnosti:
 
 Z hlediska analýzy chyb se používá **Ortogonální klasifikace defektů (ODC - Orthogonal Defect Classification)** vyvinutá IBM. Každá chyby je jednoznačně zatříděna do jedné z nezávislých kategorií (např. *Funkce, Rozhraní, Ověřování, Přiřazení, Časování, Sestavení, Dokumentace, Algoritmus*), což umožňuje statisticky vyhodnotit, v jaké etapě vývoje proces nejvíce selhává. *Příklad využití ODC: Pokud analýza ukáže, že 60 % všech chyb je typu „Rozhraní“, manažer ví, že tým v etapě návrhu špatně definoval komunikaci mezi moduly a je třeba na tuto etapu příště nasadit přísnější inspekce.*
 
-<img alt="vmodel.png" src="img/swing/vmodel.png" width="400"/>
 
 ---
 
@@ -227,7 +228,7 @@ Kvantitativní nástroje pro objektivní měření vlastností softwarového pro
   $$M = E - V + 2P$$
   kde $E$ je počet hran, $V$ je počet uzlů a $P$ je počet komponent (pro jednu metodu $P=1$). Hodnota doporučeně nemá přesáhnout 10. *Příklad: Jednoduchá sekvenční metoda bez podmínek a cyklů má cykloatickou komplexitu 1. Metoda, která v sobě obsahuje pět vnořených podmínek „if-else“, bude mít komplexitu minimálně 6, což znamená, že k jejímu kompletnímu otestování budeme potřebovat minimálně 6 různých testovacích scénářů.*
 * **Halsteadova Software Science:** Metrika složitosti odvozená čistě z počtu operátorů a operandů v kódu. Sleduje:
-    * $n_1$ - počet unikátních operátorů, $n_2$ - počet unikátních operandů. *Příklad: V příkazu `x = y + 5;` jsou operátory `=` a `+` ($n_1$), operandy jsou `x`, `y` a `5` ($n_2$).*
+    * $n_1$ - počet unikátních operátorů, $n_2$ - počet unikátních operandů. *Příklad: V příkazu `x = y + 5;` jsou operátory `=` a `+`* ( $n_1$ )*, operandy jsou `x`, `y` a `5`* ( $n_2$ ).
     * $N_1$ - celkový počet operátorů, $N_2$ - celkový počet operandů.
     * Definuje slovník $n = n_1 + n_2$, délku programu $N = N_1 + N_2$ a objem programu $V = N \cdot \log_2(n)$.
 * **McClureova metrika složitosti:** Zaměřuje se na složitost řídicích struktur. Hodnotí se na základě počtu rozhodování (porovnání) $C$ a počtu řídicích proměnných $V$ v daném modulu.
@@ -284,6 +285,8 @@ Odhadování (Software Estimation) je predikce lidského úsilí (člověkoměs�
 ### Problémy odhadování a Kužel nejistoty (Cone of Uncertainty)
 Odhadování na samém začátku projektu (ve fázi iniciace a před specifikací) je zatíženo masivní chybou. Kužel nejistoty ukazuje, že počáteční odhad se může lišit od reality **až čtyřikrát (4:1) oběma směry** ($0.25\times$ až $4\times$). S postupným upřesňováním specifikace a fází vývoje se odhad zpřesňuje a nejistota se zužuje k realitě ($1\times$). *Příklad: Pokud na první schůzce nad hrubým nápadem odhadneme čas vývoje na 12 měsíců, realita může kvůli Kuželu nejistoty skončit kdekoli v rozmezí od 3 do 48 měsíců.*
 
+<img alt="cone-uncert.png" src="img/swing/cone-uncert.png" width="400"/>
+
 ### Brooksův zákon
 Klíčové manažerské pravidlo pro odhadování a řízení zpožděných projektů říká:
 *„Přidání technického pracovníka do zpožděného softwarového projektu může způsobit jeho ještě větší zpoždění.“*
@@ -294,7 +297,7 @@ Důvodem je overhead spojený s komunikací v týmu a čas, který musí stávaj
 #### Expertní odhady a tříbodový odhad (PERT)
 Založeny na zkušenostech seniorních inženýrů. Pro potlačení subjektivity se definují tři scénáře: Optimistický ($O$), Pesimistický ($P$) a Nejvíc pravděpodobný ($M$).
 * *Očekávané úsilí:* $$E = \frac{O + 4M + P}{6}$$
-*Příklad PERT: Expert odhadne, že za ideálních podmínek zabere úkol 2 dny ($O$), standardně 3 dny ($M$), a když selže server, tak až 10 dní ($P$). Očekávané úsilí bude $E = (2 + 4\times3 + 10) / 6 = 4$ dny.*
+*Příklad PERT: Expert odhadne, že za ideálních podmínek zabere úkol 2 dny ( $O$ ), standardně 3 dny ( $M$ ), a když selže server, tak až 10 dní ( $P$ ). Očekávané úsilí bude* $E = (2 + 4\times3 + 10) / 6 = 4$ *dny.*
 
 #### Algoritmické modely: COCOMO (Constructive Cost Model)
 B. Boehm (1981). Hlavním indikátorem velikosti a práce je počet tisíc řádků zdrojového kódu (**KSLOC** / #SLOC). 
