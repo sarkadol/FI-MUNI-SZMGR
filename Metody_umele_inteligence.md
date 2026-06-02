@@ -146,10 +146,13 @@ Teplota $T$ se v čase postupně snižuje; na začátku je vysoká (vysoká dive
 historicky nejlepšího nalezeného řešení (`RECORD`). Nové náhodně vygenerované sousední řešení $s'$ je akceptováno, pokud jeho hodnota 
 nepřekročí stávající rekord o více než pevně stanovenou prahovou odchylku $D > 0$: $f(s') < \text{RECORD} + D$.
 
-**Algoritmus Velké potopy (Great Deluge - GD):** Deterministický algoritmus založený na analogii s hledačem cesty, který se snaží při 
-stoupající vodě zůstat na suchu. Parametr `LEVEL` představuje neustále klesající strop (v minimalizační verzi). Každé nové řešení je 
-přijato pouze tehdy, nachází-li se pod touto hladinou ($f(s') < \text{LEVEL}$). Rychlost poklesu hladiny určuje kompromis mezi časem 
-výpočtu a kvalitou výsledku.
+**Algoritmus Velké potopy (Great Deluge - GD):** Deterministická metaheuristika založená na analogii s hledačem cesty, 
+který se snaží před stoupající vodou unikat na co nejvyšší vrcholy. V této maximalizační verzi představuje parametr `LEVEL` 
+průběžně stoupající minimální povolený práh účelové funkce. Každé nové náhodné řešení $s'$ je akceptováno pouze tehdy, 
+pokud je jeho hodnota (zisk/skóre) vyšší než tato aktuální hladina ($f(s') > \text{LEVEL}$). Hladina se v každém kroku zvyšuje 
+(`LEVEL = LEVEL + UP`), což ke konci výpočtu nutí algoritmus přijímat už jen ta nejkvalitnější řešení.
+
+<img alt="img.png" src="img/metody_umele_inteligence/great-deluge.png" width="300"/>
 
 **Zakázané prohledávání (Tabu Search - TS):** Deterministická metoda využívající paměťové struktury. V každé iteraci vybere nejlepšího 
 přípustného souseda ze všech dostupných, i když přináší zhoršení účelové funkce. *Tabu list* je FIFO fronta uchovávající atributy posledních 
@@ -271,10 +274,10 @@ pomocí vylučování chemické stopy – feromonu. Feromon se v čase přirozen
 stopa se tam vrství intenzivněji a vyšší koncentrace následně přitahuje další mravence.
 * Odpařování: Provádí se plošně na všech hranách optimalizačního grafu, což umožňuje únik z lokálních optim: 
 $$\tau_{ij} = (1 - \rho)\tau_{ij}$$
-* Posílení: Přidání feromonu na hrany. Nejčastější je *off-line aktualizace* na konci generace, kdy se posílení provede pouze na hranách, které tvoří historicky nejlepší nalezenou trasu:
+* Posílení: Přidání feromonu na hrany. Nejčastější je *offline aktualizace* na konci generace, kdy se posílení provede pouze na hranách, které tvoří nejlepší nalezenou trasu dané iterace (případně historicky nejlepší trasu):
 
 $$
-\tau_{ij} = \tau_{ij} + \Delta \quad \forall (i, j) \in \text{best-solution}
+\tau_{ij} = \tau_{ij} + \Delta \quad \forall (i, j) \in \text{best\_iteration\_solution}
 $$
 
 Při aplikaci na Problém obchodního cestujícího (TSP) si mravenec v uzlu $i$ vybírá následující město $j$ z množiny dosud nenavštívených měst 
@@ -803,7 +806,7 @@ v lokálních minimech, kde se síly navzájem vyruší před dosažením cíle.
 **2. Pravděpodobnostní přístupy (Sampling-based):** Namísto exaktní konstrukce překážek náhodně vzorkují konfigurace v $C$-prostoru a testují je kolizním detektorem. Poskytují pravděpodobnostní úplnost – s rostoucím počtem vzorků pravděpodobnost nalezení existujícího řešení konverguje k 1. Jsou vysoce efektivní ve vysokých dimenzích (4 a více DoF), ale jejich hlavní slabinou je prohledávání úzkých průchodů (*narrow passages*).
 Podle způsobu využití vytvořených map se pravděpodobnostní algoritmy dělí na dvě základní strategie:
 * **Multi-query strategie:** Algoritmus nejprve vybuduje jednu robustní, reprezentativní cestovní mapu (graf) celého prostředí. Tuto hotovou mapu pak plánovač využívá opakovaně pro rychlé odbavování různých plánovacích dotazů (změny startu a cíle) v konstantním prostředí. Typickým představitelem je **PRM**.
-* **Single-query strategie:** Pro každé jedno konkrétní zadání (jeden dotaz) se staví zcela nová, samostatná vyhledávací struktura (strom). Zaměřuje se pouze na charakteristický podprostor relevantní pro danou trasu, což je ideální pro dynamická prostředí. Typickým představitelem je **RRT**.
+* **Single-query strategie:** Pro každé jedno konkrétní zadání (jeden dotaz) se staví zcela nová, samostatná vyhledávací struktura (strom). Zaměřuje se pouze na charakteristický podprostor relevantní pro danou trasu, což je ideální pro dynamická prostředí. Typickým představitelem je **RRT** (Rapidly-exploring Random Trees).
 
 *Strategie vzorkování (Sampling strategies)*
 Pravděpodobnostní plánovače implicitně nevyjadřují překážky $C_{obs}$, ale využívají geometrické modely jako „black-box“ pro ověřování kolizí. Distribuce a způsob generování vzorků zásadně ovlivňují schopnost algoritmu najít cestu (zejména skrze úzké průchody):
