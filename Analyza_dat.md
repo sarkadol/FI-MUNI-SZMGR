@@ -285,7 +285,7 @@ Kvalita se měří a vyhodnocuje pomocí několika standardních dimenzí:
 
 <img alt="img.png" src="img/analyza/choose-db.png" width="600"/>
 
-## (Příklady MS Azure()
+## Příklady MS Azure
 V moderní cloudové praxi se koncepty datových skladů implementují pomocí specifických služeb v ekosystému Microsoft Azure. 
 Celá architektura toku dat (od zdroje až po prezentaci) kopíruje standardní vrstvy DWH:
 
