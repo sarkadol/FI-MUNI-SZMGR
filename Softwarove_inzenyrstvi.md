@@ -47,6 +47,8 @@ Aby byl proces efektivní, musí vykazovat následující vlastnosti:
 5. **Nasazení (Deployment):** Transfer otestovaného softwaru do produkčního prostředí, instalace a konfigurace infrastruktury.
 6. **Provoz a údržba:** Kontinuální správa softwaru, opravy chyb z provozu a adaptace na nové podmínky.
 
+<img alt="img.png" src="img/swing/sdlc.png" width="600"/>
+
 ### Základní procesní modely
 
 #### Vodopádový model (Waterfall)
