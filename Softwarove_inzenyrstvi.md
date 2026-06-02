@@ -10,260 +10,354 @@
 > Údržba a znovupoužitelnost.
 
 ## Proces vývoje SW
-Proces vývoje softwaru je systematický, inženýrský a kontrolovaný soubor činností, jejichž cílem je transformovat netriviální uživatelské a byznys požadavky v plně funkční, verifikovaný, bezpečný a dlouhodobě udržovatelný softwarový produkt při dodržení časových a finančních limitů.
+
+Proces vývoje softwaru (Software Process) je systematický, inženýrský a kontrolovaný soubor 
+činností, jejichž cílem je transformovat uživatelské a byznys požadavky v plně funkční, 
+spolehlivý a dlouhodobě udržitelný softwarový produkt při dodržení časových a finančních limitů.
 
 ### Základní fáze softwarového cyklu (SDLC – Software Development Life Cycle)
-* **Analýza a specifikace požadavků:** Proces zjišťování, vyjednávání, dokumentace a validace potřeb zúčastněných stran (stakeholders). Výstupem je formální dokument **SRS (Software Requirements Specification)**.
-    * *Funkční požadavky:* Definují chování systému, transformaci vstupů na výstupy a konkrétní byznys logiku.
-    * *Nefunkcionální požadavky:* Definují systémové kvality a provozní limity (výkon, propustnost, latence, škálovatelnost, dostupnost, bezpečnost, legislativní shoda).
-* **Návrh (Architecture & Design):** Dekompozice systému do subsystémů a komponent. Zahrnuje návrh softwarové architektury (např. mikroslužby, vrstvená architektura), datových schémat, komunikačních rozhraní (REST, gRPC) a komponentních diagramů.
-* **Implementace (Kódování):** Syntéza algoritmů a datových struktur do formy spustitelného zdrojového kódu v souladu s architektonickými standardy a konvencemi.
-* **Verifikace a validace (V&V / Testování):** 
-    * *Verifikace:* „Stavíme produkt správně?“ – Kontrola shody se specifikací a designem.
+
+1. **Analýza a specifikace požadavků:** Proces zjišťování, dokumentace a validace potřeb 
+   zúčastněných stran (stakeholders). Výstupem je dokument **SRS (Software Requirements 
+   Specification)**. Požadavky striktně dělíme na:
+    * *Funkční požadavky:* Definují chování systému (např. „Systém umožní storno objednávky“).
+    * *Nefunkcionální požadavky:* Definují provozní limity a kvality (např. latence do 200 ms, 
+      dostupnost 99.9 %, shoda s GDPR, bezpečnostní standardy).
+2. **Návrh (Architecture & Design):** Dekompozice systému do subsystémů. Řeší se softwarová 
+   architektura (např. mikroslužby vs. monolit), datové modely, komunikační protokoly (REST, gRPC) 
+   a návrh rozhraní (API).
+3. **Implementace (Kódování):** Přepis návrhu do spustitelného zdrojového kódu v daném jazyce 
+   při dodržení interních standardů a čistoty kódu.
+4. **Verifikace a validace (V&V):**
+    * *Verifikace:* „Stavíme produkt správně?“ – Kontrola, zda kód odpovídá specifikaci.
     * *Validace:* „Stavíme správný produkt?“ – Ověření, zda produkt plní reálné potřeby uživatele.
-* **Nasazení (Deployment):** Proces transferu otestovaného softwaru do cílového produkčního prostředí. Zahrnuje orchestraci infrastruktury (Infrastructure as Code – IaC), datové migrace, nastavení CI/CD a monitoringu.
-* **Provoz a údržba:** Kontinuální správa softwaru po nasazení, odstraňování skrytých defektů, adaptace na změny okolního prostředí a optimalizace výkonu.
+5. **Nasazení (Deployment):** Transfer otestovaného softwaru do produkčního prostředí. Zahrnuje 
+   konfiguraci infrastruktury (IaC), datové migrace a nastavení CI/CD linek.
+6. **Provoz a údržba:** Kontinuální správa softwaru, opravy chyb z provozu a adaptace na nové 
+   podmínky (upgrady OS, legislativní změny).
 
 ### Základní procesní modely
-* **Vodopádový model (Waterfall):** Rigorózní lineární model, kde každá fáze začíná až po formálním schválení a zmrazení výstupů fáze předchozí. 
-    * *Vlastnosti:* Vysoká míra determinismu, rigidita, nízká schopnost reagovat na změny v průběhu vývoje. Zákazník vidí funkční software až na samotném konci cyklu. Vhodný pro projekty s kritickou bezpečností a fixním zadáním.
-* **Inkrementální a iterační model:** 
-    * *Iterace:* Opakování celého cyklu SDLC v menších časových oknech s cílem postupně zpřesňovat a vylepšovat systém.
-    * *Inkrement:* Postupné přidávání hotových, funkčních částí (přírůstků) k systému. Snižuje riziko selhání průběžným ověřováním funkčnosti.
-* **Spirálový model (Spiral - Boehm):** Iterační model postavený na **systematické analýze rizik** v každé obrátce spirály. Každý cyklus zahrnuje určení cílů, vyhodnocení rizik, vývoj/testování a plánování další iterace. Vhodný pro rozsáhlé, komplexní a technologicky unikátní systémy.
+
+#### Vodopádový model (Waterfall)
+Rigorózní sekvenční model, kde každá fáze začíná až po dokončení a formálním schválení fáze 
+předchozí. Mezi fázemi existují pevné milníky.
+* *Výhody:* Snadné plánování, jasně definované výstupy a vysoká dokumentovanost.
+* *Nevýhody:* Rigidita – změna požadavků v pokročilé fázi je extrémně drahá. Funkční software 
+  vidí zákazník až na úplném konci. Nevhodný pro projekty s dynamickým zadáním.
+
+<img alt="waterfall.png" src="img/swing/waterfall.png" width="300"/>
+
+#### Inkrementální a iterační model
+* *Iterace:* Opakování celého cyklu SDLC v menších časových oknech s cílem postupně zpřesňovat 
+  a vylepšovat systém (vertikální růst – zpřesňování).
+* *Inkrement:* Postupné přidávání hotových, funkčních částí (přírůstků) k systému (horizontální 
+  růst – rozšiřování funkcionality). Každý inkrement je samostatně otestovaný a funkční celistvost.
+
+#### Spirálový model (Spiral - Boehm)
+Iterační model postavený na **systematické analýze rizik**. Vývoj probíhá v cyklech (obrátkách 
+spirály), přičemž každá obrátka se skládá ze čtyř kvadrantů:
+1. Určení cílů, alternativ a omezení.
+2. Vyhodnocení alternativ, identifikace a mitigace rizik (např. tvorba prototypů).
+3. Vývoj, implementace a testování další verze produktu.
+4. Plánování následující iterace.
+* *Užití:* Velmi rozsáhlé, komplexní a rizikové systémy (např. letecké řídicí systémy).
+
+<img alt="spiral.png" src="img/swing/spiral.png" width="400"/>
 
 ---
 
 ## Metodika Rational Unified Process
-Rational Unified Process (RUP) je robustní, těžká (heavyweight), objektově orientovaná softwarová metodika založená na vizuálním modelování pomocí jazyka **UML (Unified Modeling Language)**, architektuře řízené případy užití (Use-Case Driven) a iteračním přístupu.
+
+Rational Unified Process (RUP) je robustní, těžká (heavyweight), objektově orientovaná softwarová 
+metodika. Je charakterizována třemi základními pilíři: je **řízena případy užití** (Use-Case Driven), 
+**soustředěna na architekturu** (Architecture-Centric) a je **iterační a inkrementální**. Pro 
+vizuální modelování využívá výhradně jazyk **UML** (Unified Modeling Language).
 
 ### 4 klíčové fáze životního cyklu RUP
-Životní cyklus je rozdělen horizontálně v čase do čtyř po sobě jdoucích fází, z nichž každá může obsahovat několik iterací:
-1.  **Inception (Zahájení):** Definice byznys záměru (Business Case) a rozsahu projektu. Identifikují se klíčoví herci (Actors) a případy užití (Use Cases) na makroúrovni. Určují se základní ekonomické a časové mantinely a provádí se primární analýza rizik.
-2.  **Elaboration (Projektování / Elaborace):** Klíčová fáze zaměřená na **mitigaci technologických rizik** a validaci architektury. Vytváří se spustitelný architektonický prototyp (Executable Architecture Baseline) a detailně se specifikuje většina požadavků. Architektura se na konci této fáze fixuje.
-3.  **Construction (Realizace / Konstrukce):** Masivní vývojový proces, kde se implementují zbývající Use Cases do zdrojového kódu na bázi stabilní architektury. Dochází k integraci komponent a intenzivnímu testování. Výstupem je kompletní systém připravený k nasazení (Beta verze).
-4.  **Transition (Předání / Transice):** Transfer softwaru do produkčního prostředí ke koncovým uživatelům. Zahrnuje beta testování, opravy defektů z reálného provozu, migraci databází, optimalizaci výkonu a školení personálu.
+Životní cyklus je rozdělen v čase horizontálně do čtyř fází, zakončených jasným milníkem:
+
+1. **Inception (Zahájení):** Definice byznys záměru a rozsahu projektu. Identifikují se klíčové 
+   případy užití na makroúrovni a hlavní aktéři. Odhadují se hrubé náklady.
+   * *Milník:* Lifecycle Objectives (shoda na rozsahu a ekonomické smysluplnosti).
+2. **Elaboration (Projektování / Elaborace):** Nejkritičtější fáze. Zaměřuje se na **mitigaci 
+   technologických rizik** a stabilizaci architektury. Vytváří se spustitelný architektonický 
+   prototyp (Executable Architecture Baseline). Detailně se specifikuje většina požadavků.
+   * *Milník:* Lifecycle Architecture (architektura je zafixována a ověřena).
+3. **Construction (Realizace / Konstrukce):** Masivní kódování a implementace zbývajících use 
+   cases na bázi stabilní architektury. Dochází k integraci komponent a intenzivnímu testování.
+   * *Milník:* Initial Operational Capability (produkt je funkční a připraven na beta testy).
+4. **Transition (Předání / Transice):** Nasazení softwaru k uživatelům. Zahrnuje beta testování, 
+   opravy chyb z reálného provozu, migraci dat, optimalizaci výkonu a školení uživatelů.
+   * *Milník:* Product Release (finální předání a ukončení vývojového cyklu).
+
 
 ### Základní disciplíny (Workflows)
-RUP rozděluje činnosti logicky do 9 základních disciplín (procesních procesů), které probíhají vertikálně napříč všemi fázemi, ale s různou intenzitou v čase:
+RUP rozděluje činnosti logicky do 9 disciplín, které probíhají vertikálně napříč všemi fázemi, 
+avšak s různou intenzitou v čase (např. Requirements vrcholí v elaboraci, Implementation 
+v konstrukci).
 
-| Disciplína | Popis a intenzita v čase |
-| :--- | :--- |
-| **Business Modeling** | Pochopení procesů organizace, mapování byznys entit. Dominantní v zahájení. |
-| **Requirements** | Sběr a formalizace Use Cases a softwarových požadavků. Vrcholí v elaboraci. |
-| **Analysis & Design** | Transformace požadavků do architektonického návrhu (UML diagramy tříd, sekvencí). |
-| **Implementation** | Kódování, unit testování a kompilace komponent do spustitelných celků. Maximální v konstrukci. |
-| **Test** | Verifikace chování systému, integrační, systémové a regresní testy. Roste s každou iterací. |
-| **Deployment** | Balení softwaru, konfigurace releasů a nasazení. Dominantní v transici. |
-| **Configuration & Change Mgmt** | Verzování kódu (Git), správa buildů, trasovatelnost změn a správa artefaktů. Spojitá po celou dobu. |
-| **Project Management** | Plánování iterací, řízení rizik, alokace zdrojů a metrické vyhodnocování. Spojitá po celou dobu. |
-| **Environment** | Správa vývojových nástrojů, IDE, hardwarové infrastruktury a konfigurace CASE nástrojů. |
+* *Inženýrské disciplíny:* Business Modeling (pochopení procesů), Requirements (sběr use cases), 
+  Analysis & Design (UML diagramy tříd/sekvencí), Implementation (kódování), Test (verifikace), 
+  Deployment (nasazení).
+* *Podpůrné disciplíny:* Configuration & Change Management (verzování v Gitu, správa změn), 
+  Project Management (plánování iterací, rizika), Environment (správa nástrojů a IDE).
+
+<img alt="rup.png" src="img/swing/rup.png" width="300"/>
 
 ---
 
 ## Agilní vývoj SW
-Agilní vývoj je empirický přístup k řízení projektů postavený na flexibilitě, adaptabilitě, minimalizaci procesní byrokracie, průběžné dodávce funkčního softwaru (Continuous Delivery) a těsné zpětnovazební smyčce se zákazníkem.
+
+Agilní vývoj je empirický přístup k řízení projektů postavený na flexibilitě, adaptabilitě, 
+minimalizaci byrokracie, průběžné dodávce funkčního softwaru a úzké spolupráci se zákazníkem.
 
 ### Agilní manifest (4 základní hodnoty)
-Formulován v roce 2001, definuje priority agilního myšlení (přičemž položky vpravo mají hodnotu, ale položky vlevo mají hodnotu vyšší):
-1.  **Jednotlivci a interakce** mají přednost před procesy a nástroji.
-2.  **Fungující software** má přednost před obsáhlou dokumentací.
-3.  **Spolupráce se zákazníkem** má přednost před vyjednáváním o smlouvách.
-4.  **Reagování na změnu** má přednost před dodržováním plánu.
+Formulován v roce 2001. Definujeme priority tak, že položky vlevo mají vyšší hodnotu než 
+položky vpravo:
+1. **Jednotlivci a interakce** před procesy a nástroji.
+2. **Fungující software** před obsáhlou dokumentací.
+3. **Spolupráce se zákazníkem** před vyjednáváním o smlouvách.
+4. **Reagování na změnu** před dodržováním plánu.
 
 ### Klíčové agilní metodiky
 
 #### Scrum
-Strukturovaný projektový rámec založený na pevných časových oknech zvaných **Sprinty** (typicky 1–4 týdny), během kterých je vytvářen potenciálně nasaditelný inkrement produktu.
+Projektový rámec založený na pevných časových oknech zvaných **Sprinty** (1–4 týdny), na jejichž 
+konci musí být potenciálně nasaditelný produktový inkrement.
 * **Role:**
-    * *Product Owner:* Reprezentuje byznys a zákazníka. Spravuje a prioritizuje Product Backlog, definuje akceptační kritéria.
-    * *Scrum Master:* Fasilitátor procesu. Odstraňuje překážky (impediments), chrání tým před vnějšími vlivy a zajišťuje dodržování Scrum pravidel.
-    * *Vývojový tým (Developers):* Cross-funkční, samoorganizující se tým plně odpovědný za technickou realizaci a kvalitu inkrementu.
+    * *Product Owner:* Reprezentuje byznys/zákazníka. Spravuje a prioritizuje Product Backlog.
+    * *Scrum Master:* Fasilitátor. Odstraňuje překážky, chrání tým před vnějšími vlivy, učí Scrum.
+    * *Vývojový tým (Developers):* Cross-funkční, samoorganizující se tým odpovědný za realizaci.
 * **Artefakty:**
-    * *Product Backlog:* Dynamický, prioritizovaný seznam všech požadovaných funkcí, chyb a technických vylepšení.
-    * *Sprint Backlog:* Podmnožina Product Backlogu vybraná pro aktuální Sprint, dekomponovaná do konkrétních technických úkolů.
-    * *Inkrement:* Plně funkční, otestovaný a nasaditelný kus kódu splňující firemní definici hotového (**DoD – Definition of Done**). Musí naplňovat stanovený **Sprint Goal** (cíl aktuálního sprintu).
-* **Události (Ceremonie):**
-    * *Sprint Planning:* Plánování cílů a obsahu nadcházejícího Sprintu.
-    * *Daily Scrum:* Denní 15minutový stand-up zaměřený na synchronizaci práce a identifikaci blokád.
-    * *Sprint Review:* Demonstrace hotového inkrementu zainteresovaným stranám na konci Sprintu, sběr zpětné vazby.
-    * *Sprint Retrospective:* Interní analýza procesů, nástrojů a týmové spolupráce s cílem kontinuálního zlepšování (Kaizen).
+    * *Product Backlog:* Prioritizovaný seznam všech požadovaných vlastností a chyb.
+    * *Sprint Backlog:* Podmnožina úkolů vybraná pro aktuální Sprint.
+    * *Inkrement:* Funkční kus kódu splňující firemní definici hotového (**DoD - Definition of Done**).
+* **Události (Ceremonie):** Sprint Planning (plánování), Daily Scrum (denní 15min synchronizace), 
+  Sprint Review (předvedení inkrementu zákazníkovi), Sprint Retrospective (zlepšování procesů).
+
+<img alt="scrum.png" src="img/swing/scrum.png" width="400"/>
 
 #### Kanban
-Metoda řízení toku práce (flow) založená na vizuální tabuli a evolučním přístupu. Na rozdíl od Scrumu nemá pevně dané iterace ani specifické role.
-* **WIP Limit (Work In Progress Limit):** Striktní omezení maximálního počtu úkolů, které se mohou simultánně nacházet v daném stavu (např. max 3 úkoly ve fázi "In Testing"). Tím se předchází vzniku úzkých hrdel (bottlenecks), maximalizuje se propustnost a vynucuje se dokončování rozdělané práce (*Stop starting, start finishing*).
+Metoda řízení toku práce založená na vizualizaci na tabuli. Nemá pevné iterace ani role.
+* **WIP Limit (Work In Progress Limit):** Klíčový koncept. Striktní omezení počtu úkolů, které 
+  mohou být simultánně v daném sloupci (např. max 3 úkoly v "In Test"). Zabraňuje vzniku úzkých 
+  hrdel (bottlenecks), nutí tým dokončovat práci místo neustálého začínání nových úkolů 
+  (*"Stop starting, start finishing"*).
+
+<img alt="kanban.png" src="img/swing/kanban.png" width="200"/>
 
 #### Extrémní programování (XP)
-Agilní metodika orientovaná na vysokou kvalitu inženýrských praktik a technickou excelenci vývojářů.
-* **Klíčové praktiky:**
-    * *TDD (Test-Driven Development):* Vývoj řízený testy v cyklu *Red-Green-Refactor* (nejprve se napíše selhávající unit test, pak minimální kód pro jeho splnění, následně se kód refaktoruje).
-    * *Párové programování (Pair Programming):* Dva vývojáři pracují na jedné pracovní stanici. Jeden píše kód (Driver), druhý reviduje strategii, syntaktickou čistotu a architekturu v reálné čase (Navigator).
-    * *Kontinuální integrace (CI):* Vývojáři integrují kód do hlavní větve několikrát denně, přičemž každý commit spouští automatizované buildy a testy.
-    * *Společné vlastnictví kódu (Collective Code Ownership):* Kdokoliv z týmu může modifikovat jakouiv část codebase, čímž se eliminuje závislost na jednotlivcích (bus factor).
+Metodika zaměřená na technickou excelenci vývojářů a inženýrské praktiky:
+* *TDD (Test-Driven Development):* Cyklus **Red-Green-Refactor**. Nejdřív se napíše selhávající 
+  test, pak minimální kód, aby prošel, a následně se kód vyčistí (refaktoruje).
+* *Párové programování (Pair Programming):* Dva vývojáři u jednoho PC. **Driver** píše kód, 
+  **Navigator** v reálném čase kód reviduje, přemýšlí nad architekturou a edge-cases.
+* *Kontinuální integrace (CI):* Časté začleňování kódu do hlavní větve, spojené s automatickým 
+  spouštěním buildů a testů.
+* *Společné vlastnictví kódu (Collective Code Ownership):* Kdokoliv může měnit jakoukoliv část kódu.
 
 ---
 
 ## Fáze testování a typy testů
-Testování je systematický proces exekuce softwaru pod kontrolovanými podmínkami s cílem verifikovat shodu se specifikací, detekovat funkční i nefunkční defekty a evaluovat celkové riziko nasazení.
 
-### Fáze (úrovně) testování – podle granularity
-* **Jednotkové testy (Unit Testing):** Izolované testování nejmenších programových celků (metod, tříd, funkcí).
-    * *Charakteristika:* Prováděno vývojáři. Kód se často strukturuje podle vzoru **AAA (Arrange - příprava, Act - provedení, Assert - ověření)**. Veškeré externí závislosti (databáze, sítě, API) jsou striktně izolovány pomocí testovacích záskoků (**Test Doubles**):
-        * *Stubs:* Poskytují předem připravené odpovědi na volání během testu a neobsahují žádnou vnitřní logiku.
-        * *Mocks:* Sofistikovanější objekty, u kterých se na konci testu ověřuje, zda a jakým způsobem (kolikrát, s jakými parametry) byly zavolány.
-* **Integrační testy (Integration Testing):** Ověřování správnosti interakcí a datových toků mezi integrovanými moduly nebo externími subsystémy.
-    * *Strategie:* Top-Down (od nejvyšších modulů dolů pomocí stubů), Bottom-Up (od nejnižších nahoru pomocí driverů), nebo Big-Bang (vše naráz – silně nedoporučováno).
-* **Systémové testy (System Testing):** Validace kompletně integrovaného systému jako end-to-end celku v prostředí, které je izomorfní s produkčním. Ověřují se jak funkční scénáře, tak nefunkční kvality (bezpečnost, výkon).
-* **Akceptační testy (Acceptance Testing):** Finální fáze validace systému prováděná zákazníkem nebo koncovými uživateli s cílem potvrdit splnění kontraktu a připravenost k provozu (UAT – User Acceptance Testing).
-    * *Alpha testování:* Prováděno interními uživateli v simulovaném prostředí vývojáře.
-    * *Beta testování:* Prováděno reálnými koncovými uživateli v reálném produkčním prostředí v rámci pilotního provozu.
+Testování je proces exekuce systému s cílem detekovat defekty a ověřit shodu s požadavky.
 
-### Typy testů – podle přístupu k vnitřní struktuře
+### Fáze (úrovně) testování podle granularity
 
-| Přístup | Znalost kódu | Hlavní zaměření | Typické techniky / Metriky |
+1. **Jednotkové testy (Unit Testing):** Izolované testování nejmenších celků (metody, funkce). 
+   Využívá se vzor **AAA (Arrange-Act-Assert)**. Externí závislosti (databáze, sítě) se izolují 
+   pomocí **Test Doubles**:
+    * *Stubs:* Poskytují fixní, předpřipravené odpovědi na volání během testu.
+    * *Mocks:* Objekty, u kterých se na konci testu ověřuje, zda a jak byly zavolány 
+      (např. ověření, že metoda `sendEmail` byla zavolána přesně jednou).
+2. **Integrační testy (Integration Testing):** Ověřování interakcí a datových toků mezi integrovanými 
+   moduly. Přístupy: *Top-Down* (pomocí stubů), *Bottom-Up* (pomocí driverů), *Big-Bang* (vše naráz).
+3. **Systémové testy (System Testing):** Validace kompletního systému jako celku v prostředí 
+   blízkém produkci. Testují se end-to-end scénáře.
+4. **Akceptační testy (Acceptance Testing):** Ověření zákazníkem, zda systém splňuje kontrakt (UAT).
+    * *Alpha testování:* Prováděno interními lidmi v prostředí vývojáře.
+    * *Beta testování:* Prováděno reálnými koncovými uživateli v reálném provozu (pilot).
+
+### Typy testů podle přístupu k vnitřní struktuře
+
+| Přístup | Znalost kódu | Metodika a cíle | Typické techniky / Metriky |
 | :--- | :--- | :--- | :--- |
-| **Black-box** | Žádná | Vstupy/Výstupy, specifikace požadavků | Analýza hraničních hodnot, Ekvivalentní třídění |
-| **White-box** | Úplná | Vnitřní struktura, pokrytí logických cest | Pokrytí příkazů, větví a podmínek (Code Coverage) |
-| **Grey-box** | Částečná | Integrace, datové toky, API rozhraní | Testování rozhraní na základě znalosti schématu |
+| **Black-box** | Žádná | Testování funkčnosti na základě specifikace. | Ekvivalentní třídění, analýza hraničních hodnot. |
+| **White-box** | Úplná | Testování vnitřních logických cest a struktur. | Pokrytí příkazů, větví, podmínek (**Code Coverage**). |
+| **Grey-box** | Částečná | Kombinace; tester zná např. schéma DB či API. | Integrační testy, testování webových služeb. |
 
-* **Black-box testování:** Funkcionální nebo nefunkcionální testování bez jakékoli znalosti vnitřní implementace, zdrojového kódu či architektury. Vstupy jsou generovány striktně na základě specifikace požadavků a porovnávají se s očekávanými výstupy.
-    * *Techniky:* Analýza hraničních hodnot (Boundary Value Analysis), ekvivalentní třídění (Equivalence Partitioning).
-* **White-box testování (Strukturní):** Testování založené na přímé znalosti a analýze zdrojového kódu a programových struktur. Sleduje se pokrytí kódu (**Code Coverage**).
-    * *Metriky pokrytí:* Pokrytí příkazů (Statement Coverage), pokrytí větví (Branch/Decision Coverage), pokrytí podmínek (Condition Coverage).
-    * *Poznámka:* Stoprocentní code coverage nezaručuje stoprocentní kvalitu testů (testy mohou postrádat patřičné aserce – *Assertion Coverage*).
-* **Grey-box testování:** Kombinovaný přístup. Tester má částečnou znalost vnitřních struktur (např. zná databázové schéma, stavový model nebo API rozhraní), ale k samotnému testování přistupuje zvenčí přes rozhraní systému.
-
-### Typy testů – podle účelu a charakteristiky
-* **Funkcionální testy:** Verifikují specifické chování systému, byznys pravidla a funkční požadavky (např. „Lze provést platbu kartou?“).
-* **Nefunkcionální testy:** Měří a hodnotí systémové kvality a limity:
-    * *Výkonnostní testy (Performance Testing):* Evaluace doby odezvy a stability systému při simulované standardní zátěži.
-    * *Zátěžové testy (Load Testing):* Testování chování systému při dlouhodobém dosahování maximální očekávané zátěže (peak load).
-    * *Stresové testy (Stress Testing):* Záměrné přetížení systému nad jeho nominální limity s cílem identifikovat bod selhání (breaking point) a ověřit schopnost korektního zotavení (Graceful Degradation).
-    * *Bezpečnostní testy (Security Testing):* Identifikace zranitelností (např. OWASP Top 10), ověření šifrování, autorizačních matric a odolnosti proti průniku.
-* **Regresní testy:** Opakované spouštění sady testů (ideálně plně automatizovaných) po jakékoli modifikaci codebase (oprava chyby, refaktoring, nový feature). 
-    * *Účel:* Garantovat, že provedené změny nezpůsobily regresi – tj. nerozbily dosud stabilní a správně fungující části systému.
+### Typy testů podle účelu
+* **Funkcionální testy:** Ověřují, *co* systém dělá (byznys logika).
+* **Nefunkcionální testy:** Ověřují, *jak* to dělá (systémové kvality):
+    * *Performance testing:* Odezva při standardní zátěži.
+    * *Load testing:* Stabilita při dlouhodobé maximální očekávané zátěži.
+    * *Stress testing:* Hledání bodu selhání při extrémním přetížení nad limity a ověření korektního 
+      zotavení (*Graceful Degradation*).
+    * *Security testing:* Hledání zranitelností (např. SQL Injection, XSS dle OWASP Top 10).
+* **Regresní testy:** Opakované spouštění testů po změně kódu (oprava, refaktoring). Cílem je 
+  garantovat, že nová úprava nezpůsobila regresi (nerozbila stávající funkčnost).
 
 ---
 
 ## Softwarové metriky, refaktoring kódu
 
 ### Softwarové metriky
-Kvantitativní nástroje pro objektivní měření, hodnocení a predikci vlastností softwarového produktu nebo procesu jeho vývoje.
+Kvantitativní nástroje pro objektivní měření vlastností kódu a procesu.
 
-#### Produktové metriky (Statická analýza kódu)
-* **LOC (Lines of Code):** Hrubá metrika velikosti kódu. Rozlišuje se *Physical LOC* (čisté řádky) a *Logical LOC* (počet příkazů). Má nízkou vypovídající hodnotu o kvalitě a složitosti, je silně závislá na syntaxi jazyka.
-* **Cykloatická komplexita (McCabeova):** Kvantifikuje strukturální složitost kódu na základě počtu lineárně nezávislých cest v grafu řízení toku programu (Control Flow Graph).
-    * *Vzorec:* 
-      $$M = E - V + 2P$$
-      kde $E$ je počet hran grafu, $V$ je počet uzlů a $P$ je počet komponent (pro jednu metodu $P=1$).
-    * *Význam:* Vyšší hodnota (typicky $> 10$) indikuje špatnou srozumitelnost, vysokou náchylnost k chybám a extrémní náročnost na unit testování (je potřeba napsat minimálně $M$ testů pro pokrytí všech větví).
-* **Soudržnost (Cohesion):** Míra, do jaké prvky uvnitř jednoho modulu či třídy spolupracují na realizaci jediné, jasně definované odpovědnosti (v souladu se Single Responsibility Principle). Cílem je **vysoká soudržnost (High Cohesion)**.
-* **Vázanost (Coupling):** Míra vzájemné provázanosti a mezikomponentových závislostí. Vysoká vázanost znamená, že změna v jednom modulu vynucuje kaskádové změny v modulech ostatních. Cílem je **nízká vázanost (Loose Coupling)**.
+#### Produktové metriky (Statická analýza)
+* **LOC (Lines of Code):** Počet řádků. *Physical LOC* (všechny řádky), *Logical LOC* (jen příkazy). 
+  Nízká vypovídající hodnota o složitosti, závislá na syntaxi jazyka.
+* **Cykloatická komplexita (McCabeova):** Vyjadřuje strukturální složitost kódu na základě počtu 
+  lineárně nezávislých cest v grafu řízení toku (Control Flow Graph). Vzorec:
+  $$M = E - V + 2P$$
+  kde $E$ je počet hran (edges), $V$ je počet uzlů (vertices) a $P$ je počet komponent (pro 
+  jednu metodu $P=1$). Hodnoty nad 10 značí kód rizikový, těžko srozumitelný a náročný na testování 
+  (je potřeba minimálně $M$ unit testů pro plné pokrytí větví).
+* **Soudržnost (Cohesion):** Míra, do jaké prvky uvnitř jedné třídy/modulu spolupracují na jediné 
+  odpovědnosti (Single Responsibility Principle). Cílem je **vysoká soudržnost** (High Cohesion).
+* **Vázanost (Coupling):** Míra vzájemných závislostí mezi moduly. Vysoká vázanost způsobuje, že 
+  změna v jednom modulu rozbije jiné moduly. Cílem je **nízká vázanost** (Loose Coupling).
 
 ### Refaktoring kódu
-Systematický proces modifikace vnitřní struktury zdrojového kódu bez jakékoli změny jeho vnějšího chování, funkčnosti či API.
-* **Hlavní cíle:** Redukce technického dluhu (Technical Debt), zvýšení čitelnosti (Readability), udržovatelnosti (Maintainability), zjednodušení architektury a usnadnění lokalizace budoucích defektů.
-* **Inženýrské principy čistého kódu:**
-    * **DRY (Don't Repeat Yourself):** Nesmí docházet k duplicitě logiky.
-    * **KISS (Keep It Simple, Stupid):** Kód by měl být co nejjednodušší, bez zbytečně komplexních konstrukcí.
-    * **YAGNI (You Aren't Gonna Need It):** Neimplementovat funkce, dokud nejsou reálně potřeba (prevence over-engineeringu).
-* **Základní postulát:** Refaktoring lze bezpečně provádět **pouze nad kódem, který je pokryt spolehlivými, rychlými automatizovanými unit testy**. Po každé mikro-změně jsou testy spuštěny pro okamžitou detekzi nechtěné změny chování.
-* **Code Smells (Zápachy kódu):** Symptomy v codebase indikující nutnost refaktoringu:
-    * *Duplicitní kód (Duplicated Code):* Porušení principu DRY.
-    * *Dlouhá metoda (Long Method):* Metoda realizuje příliš mnoho operací, je nečitelná a má vysokou cykloatickou komplexitu.
-    * *Velká třída (Large Class):* Třída má příliš mnoho polí a metod, porušuje Single Responsibility Principle (tzv. God Object).
-    * *Závistivý feature (Feature Envy):* Metoda jedné třídy excesivně přistupuje k datům a metodám jiné třídy. Řešením je přesun metody tam, kde jsou data doma.
-* **Typické techniky refaktoringu:**
-    * *Extract Method:* Vyčlenění logického bloku z dlouhé metody do samostatné metody s výstižným názvem.
-    * *Rename Variable/Method:* Změna kryptických názvů za samovysvětlující (Self-Documenting Code).
-    * *Introduce Parameter Object:* Sdružení vysokého počtu parametrů metody do samostatné datové struktury / objektu.
-    * *Replace Conditional with Polymorphism:* Nahrazení komplexních konstrukcí `switch-case` nebo `if-else` provádějících typovou kontrolu čistým polymorfním voláním nad hierarchií objektů.
+Systematický proces úpravy vnitřní struktury zdrojového kódu bez jakékoli změny jeho vnějšího 
+chování (API, funkčnost zůstávají identické).
+* *Cíl:* Redukce technického dluhu (Technical Debt), zvýšení čitelnosti a udržovatelnosti kódu.
+* *Základní pravidlo:* Refaktoring lze bezpečně provádět pouze nad kódem, který je pokryt 
+  **spolehlivými a rychlými automatizovanými testy**. Po každé mikro-změně se testy spustí.
+* *Základní inženýrské principy:* **DRY** (Don't Repeat Yourself - neodpustit duplicitu), **KISS** (Keep It Simple, Stupid - jednoduchost), **YAGNI** (You Aren't Gonna Need It - nepsat kód dopředu).
+
+#### Code Smells (Zápachy kódu)
+Symptomy indikující nutnost refaktoringu:
+* *Duplicated Code:* Stejný kód na více místech (porušení DRY).
+* *Long Method:* Metoda s příliš mnoha řádky a vysokou cykloatickou komplexitou.
+* *Large Class (God Object):* Třída, která dělá všechno, porušuje Single Responsibility Principle.
+* *Feature Envy:* Metoda třídy A neustále přistupuje k datům třídy B. Metoda by měla patřit do třídy B.
+
+#### Typické techniky refaktoringu
+* *Extract Method:* Vyčlenění logického bloku z dlouhé metody do nové, jasně pojmenované metody.
+* *Rename Variable/Method:* Změna kryptických názvů na samovysvětlující.
+* *Introduce Parameter Object:* Sdružení vysokého počtu parametrů metody do jednoho objektu.
+* *Replace Conditional with Polymorphism:* Nahrazení větvení `if-else` či `switch` polymorfismem.
 
 ---
 
 ## Kvalita softwaru
-Kvalita softwaru je komplexní souhrn vlastností a charakteristik softwarového produktu, které určují jeho schopnost plnit specifikované i implicitně předpokládané potřeby uživatelů a byznysu.
 
-### Standard ISO/IEC 25010 (System and Software Quality Models)
-Definuje mezinárodní standard pro hodnocení kvality softwarových produktů rozdělením do 8 základních charakteristik:
-1.  **Funkční vhodnost (Functional Suitability):** Míra, do jaké funkce softwaru pokrývají reálné potřeby. Dělí se na funkční úplnost, funkční správnost (korektnost výpočtů) a funkční přiměřenost.
-2.  **Výkonová efektivita (Performance Efficiency):** Výkonový stav systému vzhledem k množství spotřebovaných hardwarových zdrojů za definovaných podmínek. Sleduje se doba odezvy (Response Time), propustnost (Throughput) a limity využití zdrojů (CPU, RAM, diskové I/O).
-3.  **Kompatibilita (Compatibility):** Schopnost systému efektivně si vyměňovat informace s jinými systémy (Interoperabilita) a sdílet stejné hardwarové či softwarové prostředí bez negativních interferencí (Koexistence).
-4.  **Použitelnost (Usability):** Snadnost pochopení, naučení, ovládání a celková atraktivita uživatelského rozhraní pro koncového uživatele (UX/UI, přístupnost – Accessibility).
-5.  **Spolehlivost (Reliability):** Schopnost systému plnit své funkce v čase za definovaných podmínek. Měří se pomocí:
+Kvalita softwaru je míra, do jaké softwarový produkt splňuje explicitní požadavky (specifikované 
+v SRS) a implicitní očekávání uživatelů.
+
+### Standard ISO/IEC 25010
+Tento mezinárodní standard definuje model kvality softwaru rozdělením do 8 hlavních charakteristik:
+
+1. **Funkční vhodnost (Functional Suitability):** Zda funkce pokrývají reálné potřeby. Zahrnuje 
+   funkční úplnost, správnost (přesnost výsledků) a přiměřenost.
+2. **Výkonová efektivita (Performance Efficiency):** Výkon vzhledem k využitým zdrojům. Sleduje 
+   se doba odezvy (Response Time), propustnost (Throughput) a využití CPU/RAM.
+3. **Kompatibilita (Compatibility):** Schopnost koexistence (sdílení HW/SW prostředí bez 
+   interferencí) a interoperability (výměna informací s jinými systémy).
+4. **Použitelnost (Usability):** Snadnost pochopení, naučení a ovládání; uživatelská zkušenost (UX).
+5. **Spolehlivost (Reliability):** Schopnost plnit funkce za daných podmínek v čase. Metriky:
     * *MTBF (Mean Time Between Failures):* Střední doba mezi poruchami.
-    * *MTTR (Mean Time To Repair):* Střední doba opravy systému.
-    * *Dostupnost (Availability):* Procentuální vyjádření doby, kdy je systém plně funkční (např. SLA 99.99 %).
-    * *Odolnost vůči chybám (Fault Tolerance):* Schopnost zachovat provoz i při částečném selhání komponent.
-6.  **Bezpečnost (Security):** Ochrana informací a dat před neautorizovaným přístupem, modifikací či smazáním. Zahrnuje Důvěrnost (Confidentiality), Integritu (Integrity), Neodpopiratelnost (Non-repudiation), Autentizaci a Autorizaci.
-7.  **Udržovatelnost (Maintainability):** Efektivita a snadnost, s jakou může být software modifikován vývojáři. Zahrnuje Modularitu, Znovupoužitelnost, Analyzovatelnost, Modifikovatelnost a **Testovatelnost**.
-8.  **Přenositelnost (Portability):** Snadnost transformace systému z jednoho hardwarového, softwarového či cloudového prostředí do druhého. Zahrnuje Adaptabilitu, Instalovatelnost a Nahraditelnost.
+    * *MTTR (Mean Time To Repair):* Střední doba opravy.
+    * *Dostupnost (Availability):* $A = \frac{MTBF}{MTBF + MTTR}$ (vyjádřená v procentech, např. 99.9 %).
+    * *Odolnost vůči chybám (Fault Tolerance):* Schopnost zachovat provoz při částečném výpadku.
+6. **Bezpečnost (Security):** Ochrana dat. Zahrnuje důvěrnost (Confidentiality), integritu 
+   (Integrity), neodpopiratelnost (Non-repudiation), autentizaci a autorizaci.
+7. **Udržovatelnost (Maintainability):** Snadnost modifikace kódu vývojáři. Zahrnuje modularitu, 
+   znovupoužitelnost, analyzovatelnost, modifikovatelnost a **testovatelnost**.
+8. **Přenositelnost (Portability):** Snadnost přesunu do jiného prostředí (instalovatelnost, 
+   adaptabilita, nahraditelnost).
 
 ### Zajištění kvality (QA vs. QC)
 
-| Atribut | Quality Assurance (QA) | Quality Control (QC) |
-| :--- | :--- | :--- |
-| **Přístup** | Proaktivní a preventivní | Reaktivní |
-| **Zaměření** | Proces vývoje a metodiky | Finální produkt a kód |
-| **Cíl** | Předcházet vzniku chyb (prevence) | Nalézt a opravit existující chyby (detekce) |
-| **Činnosti** | Nastavení CI/CD, standardy kódu, code reviews | Manuální a automatizované testování |
+* **Quality Assurance (QA - Zajištění kvality):** *Proaktivní a preventivní* proces zaměřený na 
+  **vývojový proces**. Cílem je předcházet vzniku chyb (např. nastavení code-standards, CI/CD, 
+  metodiky, code reviews).
+* **Quality Control (QC - Řízení kvality):** *Reaktivní* proces zaměřený na **výsledný produkt**. 
+  Cílem je detekovat a opravit chyby v hotovém kódu (např. spouštění manuálních a automatických 
+  testů).
 
 ---
 
 ## Odhadování nákladů a času vývoje SW
-Proces predikce lidského úsilí (člověkoměsíce – Person-Months), kalendářního času a celkových finančních nákladů nezbytných pro úspěšnou realizaci softwarového projektu.
+
+Odhadování (Software Estimation) je predikce lidského úsilí (člověkoměsíce - Person-Months), 
+kalendářního času a finančních nákladů.
 
 ### Problémy odhadování a Kužel nejistoty (Cone of Uncertainty)
-Odhadování softwarového vývoje je zatíženo extrémní mírou neurčitosti na začátku projektu. **Kužel nejistoty** demonstruje, že ve fázi iniciace (před specifikací požadavků) může být chyba odhadu až čtyřnásobná ($0.25\times$ až $4\times$). S postupující analýzou, fixací architektury a dokončováním iterací se rozptyl odhadu postupně zužuje směrem k reálné hodnotě.
+Odhadování na začátku projektu je zatíženo masivní chybou. **Kužel nejistoty** ukazuje, že ve 
+fázi iniciace (před analýzou) může být odhad zatížen chybou $0.25\times$ až $4\times$. S postupným 
+ujasňováním požadavků a fixací architektury se nejistota zužuje k realitě ($1\times$).
 
 ### Základní přístupy k odhadování
 
 #### Expertní odhady (Expert Judgment)
-Založeny na intuici a historické zkušenosti seniorních inženýrů, kteří realizovali analogické projekty.
-* **Tříbodový odhad (PERT – Program Evaluation and Review Technique):** Zmírňuje subjektivismus experta definováním tří scénářů: Optimistický ($O$), Pesimistický ($P$) a Nejvíc pravděpodobný ($M$).
-    * *Výsledné očekávané úsilí ($E$):* 
-      $$E = \frac{O + 4M + P}{6}$$
-    * *Směrodatná odchylka ($\text{SD}$ - vyjádření rizika):* 
-      $$\text{SD} = \frac{P - O}{6}$$
+Založeny na intuici seniorních inženýrů. Často se používá **Tříbodový odhad (PERT)** pro snížení 
+subjektivity. Expert definuje tři scénáře: Optimistický ($O$), Pesimistický ($P$) a Nejvíc 
+pravděpodobný ($M$).
+* *Očekávané úsilí:* $$E = \frac{O + 4M + P}{6}$$
+* *Směrodatná odchylka (míra rizika):* $$\text{SD} = \frac{P - O}{6}$$
 
 #### Algoritmické (Parametrické) modely
-Využívají statistické a matematické vzorce odvozené z analýzy velkého množství historických projektů z minulosti.
-* **COCOMO (Constructive Cost Model - Boehm):** Model, kde primární nezávislou proměnnou je velikost softwaru vyjádřená v tisících řádků zdrojového kódu (**KLOC - Thousands of Lines of Code**). Výsledný odhad úsilí je dán nelineární rovnicí:
-    $$\text{Effort} = A \cdot (\text{KLOC})^B \cdot \text{EAF}$$
-    kde $A$ a $B$ jsou konstanty závislé na typu projektu (organický, semioddělený, vnořený) a $\text{EAF}$ (Effort Adjustment Factor) je multiplikátor zohledňující 15 atributů (schopnosti týmu, složitost platformy, požadavky na spolehlivost).
-* **FPA (Function Point Analysis - Analýza funkčních bodů):** Metoda měření velikosti softwaru z pohledu uživatele, která je plně **nezávislá na implementační technologii a programovacím jazyce**. Hodnotí se počet a komplexita pěti typů komponent:
-    * *Externí vstupy (Inputs), Externí výstupy (Outputs), Externí dotazy (Queries), Interní logické soubory (Internal Files), Externí rozhraní (Interfaces).*
-    * Výsledná hodnota neupravených funkčních bodů (UFP) se koriguje faktorem charakteristiky systému (VAF) na upravené funkční body (AFP), které lze následně pomocí historických koeficientů převést na člověkodny.
+Využívají statistické vzorce z historických dat.
+* **COCOMO (Constructive Cost Model):** Základní proměnnou je velikost vyjádřená v tisících řádků 
+  kódu (**KLOC**). Vzorec pro úsilí:
+  $$\text{Effort} = A \cdot (\text{KLOC})^B \cdot \text{EAF}$$
+  Konstanty $A, B$ závisí na režimu projektu (organic - jednoduchý, semidetached - střední, 
+  embedded - kritický, komplexní). $\text{EAF}$ (Effort Adjustment Factor) je koeficient dán 15 
+  atributy (schopnosti týmu, spolehlivost, složitost platformy).
+* **FPA (Function Point Analysis):** Měří velikost z pohledu uživatele, **nezávisle na jazyce 
+  a technologii**. Hodnotí se počet a komplexita pěti prvků: *externí vstupy, externí výstupy, 
+  externí dotazy, interní logické soubory, externí rozhraní*. Výsledné neupravené funkční body 
+  (UFP) se přepočtou koeficientem složitosti systému (VAF) na upravené funkční body (AFP).
 
 #### Agilní relativní odhadování
-Ignoruje absolutní časové jednotky (hodiny/dny) a zaměřuje se na čisté porovnání komplexnosti úkolů vůči sobě.
-* **Story Points:** Abstraktní jednotka vyjadřující kombinaci velikosti, technické složitosti, závislostí a inherentního rizika uživatelského příběhu (User Story). Pro odhady se striktně používá **upravená Fibonacciho posloupnost** (1, 2, 3, 5, 8, 13, 21, ...). Nelineární růst odráží fakt, že s rostoucí velikostí úkolu lineárně roste jeho neurčitost.
-* **Planning Poker:** Týmová, konsenzuální technika. Členové týmu současně vyloží karty s hodnotami Story Points pro daný úkol. Vývojáři s extrémními odhady (nejnižší vs. nejvyšší) vysvětlí svůj pohled, proběhne diskuse o technických úskalích a proces se opakuje, dokud tým nedosáhne konsenzu. Předchází se tím zkreslení odhadu dominantním členem týmu (Anchoring Effect).
+* **Story Points:** Abstraktní jednotka vyjadřující velikost, složitost a inherentní riziko úkolu. 
+  Využívá se **upravená Fibonacciho posloupnost** (1, 2, 3, 5, 8, 13, 21...). Nelineární růst 
+  reflektuje fakt, že s velikostí úkolu roste jeho neurčitost.
+* **Planning Poker:** Kolektivní technika. Tým současně ukáže karty se Story Points. Lidé s 
+  extrémními odhady (nejnižší vs. nejvyšší) vysvětlí svůj pohled, proběhne diskuse a kolo se opakuje 
+  do dosažení konsenzu. Eliminuje to efekt ukotvení (Anchoring Effect).
 
 ---
 
 ## Údržba a znovupoužitelnost
 
 ### Údržba softwaru (Software Maintenance)
-Souhrn všech činností prováděných na softwarovém systému po jeho formálním předání do ostrého produkčního provozu. Náklady na údržbu dlouhodobých systémů standardně dominují celému TCO (Total Cost of Ownership) a tvoří **60 % až 80 % celkového rozpočtu životního cyklu**.
+Činnosti po předání softwaru do provozu. Náklady na údržbu dlouhodobých systémů dominují a tvoří 
+**60 % až 80 % celkových nákladů** (TCO).
 
 #### 4 typy údržby podle Lehmanova rozdělení
-1.  **Korektivní údržba (Corrective):** Reaktivní odstraňování a opravy funkčních defektů, chyb a havárií, které byly detekovány uživateli až v produkčním provozu.
-2.  **Adaptivní údržba (Adaptive):** Modifikace softwaru s cílem zajistit jeho plnou funkčnost při změnách vnějšího provozního prostředí. Zahrnuje migrace na nové verze operačních systémů, upgrady databázových platforem, změny hardwarové architektury či adaptaci na nové legislativní a daňové předpisy.
-3.  **Perfektivní údržba (Perfective):** Implementace nových funkčních požadavků, vylepšení uživatelského rozhraní (UX) a optimalizace výkonu na základě zpětné vazby z reálného provozu. Je zaměřena na zvyšování užitné hodnoty pro zákazníka.
-4.  **Preventivní údržba (Preventive):** Proaktivní modifikace systému zaměřená na **zvýšení udržovatelnosti a čitelnosti kódu do budoucna**. Zahrnuje refaktoring, odstraňování zápachů kódu, restrukturalizaci databázových schémat a aktualizaci technické dokumentace. Cílem je zpomalit softwarové stárnutí (Software Entropy).
+1. **Korektivní údržba (Corrective):** Reaktivní oprava funkčních chyb zjištěných až v produkci.
+2. **Adaptivní údržba (Adaptive):** Modifikace softwaru, aby fungoval v měnícím se prostředí 
+   (např. migrace na novou verzi OS, nová databáze, změna daňové legislativy).
+3. **Perfektivní údržba (Perfective):** Přidávání nových funkcí, vylepšování UX nebo optimalizace 
+   výkonu na základě požadavků uživatelů z provozu.
+4. **Preventivní údržba (Preventive):** Proaktivní úpravy za účelem zvýšení udržovatelnosti a 
+   čitelnosti kódu (refaktoring, odstranění code smells, aktualizace dokumentace). Cílem je 
+   zpomalit softwarové stárnutí (růst softwarové entropie).
 
 ### Znovupoužitelnost (Software Reuse)
-Strategický inženýrský přístup, při kterém jsou softwarové artefakty (kód, design, architektura, testy) záměrně navrhovány a vyvíjeny tak, aby mohly být bezpečně a efektivně replikovány a použity v různých částech systému nebo v úplně odlišných projektech.
+Záměrný inženýrský přístup, kdy se artefakty (kód, návrhy, testy) navrhují tak, aby mohly být 
+použity v jiných projektech. Snižuje Time-to-Market a chybovost (používá se ověřený kód).
 
-* **Hlavní přínosy:** Dramatická redukce času vývoje (Time-to-Market), snížení nákladů na vývoj a testování, zvýšení celkové spolehlivosti systému (používají se komponenty prověřené provozem) a vynucení architektonických standardů.
-* **Úrovně znovupoužitelnosti:**
-    * *Úroveň zdrojového kódu (Ad-hoc reuse):* Kopírování a vkládání fragmentů kódu (Copy-Paste). Nebezpečný anti-pattern vedoucí k masivní duplicitě, fragmentaci chyb a extrémnímu růstu nákladů na údržbu.
-    * *Knihovny a komponenty:* Izolované programové balíčky s jasně definovaným rozhraním spravované pomocí balíčkovacích systémů (npm, NuGet, Maven). Řeší generické problémy (např. validace, kryptografie).
-    * *Návrhové vzory (Design Patterns):* Znovupoužitelná koncepční řešení často se opakujících architektonických problémů v objektově orientovaném návrhu (např. *Strategy, Observer, Factory*).
-    * *Frameworky:* Komplexní softwarové kostry aplikací, které diktují celkovou architekturu. Vývojář vkládá svůj kód do předpřipravených slotů (Inversion of Control - IoC).
-    * *Mikroslužby / SOA (Service-Oriented Architecture):* Znovupoužitelnost celých funkčních byznys celků ve formě nezávisle běžících služeb zapouzdřených za stabilním síťovým API (např. jednotná autentizační služba pro více různých firemních aplikací).
-* **Překážky a limity:**
-    * *Pravidlo třetího použití (Rule of Three):* Návrh, vývoj, testování a precizní zdokumentování skutečně znovupoužitelné komponenty je typicky **3× dražší a náročnější** než vývoj jednoúčelového řešení pro jeden konkrétní projekt. Investice se vrací až při opakovaném nasazení.
-    * *Syndrom "Not Invented Here" (NIH):* Psychologická bariéra vývojových týmů, které odmítají adoptovat cizí/externí kód a preferují psaní vlastních, často duplicitních řešení od nuly.
-    * *Závislosti (Dependency Hell):* Riziko zablokování aktualizací celého systému kvůli kaskádovým závislostem na zastaralých nebo nekompatibilních verzích znovupoužitelných knihoven třetích stran.
+#### Úrovně znovupoužitelnosti
+* *Zdrojový kód (Ad-hoc reuse):* Copy-Paste. Nebezpečný anti-pattern způsobující duplicity a 
+  extrémně náročnou údržbu chyb.
+* *Knihovny a komponenty:* Balíčky s jasným rozhraním spravované balíčkovacími systémy (npm, Maven, 
+  NuGet). Řeší generické problémy (např. logování, validace).
+* *Návrhové vzory (Design Patterns):* Koncepční, znovupoužitelná řešení architektonických problémů 
+  v OOP (např. *Strategy, Singleton, Observer*).
+* *Frameworky:* Komplexní kostry aplikací určující architekturu. Využívají **Inversion of Control 
+  (IoC)** – framework volá kód vývojáře, ne vývojář framework.
+* *Mikroslužby / SOA:* Znovupoužitelnost celých byznys celků běžících jako nezávislé služby za 
+  stabilním síťovým API (např. jednotná autentizační služba pro celou korporaci).
+
+#### Překážky znovupoužitelnosti
+* **Pravidlo třetího použití (Rule of Three):** Vývoj, testování a dokumentace skutečně 
+  znovupoužitelné komponenty je **3× dražší** než napsání jednoúčelového kódu. Investice se vrací 
+  až při třetím úspěšném nasazení.
+* **Syndrom Not Invented Here (NIH):** Psychologická bariéra programátorů, kteří odmítají cizí 
+  knihovny a preferují psaní vlastních (často horších) řešení od nuly.
+* **Dependency Hell (Peklo závislostí):** Riziko kaskádových, nekompatibilních závislostí na 
+  knihovnách třetích stran, což komplikuje budoucí upgrady systému.
