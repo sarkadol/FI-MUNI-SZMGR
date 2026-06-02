@@ -9,92 +9,77 @@
 > specifika aplikace interakčních technik v prostoru samotných dat a v prostoru jejich atributů.
 
 
-## Základní metriky pro hodnocení kvality vizualizace (efektivita a expresivita)
+## Základní metriky pro hodnocení kvality vizualizace
 
-* **Expresivita (Expressiveness):** Vyjadřuje poměr mezi zobrazenou informací a informací, kterou
-  chceme vyjádřit.
-* Matematicky je definována jako $M_{exp} = \text{zobrazená informace} / \text{informace
-  k vyjádření}$, kde $0 \le M_{exp} \le 1$.
-* Ideální expresivita nastává při hodnotě $M_{exp} = 1$. Pokud je hodnota menší než 1, vizualizace
-  prezentuje méně informací, než je požadováno.
-* **Efektivita (Effectiveness):** Hodnotí úspěšnost přenosu informace na základě správnosti a
-  rychlosti interpretace uživatelem a rychlosti vykreslování.
-* Matematicky je zapsána vztahem $M_{eff} = 1 / (1 + \text{interpretace} + \text{vykreslování})$,
-  kde $0 \le M_{eff} \le 1$.
-* Blíží-li se hodnota efektivnosti k 1, znamená to, že čas potřebný pro interpretaci i renderování
-  je velmi krátký.
+Kvalita vizualizace se hodnotí dvěma protichůdnými, ale doplňujícími se kritérii:
+
+* **Expresivita (Expressiveness):** Vyjadřuje poměr mezi zobrazenou informací a informací, kterou chceme původně vyjádřit. 
+    * **Matematický vztah:** $$M_{exp} = \frac{\text{zobrazená informace}}{\text{informace k vyjádření}}$$ kde platí $0 \le M_{exp} \le 1$.
+    * **Ideální stav ($M_{exp} = 1$):** Vizualizace obsahuje přesně to, co má. Pokud je hodnota nižší, informace chybí, nebo naopak přebývá šum, který v původních datech nebyl.
+* **Efektivita (Effectiveness):** Hodnotí úspěšnost přenosu informace k uživateli na základě správnosti, rychlosti lidské interpretace a technické rychlosti vykreslování na obrazovku.
+    * **Matematický vztah:** $$M_{eff} = \frac{1}{1 + \text{interpretace} + \text{vykreslování}}$$ kde se hodnota opět pohybuje v rozmezí $0 \le M_{eff} \le 1$.
+    * **Ideální stav (blíží se 1):** Čas potřebný pro kognitivní interpretaci člověkem i pro technické renderování na GPU je minimální.
 
 ---
 
 ## Osm základních vizuálních proměnných
 
-Vizuální proměnné maximalizují efektivitu navržené vizualizace pro přenos informací:
-* **Pozice (Position):** Nejdůležitější proměnná. Ideálně má každý symbol unikátní pozici a nedochází
-  k překryvům. Využívá lineární či logaritmické měřítko.
-* **Tvar (Shape):** Zahrnuje body, linie, regiony, objemy, specifické symboly či písmena.
-* **Velikost (Size):** Vhodná pro sady s malou kardinalitou. Je dobře použitelná pro body a křivky,
-  avšak nevhodná pro plošné regiony.
-* **Jas (Brightness):** Využívá jasovou stupnici (lineární či nelineární) pro mapování hodnot
-  datových proměnných.
-* **Barva (Color):** Charakterizována odstínem (hue) a saturací. Výběr barevné palety výrazně
-  ovlivňuje vnímání umělých hranic v datech (např. problém duhové palety).
-* **Orientace (Orientation):** Určuje natočení nebo úhel vizuálního prvku na obrazovce.
-* **Textura (Texture):** Percepční prvky textury mohou měnit výšku, hustotu a míru náhodnosti
-  uspořádání. Hustota a velikost jsou lidským okem velmi dobře vnímány.
-* **Pohyb (Motion):** Může být asociován s jakoukoliv jinou proměnnou (směr pohybu, blikání,
-  oscilace). Změny v obraze přitahují pozornost a zlepšují kognici.
+Slouží jako stavební kameny pro efektivní přenos informací do lidského vnímání.
+
+* **Pozice (Position):** Nejdůležitější proměnná. Ideálně má každý datový prvek unikátní místo v lineárním či logaritmickém měřítku, čímž se předchází nežádoucím překryvům.
+* **Tvar (Shape):** Reprezentuje geometrickou povahu prvků (body, linie, regiony, specifické symboly nebo písmena).
+* **Velikost (Size):** Dobře použitelná pro bodové prvky a křivky u sad s malou kardinalitou. Je nevhodná pro plošné regiony, kde lidské oko hůře odhaduje přesný poměr obsahů.
+* **Jas (Brightness):** Využívá jasovou stupnici (lineární či nelineární) pro mapování hodnot datových proměnných.
+* **Barva (Color):** Charakterizována odstínem (*hue*) a saturací. Nevhodná volba palety může vytvářet umělé hranice v datech (typický problém kritizované duhové palety).
+* **Orientace (Orientation):** Určuje natočení nebo specifický úhel vizuálního prvku na obrazovce.
+* **Textura (Texture):** Mění své percepční prvky, jako je výška, hustota a míra náhodnosti uspořádání. Lidský zrak dokáže velmi dobře rozlišit zejména hustotu a velikost prvků.
+* **Pohyb (Motion):** Může být asociován s jakoukoliv jinou proměnnou (směr pohybu, blikání, oscilace). Změny v obraze přirozeně přitahují pozornost a zlepšují kognici.
+
+<img alt="8vars.png" src="img/vis/8vars.png" width="500"/>
 
 ---
 
-## Základní vizualizační techniky pro 1D, 2D, 3D (explicitní a implicitní reprezentace povrchu)
+## Základní vizualizační techniky pro 1D, 2D, 3D
 
-* **1D data:** Jde o sekvence 1D dat s jednou proměnnou. Mezi základní techniky patří klasický graf
-  (linkový, sloupcový) nebo barevný pruh (color bar). Pro vícerozměrná 1D data se využívá
-  juxtapositioning (vedle sebe) nebo superimpositioning (překrývání).
-* **2D data:** Data se dvěma prostorovými dimenzemi mapovaná na obrazovku. Typickými technikami jsou
-  scatterplot (bodový graf bez interpolace), mapy (linie, polygony), rastrový obraz s interpolací
-  mezi pixely, cityscape (3D bloky v rovině) a kontury/izobary.
-* **3D data:** Reprezentují diskrétní vzorky spojitého fenoménu nebo sady vrcholů, hran a polygonů.
-* **Explicitní reprezentace povrchu:** Povrch je přesně definován výčtem prvků. Obsahuje seznam 3D
-  vrcholů (vertices), hran (edges) a rovinných polygonů (faces), případně sadu parametrických
-  rovnic definujících souřadnice propojených bodů (např. zápis polygonální sítě).
-* **Implicitní reprezentace povrchu:** Povrch je definován pomocí nuly (izohladiny) matematické
-  funkce o dvou či třech proměnných, například $f(x, y, z) = 0$. Definuje plochy, které přesně
-  odpovídají zadaným prahovým hodnotám, bez nutnosti explicitně ukládat polygony.
+Vizualizační techniky se striktně liší podle počtu prostorových dimenzí, které data obsahují.
+
+* **1D data (sekvence s jednou proměnnou):**
+    * *Techniky:* Klasické linkové a sloupcové grafy, barevný pruh (*color bar*).
+    * *Vícerozměrná 1D data:* Využívá se buď **juxtapositioning** (umisťování grafů vedle sebe), nebo **superimpositioning** (překrývání grafů v jednom souřadném systému).
+* **2D data (hodnoty mapované přímo na plochu obrazovky):**
+    * *Techniky:* **Scatterplot** (zobrazení bodů bez interpolace), **geografické mapy** (s liniemi a polygony), **rastrový obraz** (s interpolací mezi sousedními pixely), **cityscape** (zobrazení 3D bloků v rovině) a **kontury/izobary** (spojnice míst se stejnou hodnotou).
+* **3D data (diskrétní vzorky spojitého fenoménu nebo sady 3D vrcholů a hran):**
+    * **Explicitní reprezentace povrchu:** Povrch je přesně definován konkrétním výčtem prvků. Obsahuje seznam 3D vrcholů (*vertices*), hran (*edges*) a rovinných polygonů (*faces*), popřípadě sadu parametrických rovnic propojených bodů (např. polygonální síť).
+    * **Implicitní reprezentace povrchu:** Povrch je definován jako izohladina (nulová úroveň) matematické funkce o více proměnných ve tvaru $f(x, y, z) = 0$. Popisuje plochy odpovídající zadaným prahovým hodnotám bez nutnosti explicitně generovat a ukládat polygony.
 
 ---
 
-## Techniky pro vizualizaci multidimenzionálních dat (paralelní souřadnice, RadViz, scatterplot matrices, dimensional stacking) a hierarchických struktur (treemaps)
+## Techniky pro multidimenzionální data a hierarchické struktury
 
-* **Paralelní souřadnice (Parallel coordinates):** Místo ortogonálních os umisťuje osy paralelně
-  vedle sebe (vertikálně či horizontálně). Každá datová položka je reprezentována jako lomená čára
-  (polyline) protínající jednotlivé osy v místech odpovídajících hodnot parametrů.
-* **RadViz:** Technika založená na Hookeově zákoně o elasticitě pro hledání rovnovážné polohy bodu.
-  Kotvy jednotlivých dimenzí ($N$) jsou rovnoměrně rozmístěny po obvodu kružnice a simulují pružiny
-  přitahující datový bod silou úměrnou hodnotě dané dimenze.
-* **Scatterplot matrices (SPLOM):** Matice (mřížka) o velikosti $N \times N$ obsahující dvourozměrné
-  bodové grafy pro všechny možné dvojice dimenzí. Je symetrická podle hlavní diagonály, která
-  typicky obsahuje popisy dimenzí nebo histogramy rozdělení.
-* **Dimensional stacking:** Mapování dat z diskrétního $N$-dimenzionálního prostoru do 2D obrazu
-  rekurzivním vnořováním souřadných systémů. Dvojice vybraných dimenzí rozdělí obrazovku na sekce a
-  každá sekce je vnitřně dále dělena podle dalších dvojic dimenzí.
-* **Treemaps (pro hierarchické struktury):** Metoda zaplňující prostor (space-filling) zobrazující
-  stromová data jako do sebe vnořené obdélníky. Celý prostor obrazovky se rekurzivně dělí střídavě
-  horizontálními a vertikálními liniemi, přičemž plocha obdélníku odpovídá počtu listů.
+Metody pro převod komplexních vícerozměrných vztahů do srozumitelného 2D prostoru.
+
+* **Paralelní souřadnice (Parallel coordinates):** Namísto klasických ortogonálních os umisťuje osy paralelně vedle sebe (vertikálně či horizontálně). Každá datová položka je reprezentována jako lomená čára (*polyline*) protínající tyto osy v místech odpovídajících hodnot.
+* **RadViz:** Technika inspirovaná Hookeovým zákonem o elasticitě, která hledá rovnovážnou polohu bodu. Kotvy jednotlivých $N$ dimenzí jsou rovnoměrně rozmístěny po obvodu kružnice a simulují pružiny, které přitahují datový bod silou úměrnou hodnotě dané dimenze.
+* **Scatterplot matrices (SPLOM):** Symetrická matice o velikosti $N \times N$, která obsahuje dvourozměrné bodové grafy pro všechny možné dvojice dimenzí. Na hlavní diagonále jsou obvykle umístěny popisy dimenzí nebo histogramy.
+* **Dimensional stacking:** Mapuje data z diskrétního $N$-dimenzionálního prostoru do jednoho 2D obrazu pomocí rekurzivního vnořování souřadných systémů. Dvojice hlavních dimenzí rozdělí obrazovku na makro-sekce a každá sekce se vnitřně dále dělí podle dvojic méně významných dimenzí.
+* **Treemaps (pro hierarchické struktury):** Specifická *space-filling* metoda, která zobrazuje stromová data jako do sebe rekurzivně vnořené obdélníky. Prostor obrazovky se postupně dělí střídavě horizontálními a vertikálními liniemi podle hierarchie. Celková plocha obdélníku odpovídá kvantitativní vlastnosti (např. počtu listů).
+
+<img alt="img.png" src="img/vis/multidim.png" width="800"/>
 
 ---
 
-## Základní třídy interakčních technik (fisheye, perspektivní stěny), specifika aplikace interakčních technik v prostoru samotných dat a v prostoru jejich atributů
+## Základní třídy interakčních technik
 
-* **Fisheye (Rybí oko):** Patří mezi deformační (distortion) operátory aplikované v prostoru
-  obrazovky. Uživatel definuje střed transformace (ohnisko), poloměr lupy a míru deformace.
-  Centrální oblast je zvětšena pro detailní náhled, zatímco okolní kontext je plynule komprimován.
-* **Perspektivní stěny (Perspective walls):** Metoda pro navigaci v rozsáhlých sadách dat v prostoru
-  objektů. Skládá se z centrálního panelu umístěného kolmo k pohledu uživatele a z bočních panelů,
-  které se plynule svažují do pozadí na základě perspektivní deformace.
-* **Specifika aplikace v prostoru samotných dat (Space of data values):** Interakce ovlivňují přímo
-  hodnoty nebo strukturu. Zahrnuje filtrování rozsahů pomocí posuvníků, datově řízené zvýrazňování
-  (brushing) nebo změnu topologie (změna uspořádání os, filtrování hran).
-* **Specifika aplikace v prostoru jejich atributů (Space of attributes):** Interakce operují nad
-  komponentami grafických entit. Dominantní je změna barevného mapování, úprava jasu, kontrastu a
-  interaktivní ladění přenosových funkcí (transfer functions) pro průhlednost.
+Interakce umožňují efektivní navigaci a prozkoumávání rozsáhlých datových sad.
+
+### Deformační operátory
+* **Fisheye (Rybí oko):** Aplikuje se v prostoru obrazovky. Uživatel definuje střed transformace (ohnisko), poloměr lupy a míru deformace. Centrální oblast se zvětší pro detailní analýzu, zatímco okolní kontext zůstane viditelný, ale je plynule komprimován k okrajům.
+* **Perspektivní stěny (Perspective walls):** Řeší navigaci v prostoru objektů tak, že data horizontálně rozprostřou na trojdílnou stěnu. Centrální panel (kolmo k pohledu) zobrazuje detail, zatímco boční panely se plynule svažují do pozadí pomocí perspektivní deformace, čímž udržují přehled o okolí.
+
+<img alt="img.png" src="img/vis/fisheye.png" width="700"/>
+
+### Specifika aplikace podle prostoru
+* **V prostoru samotných dat (Space of data values):** Interakce přímo ovlivňují hodnoty, strukturu nebo uspořádání dat.
+    * *Příklady:* Filtrování rozsahů hodnot pomocí posuvníků, datově řízené propojování a zvýrazňování v různých grafech současně (**brushing**), nebo změna topologie (přeskupování pořadí os u paralelních souřadnic, odstraňování hran).
+* **V prostoru atributů (Space of attributes):** Interakce operují pouze nad vizuálními komponentami grafických entit a nemění samotná data.
+    * *Příklady:* Změna barevného mapování, úprava jasu, ladění kontrastu nebo interaktivní modifikace přenosových funkcí (**transfer functions**), které určují míru průhlednosti a barvy při vizualizaci objemových dat.
