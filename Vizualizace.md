@@ -52,6 +52,8 @@ Techniky se striktně dělí podle prostorové dimenzionality domény a povahy r
 * *Techniky:* Klasické čárové grafy, sloupcové grafy, barevný pruh (*color bar*).
 * *Vícerozměrná 1D data:* Používá se buď **juxtapositioning** (skládání samostatných grafů vedle sebe/pod sebe), nebo **superimpositioning** (překrývání více křivek v jednom souřadném systému s odlišením barvou či stylem čáry).
 
+<img alt="img.png" src="img/vis/jux-super.png" width="500"/>
+
 ### 2D data (data mapovaná na plochu)
 * *Techniky:* **Scatterplot** (bodový graf bez interpolace pro analýzu korelací), **geografické mapy** (vektorové polygony a choroplethy), **rastrový obraz** (spojitá interpolovaná pixelová data), **cityscape** (2.5D zobrazení výšky bloků v rovině) a **kontury/izolinie** (izobary, vrstevnice – spojnice míst se stejnou hodnotou skalárního pole).
 
@@ -61,6 +63,12 @@ Data jsou typicky reprezentována jako spojitý fenomén vzorkovaný diskrétně
 * **Implicitní reprezentace povrchu:** Povrch je definován geometricky jako izohladina matematické funkce nebo hustotního pole ve tvaru $f(x, y, z) = c$ (kde $c$ je prahová hodnota/isovalue).
     * *Vizualizační algoritmus:* **Marching Cubes**. Převádí implicitní objemová data na explicitní polygonální síť. Prochází 3D mřížku po jednotlivých krychlích (buňkách). Na základě toho, které z 8 vrcholů buňky leží nad/pod prahem $c$, vyhledá v tabulce typologií (256 kombinací redukovaných na 15 základních případů) odpovídající konfiguraci trojúhelníků a vygeneruje explicitní polygony.
     * *Alternativa:* **Ray Casting (Direct Volume Rendering)**. Nepřevádí data na polygony. Skrz objemová data se z kamery vrhají paprsky. V pravidelných intervalech se vzorkují hodnoty, které se přes **přenosové funkce (transfer functions)** mapují na barvu a neprůhlednost (*opacity*), a ty se podél paprsku integrují do výsledného pixelu.
+
+<img alt="img.png" src="img/vis/voxel.png" width="300"/>
+
+<img alt="img.png" src="img/vis/marching cubes.png" width="300"/>
+
+<img alt="aycasting.png" src="img/vis/aycasting.png" width="300"/>
 
 ---
 
