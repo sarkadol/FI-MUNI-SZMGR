@@ -571,13 +571,17 @@ Vezmeme právě vypočtenou předpověď pro Den 3 a znovu ji pošleme přes př
 **Úloha:** Nabízí se situace, kdy je strážný na konci Dne 2 a ví, že nadřízený měl deštník v Den 1 i v Den 2. Chce zpětně přehodnotit, jaká byla pravděpodobnost, že pršelo v **Den 1**. Hledáme $P(R_1 \mid u_1, u_2)$.
 
 Vyhlazování kombinuje dopředný průchod (filtraci do času $k$) a zpětný průchod (zpětná zpráva z budoucnosti od času $t$ do $k+1$):
-$$P(R_1 \mid u_1, u_2) = \alpha \times \underbrace{P(R_1 \mid u_1)}_{\text{Dopředná zpráva } f_{1:1}} \times \underbrace{P(u_2 \mid R_1)}_{\text{Zpětná zpráva } b_{2:2}}$$
+
+$$P(R_1 \mid u_1, u_2) = \alpha \times P(R_1 \mid u_1) \times P(u_2 \mid R_1)$$
+
+* Kde **$P(R_1 \mid u_1)$** je dopředná zpráva $f_{1:1}$
+* Kde **$P(u_2 \mid R_1)$** je zpětná zpráva $b_{2:2}$
 
 1.  **Dopředná zpráva (z Filtrace):** Známe z prvního dne: $f_{1:1} = \langle 0.818, \ 0.182 \rangle$.
 2.  **Výpočet zpětné zprávy ($b_{2:2}$):** Zpětná zpráva zjišťuje, jak pravděpodobné je pozorování zítřejšího deštníku ($u_2$) pro obě varianty dnešního počasí ($R_1$):
-    * *Pokud dnes ($R_1$) prší:* Zítra bude pršet s šancí $0.7$ (deštník $0.9$) OR zítra nebude pršet s šancí $0.3$ (deštník $0.2$).
+    * *Pokud dnes* ($R_1$) *prší:* Zítra bude pršet s šancí $0.7$ (deštník $0.9$) OR zítra nebude pršet s šancí $0.3$ (deštník $0.2$).
         $$b_2(\text{true}) = (0.7 \times 0.9) + (0.3 \times 0.2) = 0.63 + 0.06 = 0.69$$
-    * *Pokud dnes ($R_1$) neprší:* Zítra bude pršet s šancí $0.3$ (deštník $0.9$) OR zítra nebude pršet s šancí $0.7$ (deštník $0.2$).
+    * *Pokud dnes* ($R_1$) *neprší:* Zítra bude pršet s šancí $0.3$ (deštník $0.9$) OR zítra nebude pršet s šancí $0.7$ (deštník $0.2$).
         $$b_2(\text{false}) = (0.3 \times 0.9) + (0.7 \times 0.2) = 0.27 + 0.14 = 0.41 \implies b_{2:2} = \langle 0.69, \ 0.41 \rangle$$
 3.  **Sjednocení (Bodový součin složek):**
     * Nenormalizovaný vektor: $\langle 0.818 \times 0.69, \ 0.182 \times 0.41 \rangle = \langle 0.5644, \ 0.0746 \rangle$
@@ -602,17 +606,24 @@ Který z těchto historických scénářů je matematicky nejpravděpodobnějš�
 Výpočet provádí rekurzivní vyhodnocování maximální cesty (Viterbiho algoritmus). Pro každou finální možnost drží informaci o té nejlepší trajektorii, která do ní vedla:
 
 #### DEN 1 (Začátek z $P(R_0) = \langle 0.5, 0.5 \rangle$)
-* Cesta končící v $R_1 = \text{true}$ (přes start $R_0$):
-    $$\max [ \underbrace{0.5 \times 0.7}_{\text{bylo pršet}}, \ \underbrace{0.5 \times 0.3}_{\text{bylo nepršet}} ] \times 0.9 (\text{deštník}) = 0.35 \times 0.9 = 0.315 \quad (\text{nejlepší předchůdce: prší})$$
-* Cesta končící v $R_1 = \text{false}$:
-    $$\max [ 0.5 \times 0.3, \ 0.5 \times 0.7 ] \times 0.2 (\text{deštník}) = 0.35 \times 0.2 = 0.070 \quad (\text{nejlepší předchůdce: neprší})$$
 
-#### DEN 2 (Vycházíme z hodnot Dne 1: $\text{true} \rightarrow 0.315$, $\text{false} \rightarrow 0.070$)
-* Cesta končící v $R_2 = \text{true}$:
-    $$\max [ \underbrace{0.315 \times 0.7}_{R_1 \text{ pršelo}}, \ \underbrace{0.070 \times 0.3}_{R_1 \text{ nepršelo}} ] \times 0.9 (\text{deštník}) = \max [0.2205, \ 0.0210] \times 0.9 = 0.2205 \times 0.9 = \mathbf{0.19845}$$
-    (Vítězná cesta do stavu "2. den prší" vede přes stav "1. den pršelo").
-* Cesta končící v $R_2 = \text{false}$:
-    $$\max [ 0.315 \times 0.3, \ 0.070 \times 0.7 ] \times 0.2 (\text{deštník}) = \max [0.0945, \ 0.0490] \times 0.2 = 0.0945 \times 0.2 = \mathbf{0.01890}$$
+* **Cesta končící v $R_1 = \text{true}$ (přes start $R_0$):**
+  $$\max [ 0.5 \times 0.7, \ 0.5 \times 0.3 ] \times 0.9 = 0.35 \times 0.9 = 0.315$$
+  *(Poznámka: první člen = bylo pršet, druhý člen = bylo nepršet, 0.9 = deštník. Nejlepší předchůdce: prší)*
+
+* **Cesta končící v $R_1 = \text{false}$:**
+  $$\max [ 0.5 \times 0.3, \ 0.5 \times 0.7 ] \times 0.2 = 0.35 \times 0.2 = 0.070$$
+  *(Poznámka: 0.2 = deštník. Nejlepší předchůdce: neprší)*
+
+#### DEN 2 (Vycházíme z hodnot Dne 1: true $\rightarrow$ 0.315, false $\rightarrow$ 0.070)
+
+* **Cesta končící v $R_2 = \text{true}$:**
+  $$\max [ 0.315 \times 0.7, \ 0.070 \times 0.3 ] \times 0.9 = \max [0.2205, \ 0.0210] \times 0.9 = 0.2205 \times 0.9 = \mathbf{0.19845}$$
+  *(Poznámka: první člen =* $R_1$ *pršelo, druhý člen =* $R_1$ *nepršelo, 0.9 = deštník. Vítězná cesta do stavu "2. den prší" vede přes stav "1. den pršelo".)*
+
+* **Cesta končící v $R_2 = \text{false}$:**
+  $$\max [ 0.315 \times 0.3, \ 0.070 \times 0.7 ] \times 0.2 = \max [0.0945, \ 0.0490] \times 0.2 = 0.0945 \times 0.2 = \mathbf{0.01890}$$
+  *(Poznámka: 0.2 = deštník)*
 
 #### Zpětný průchod (Backpointer tracking)
 1.  Porovnáme finální hodnoty pro Den 2: $0.19845$ (pro déšť) > $0.01890$ (pro sucho). Den 2 byl tedy **déšť ($R_2 = \text{true}$)**.
