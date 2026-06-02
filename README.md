@@ -1,6 +1,6 @@
 # FI-MUNI-SZMGR – Státní závěrečná magisterská zkouška
 
-Materiály k přípravě na státní závěrečnou magisterskou zkoušku na Fakultě informatiky Masarykovy univerzity (FI MUNI).
+Materiály k přípravě na státní závěrečnou magisterskou zkoušku na Fakultě informatiky Masarykovy univerzity (FI MUNI). Zpracovala Šárka Blaško s využitím materiálů z hodin vyučujících FI MUNI a jazykových modelů. 2026.
 
 Otázky viz https://www.fi.muni.cz/studies/fe-mgr/uizd2018.html
 
