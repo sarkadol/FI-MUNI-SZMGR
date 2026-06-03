@@ -110,8 +110,8 @@ Vyjadřuje pravděpodobnost, že test správně zamítne neplatnou nulovou hypot
 
 Obrázek graficky znázorňuje, jak **rozsah výběru ($n$) ovlivňuje sílu testu (Power)** při zachování stejné hladiny významnosti ($\alpha = 5\ \%$) a stejné velikosti efektu (vzdálenost středů modré a červené křivky je stále $0,5$).
 
-* **Pravý graf ($n = 30$):** Variabilita (šířka křivek) je větší, což způsobuje výrazný překryv rozdělení pod nulovou ($H_0$) a alternativní ($H_1$) hypotézou. Abychom udrželi chybu I. typu na $5\ \%$ (modrá plocha napravo od kritické hodnoty $0,30$), kritická hodnota musí být posunuta poměrně daleko doprava. V důsledku toho je síla testu (červená plocha napravo od kritické hodnoty) pouze **$86,3\ \%$**. Riziko chyby II. typu ($\beta$) je zbylých $13,7\ \%$.
-* **Levý graf ($n = 100$):** S větším množstvím dat se podle Centrální limitní věty standardní chyba zmenšuje – křivky jsou výrazně užší a "špičatější". Překryv obou rozdělení je minimální. Kritická hodnota se posouvá doleva na $0,16$, přičemž modrá plocha ($\alpha$) stále drží svých $5\ \%$. Červená plocha pod křivkou $H_1$ však nyní pokrývá téměř **$100\ \%$** plochy. 
+* **Levý graf ($n = 30$):** Variabilita (šířka křivek) je větší, což způsobuje výrazný překryv rozdělení pod nulovou ($H_0$) a alternativní ($H_1$) hypotézou. Abychom udrželi chybu I. typu na $5\ \%$ (modrá plocha napravo od kritické hodnoty $0,30$), kritická hodnota musí být posunuta poměrně daleko doprava. V důsledku toho je síla testu (červená plocha napravo od kritické hodnoty) pouze **$86,3\ \%$**. Riziko chyby II. typu ($\beta$) je zbylých $13,7\ \%$.
+* **Pravý graf ($n = 100$):** S větším množstvím dat se podle Centrální limitní věty standardní chyba zmenšuje – křivky jsou výrazně užší a "špičatější". Překryv obou rozdělení je minimální. Kritická hodnota se posouvá doleva na $0,16$, přičemž modrá plocha ($\alpha$) stále drží svých $5\ \%$. Červená plocha pod křivkou $H_1$ však nyní pokrývá téměř **$100\ \%$** plochy. 
 * **Závěr:** Zvýšením rozsahu výběru z $30$ na $100$ jsme zpřesnili odhady, snížili šum a dosáhli stoprocentní jistoty, že reálně existující efekt detekujeme.
 
 ---
