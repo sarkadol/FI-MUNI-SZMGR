@@ -234,7 +234,7 @@ algoritmy, Evoluční strategie).
 společně sdílené paměti. Nová populace kandidátů se v dalším kroku generuje čistě na základě aktuálního stavu této sdílené paměti 
 (např. feromonová matice u optimalizace mravenčí kolonou).
 
-<img alt="img.png" src="img/metody_umele_inteligence/elov-memory.png" width="400"/>
+<img alt="img.png" src="img/metody_umele_inteligence/elov-memory.png" width="500"/>
 
 Kvalita výpočtu silně závisí na inicializaci populace. *Náhodné generování* je jednoduché, ale pro silně omezené problémy je náročné 
 nalézt platné počáteční stavy. *Sekvenční či paralelní diversifikace* umisťuje jedince cíleně tak, aby maximalizovala jejich vzájemnou 
@@ -333,23 +333,32 @@ greedy prohledávání podle geografické blízkosti.
 
 <img alt="img.png" src="img/metody_umele_inteligence/hejno.png" width="300"/>
 
+Kromě ACO existují i další algoritmy inteligence hejna, jako je **PSO (Particle Swarm Optimization)** 
+inspirovaný chováním ptačích hejn, kde se částice v kontinuálním prostoru pohybují na základě 
+své setrvačnosti a kombinace vlastního a globálního historického maxima roje. 
+Dalším významným zástupcem je **ABC (Artificial Bee Colony)** modelující včelí kolonii, 
+která rozděluje agenty na dělnice prohledávající lokální okolí, diváky posilující slibné 
+zdroje nektaru a průzkumníky zajišťující diversifikaci náhodným hledáním nových řešení.
+
 ---
 
 ## Plánování
 
-Klasické prohledávání stavového prostoru nebere v úvahu sémantiku akcí. Automatické plánování (Automated Planning) dává agentovi 
-schopnost uvažovat o budoucích důsledcích svého chování na základě explicitního modelu světa, což umožňuje doménově nezávislým 
-algoritmům nalézt optimální posloupnost kroků pro dosažení cíle.
+Klasické prohledávání stavového prostoru nebere v úvahu **sémantiku akcí** – operátory přechodu považuje za neprůhledné „černé skříňky“ a slepě generuje uzly bez znalosti vnitřní logiky kroků. Automatické plánování (Automated Planning) dává agentovi schopnost uvažovat o vnitřní struktuře a budoucích důsledcích svého chování na základě explicitního modelu světa, což umožňuje doménově nezávislým algoritmům porozumět významu akcí (jejich předpodmínkám a efektům) a efektivně nalézt optimální posloupnost kroků pro dosažení cíle.
 
-$\Sigma$ představuje stavový transformační systém, $S$ je množina stavů, $A$ značí množinu akcí pod kontrolou 
-plánovače, $E$ je množina vnějších událostí a $\gamma$ vyjadřuje přechodovou funkci.
+$\Sigma$ představuje stavový transformační systém, $S$ je rekurzivně spočetná množina stavů, $A$ značí rekurzivně spočetnou množinu akcí pod kontrolou plánovače, $E$ je rekurzivně spočetná množina vnějších událostí a $\gamma$ vyjadřuje přechodovou funkci.
 
-Formálně je plánovací prostředí modelováno jako stavový transformační systém: 
-$$\Sigma = (S, A, E)$$
-Změnu stavu řídí přechodová funkce: 
-$$\gamma: S \times (A \cup E) \rightarrow 2^S$$
-Plánovací úloha hledá posloupnost kroků vedoucí z počátečního stavu do cíle, přičemž cíl může být definován jako koncový stav, omezení nad 
-trajektorií stavů nebo optimalizace účelové funkce (celkový čas trvání, finanční náklady).
+Formálně je plánovací prostředí modelováno jako stavový transformační systém o čtyřech prvcích: 
+$$\Sigma = (S, A, E, \gamma)$$
+
+V rámci tohoto systému rozlišujeme dva typy přechodových prvků:
+* **Akce ($A$):** Změny stavu, které jsou plně pod kontrolou plánovače (jejich součástí je i prázdná akce `no-op`).
+* **Události ($E$):** Vnější vlivy okolního prostředí, které plánovač nedokáže kontrolovat (jejich součástí je neutrální událost $\epsilon$).
+
+Změnu stavu realizuje přechodová funkce $\gamma$, přičemž akce a události mohou být aplikovány buď samostatně, nebo společně:
+$$\gamma: S \times A \times E \rightarrow 2^S \quad \text{případně} \quad \gamma: S \times (A \cup E) \rightarrow 2^S$$
+
+Plánovací úloha hledá posloupnost kroků vedoucí z počátečního stavu do cíle, přičemž cíl může být definován jako koncový stav, omezení nad trajektorií stavů nebo optimalizace účelové funkce (celkový čas trvání, finanční náklady).
 
 ---
 
@@ -368,13 +377,21 @@ Aby mohl plánovač logicky odvozovat, definuje stav jako konečnou množinu pln
 předpodmínky určují literály nutné pro spuštění a efekty definují změny po provedení. Jakmile proměnné v operátoru nahradíme konkrétními objekty 
 z domény, vzniká plně instanciovaná **akce ($a$)**.
 
+Předpodmínky i efekty každé akce $a$ se interně dělí na **pozitivní** ($^+$) a **negativní** ($^-$):
+* $\text{precond}^+(a)$ / $\text{precond}^-(a)$: Literály, které ve stavu musí platit / nesmí platit.
+* $\text{effects}^+(a)$ / $\text{effects}^-(a)$: Atomy, které se do stavu nově přidají / ze stavu vymažou.
+
 <img alt="img.png" src="img/metody_umele_inteligence/operators-predicates.png" width="500"/>
 
 Akce je aplikovatelná na stav $s$, pokud platí: $\text{precond}^+(a) \subseteq s \ \land \ \text{precond}^-(a) \cap s = \emptyset$. Výsledný stav po aplikaci 
 akce definuje přechodová funkce jako odebrání negativních a přidání pozitivních efektů: 
 $$\gamma(s, a) = (s \setminus \text{effects}^-(a)) \cup \text{effects}^+(a)$$
-Plánovací problém $P = (O, s_0, g)$ definuje doménový model $O$, počáteční konfiguraci $s_0$ a cílové literály $g$. Výsledný *plán* $\pi$ je uspořádaná 
-sekvence akcí, jejíž sekvenční aplikace na počáteční stav vede do cílového stavu: 
+
+**Sestavení plánovacího úkolu:** Celé prostředí se striktně dělí na obecná pravidla světa a konkrétní instanci zadání:
+* **Doménový model ($O$):** Popisuje neměnnou „fyziku“ světa – definuje typy objektů, povolené predikáty a šablony parametrických operátorů $o$ bez vazby na konkrétní situaci.
+* **Plánovací problém $P = (O, s_0, g)$:** Definuje konkrétní instanci zadání, která bere doménový model $O$, doplňuje do něj reálné objekty, definuje výchozí konfiguraci prvků jako počáteční stav $s_0$ a stanovuje cílové literály $g$. 
+
+Výsledný *plán* $\pi$ je pak uspořádaná sekvence plně instanciovaných akcí, jejíž sekvenční aplikace na počáteční stav $s_0$ vede do množiny cílových stavů: 
 $$\gamma(s_0, \pi) \in S_g$$
 
 Pro kódování klasických plánovacích úloh se využívá standardizovaný formální jazyk **PDDL (Planning Domain Definition Language)**. Ten striktně 
@@ -420,7 +437,7 @@ tím, že nedosazuje konstanty okamžitě, ale ponechává parametry akcí jako 
 Tímto způsobem dokáže algoritmus v jednom kroku pokrýt celou sadu potenciálních objektů bez větvení stromu, výměnou za složitější 
 správu unifikačních omezení.
 
-<img alt="img.png" src="img/metody_umele_inteligence/back-for-plan.png" width="800"/>
+<img alt="img.png" src="img/metody_umele_inteligence/back-for-plan.png" width="900"/>
 
 ---
 
