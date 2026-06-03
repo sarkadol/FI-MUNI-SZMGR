@@ -67,6 +67,10 @@ pro optimalizaci (např. minimalizace celkové ujeté vzdálenosti v kilometrech
 (např. u splnitelnosti logických formulí SAT), využívá se funkce *naváděcí (guiding)*. Ta se transformuje tak, aby poskytovala jemnější 
 gradient pro lokální prohledávání (např. maximalizace počtu aktuálně splněných klauzulí u $k$-SAT).
 
+**Ukončovací kritéria (Stopping criteria):** Každá metaheuristika (jak s jedním řešením, tak populační) vyžaduje jasně definovanou podmínku pro ukončení výpočetního cyklu. Tato kritéria dělíme na dvě hlavní skupiny:
+* *Statické procedury (Static procedure):* Konec prohledávání je znám předem (*a priori*). Výpočet se zastaví po dosažení fixního parametru – např. po pevném počtu iterací, vyčerpání stanoveného času procesoru (CPU limit), nebo po dosažení maximálního počtu vyhodnocení účelové funkce.
+* *Adaptivní procedury (Adaptive procedure):* Konec prohledávání závisí na aktuálním průběhu výpočtu a nelze ho určit předem. Algoritmus končí, pokud nastane specifický stav – např. uplyne fixní počet iterací bez jakéhokoli zlepšení (stagnace), je dosaženo optimální/uspokojivé hodnoty, nebo dojde k kritickému poklesu diverzity v populaci.
+
 ---
 
 ## Lokální prohledávání
@@ -111,7 +115,7 @@ U Problému obchodního cestujícího (TSP) definujeme okolí jako $k$-distance 
 okolí $\frac{n(n - 1)}{2}$) nebo $k$-opt (odstranění $k$ hran a jejich nahrazení jinými tak, aby vznikla nová platná okružní cesta, 
 kde pro $2$-opt je velikost okolí rovna $\left[\frac{n(n - 1)}{2} - n\right]$ ).
 
-<img alt="img.png" src="img/metody_umele_inteligence/typy okoli.png" width="600"/>
+<img alt="img.png" src="img/metody_umele_inteligence/typy okoli.png" width="800"/>
 
 **Inkrementální vyhodnocování okolí (Incremental Evaluation):** Výpočet hodnoty účelové funkce od nuly pro každého kandidáta v okolí 
 je výpočetně velmi náročný. Efektivní algoritmy implementují inkrementální vyhodnocení pomocí výpočtu pouhé diferenční změny $\Delta f$. 
@@ -133,7 +137,7 @@ repeat
 until stopping_criteria;
 ```
 
-<img alt="img.png" src="img/metody_umele_inteligence/ils.png" width="300"/>
+<img alt="img.png" src="img/metody_umele_inteligence/ils.png" width="400"/>
 
 ---
 
@@ -159,7 +163,7 @@ průběžně stoupající minimální povolený práh účelové funkce. Každé
 pokud je jeho hodnota (zisk/skóre) vyšší než tato aktuální hladina ($f(s') > \text{LEVEL}$). Hladina se v každém kroku zvyšuje 
 (`LEVEL = LEVEL + UP`), což ke konci výpočtu nutí algoritmus přijímat už jen ta nejkvalitnější řešení.
 
-<img alt="img.png" src="img/metody_umele_inteligence/great-deluge.png" width="300"/>
+<img alt="img.png" src="img/metody_umele_inteligence/great-deluge.png" width="400"/>
 
 **Zakázané prohledávání (Tabu Search - TS):** Deterministická metoda využívající paměťové struktury. V každé iteraci vybere nejlepšího 
 přípustného souseda ze všech dostupných, i když přináší zhoršení účelové funkce. *Tabu list* je FIFO fronta uchovávající atributy posledních 
@@ -176,7 +180,7 @@ mění obrovské části řešení naráz (např. 30 měst) a k nalezení zlepš
 ale vyvolá vznik sekundárního defektu. Následující krok opraví ten sekundární, přičemž vyvolá terciární. Řetězec úspěšně končí, když se 
 defekt v nějakém kroku zcela eliminuje bez generování nového.
 
-<img alt="img.png" src="img/metody_umele_inteligence/ejectionchain.png" width="300"/>
+<img alt="img.png" src="img/metody_umele_inteligence/ejectionchain.png" width="400"/>
 
 * *Large Neighborhood Search (LNS):* Metaheuristika založená na opakované destrukci (**Destroy**) a následné opravě (**Repair**) aktuálního řešení. Algoritmus záměrně znehodnotí část aktuálního stavu (odebere přiřazení podmnožiny rozhodovacích proměnných) a následně ji rekonstruuje výhodnějším způsobem. 
 
@@ -209,6 +213,11 @@ return s_best;
 přechází na širší strukturu okolí ($N_{l+1}$). *Basic VNS* kombinuje stochatickou fázi „třesení“ (**shaking**) pro únik ze stávajícího lokálního 
 minima s následným intenzivním lokálním prohledáváním (nejčastěji pomocí VND).
 
+<img alt="img.png" src="img/metody_umele_inteligence/vnd.png" width="400"/>
+
+Jednotlivé metody s jedním řešením lze efektivně kombinovat (hybridizovat) pro dosažení rovnováhy 
+mezi diversifikací a intenzifikací. Typickým příkladem je ALNS (Adaptive Large Neighborhood Search), kde algoritmus provádí velké skoky pomocí fází destrukce a opravy (LNS), ale o stochastickém přijetí výsledného řešení rozhoduje kritérium simulovaného žíhání.
+
 ---
 
 ## Populační metaheuristiky
@@ -225,9 +234,12 @@ algoritmy, Evoluční strategie).
 společně sdílené paměti. Nová populace kandidátů se v dalším kroku generuje čistě na základě aktuálního stavu této sdílené paměti 
 (např. feromonová matice u optimalizace mravenčí kolonou).
 
+<img alt="img.png" src="img/metody_umele_inteligence/elov-memory.png" width="400"/>
+
 Kvalita výpočtu silně závisí na inicializaci populace. *Náhodné generování* je jednoduché, ale pro silně omezené problémy je náročné 
 nalézt platné počáteční stavy. *Sekvenční či paralelní diversifikace* umisťuje jedince cíleně tak, aby maximalizovala jejich vzájemnou 
-vzdálenost a pokryla co největší plochu prostoru. *Heuristická inicializace* předvyplní populaci výsledky rychlých lokálních algoritmů, 
+vzdálenost a pokryla co největší plochu prostoru, což však přináší **vysokou výpočetní složitost** (u paralelního přístupu může být vygenerování diverzifikované populace stejně obtížné jako vyřešení původního problému samotného). 
+*Heuristická inicializace* předvyplní populaci výsledky rychlých lokálních algoritmů, 
 což urychlí start, ale zvyšuje riziko předčasné ztráty diverzity.
 
 ---
@@ -237,8 +249,16 @@ což urychlí start, ale zvyšuje riziko předčasné ztráty diverzity.
 Evoluční algoritmy (Evolutionary Algorithms - EA) modelují optimalizační proces jako digitální simulaci biologické evoluce, 
 postavené na přírodním výběru a přežití nejsilnějších (*survival of the fittest*). 
 
-$\mu$ značí počet rodičů v populaci, $\lambda$ je počet potomků, $p_c$ představuje pravděpodobnost 
-křížení, $p_m$ je pravděpodobnost mutace, $f_i$ vyjadřuje zdatnost (fitness) $i$-tého jedince a $p_i$ je pravděpodobnost jeho výběru.
+**Reprezentace a názvosloví:**
+* **Populace (Population):** Množina kandidátních řešení běžících v algoritmu současně (typicky v rozsahu 20–100 jedinců).
+* **Chromozom / Jedinec (Chromosome / Individual):** Konkrétní zakódované řešení problému.
+* **Gen (Gene):** Jedna rozhodovací proměnná v rámci řešení (konkrétní pozice/prvek v řetězci chromozomu - název proměnné nebo index v poli).
+* **Alela (Allele):** Konkrétní hodnota dané rozhodovací proměnné (hodnota přiřazená genu - proměnné).
+
+*Příklad (Přiřazení zaměstnanců na 4 dny): Máme-li konkrétní řešení ve tvaru vektoru **`[3, 1, 4, 1]`**:*
+* *Chromozom: Celý řetězec `[3, 1, 4, 1]` představující jeden kompletní rozvrh.*
+* *Gen: Konkrétní pozice v poli (např. 3. pozice vyjadřující 3. pracovní den).*
+* *Alela: Hodnota zapsaná na této pozici (číslo `4` značící, že 3. den má službu zaměstnanec ID 4).*
 
 **Hlavní větve evolučních výpočtů:**
 * *Genetické algoritmy (Genetic Algorithms - GA):* Původně navržené pro binární řetězce. Kladou hlavní důraz na operátor křížení nad 
@@ -251,6 +271,9 @@ pouze z řad potomků, rodiče bezpodmínečně vymírají (vhodné pro dynamick
 grafových struktur (např. symbolická regrese, kde je cílem nalézt matematický vzorec nejlépe odpovídající naměřeným datům).
 
 <img alt="img.png" src="img/metody_umele_inteligence/evolalg.png" width="400"/>
+
+$\mu$ značí počet rodičů v populaci, $\lambda$ je počet potomků, $p_c$ představuje pravděpodobnost 
+křížení, $p_m$ je pravděpodobnost mutace, $f_i$ vyjadřuje zdatnost (fitness) $i$-tého jedince a $p_i$ je pravděpodobnost jeho výběru.
 
 **Strategie výběru rodičů:** Selekční tlak určuje, jakým způsobem jsou upřednostňováni zdatnější jedinci před slabšími při výběru rodičů.
 * *Ruletový výběr (Roulette wheel selection):* Pravděpodobnost výběru jedince je přímo úměrná jeho fitness vůči sumě fitness celé populace: 
@@ -276,7 +299,7 @@ Používá se jednobodové, vícebodové nebo uniformní křížení, kde se o k
 **Nahrazovací strategie:** Určují mechanismus a pravidla, podle kterých nově vytvoření potomci nahrazují stávající jedince v populaci pro další generaci.
 * *Generační nahrazování (Generational replacement):* Strategie, při které nově vzniklí potomci kompletně nahradí celou původní generaci rodičů.
 * *Ustálený stav (Steady-state):* Konzervativní přístup, kde noví potomci v populaci nahradí pouze vybrané nejhorší jedince, zatímco zbytek populace zůstává.
-* *Mezi těmito extrémy existuje řada schémat:* 
+* Mezi těmito extrémy existuje řada schémat:
     * *Nahrazování pevného počtu jedinců:* Nahrazuje se přesně definovaný počet $\lambda$ jedinců v populaci o velikosti $\mu$ (kde $1 < \lambda < \mu$).
     * *Elitářství (Elitism):* Strategie, která vybírá ty nejlepší jedince napříč populací rodičů i potomků dohromady. Zajišťuje, že o nejkvalitnější řešení nepřijdeme, což sice urychluje konvergenci, ale zvyšuje riziko předčasného uvíznutí (premature convergence) v lokálním optimu.
 ---
@@ -299,7 +322,7 @@ $$\tau_{ij} = (1 - \rho)\tau_{ij}$$
 * Posílení: Přidání feromonu na hrany. Nejčastější je *offline aktualizace* na konci generace, kdy se posílení provede pouze na hranách, které tvoří nejlepší nalezenou trasu dané iterace (případně historicky nejlepší trasu):
 
 $$
-\tau_{ij} = \tau_{ij} + \Delta \quad \forall (i, j) \in \text{best\_iteration\_solution}
+\tau_{ij} = \tau_{ij} + \Delta \quad \forall (i, j) \in \text{best-iteration-solution}
 $$
 
 Při aplikaci na Problém obchodního cestujícího (TSP) si mravenec v uzlu $i$ vybírá následující město $j$ z množiny dosud nenavštívených měst 
