@@ -460,11 +460,51 @@ aparát pro reprezentaci neurčitosti, kvantifikaci rizika a optimální rozhodo
 $Y$ představuje dotazovanou proměnnou, $E$ značí množinu pozorovaných proměnných (evidence) s konkrétními hodnotami $e$, $Z$ značí množinu skrytých (nezařazených) proměnných, $z$ je konkrétní stav skrytých proměnných, $x, y$ vyjadřují konkrétní jevy a $P(x \mid y)$ je podmíněná pravděpodobnost jevu $x$ za předpokladu $y$.
 
 * **Sdružená pravděpodobnostní distribuce (Joint probability distribution):** Kompletní tabulka pokrývající pravděpodobnosti všech možných kombinací stavů všech proměnných v doméně. Umožňuje exaktně odpovědět na jakýkoli dotaz, ale její velikost roste exponenciálně ($2^n$), což ji činí pro reálné systémy výpočetně i paměťově neúnosnou.
-* **Absolutní nezávislost (Independence):** Jevy $X$ a $Y$ jsou nezávislé, pokud vědomí o jednom nezmění pravděpodobnost druhého ($P(X \mid Y) = P(X)$). Umožňuje sdruženou distribuci kompletně rozložit na součin separátních tabulek: $P(X, Y) = P(X)P(Y)$. V reálném světě je však takto čistá nezávislost vzácná.
+* **Absolutní nezávislost (Independence):** Jevy $X$ a $Y$ jsou nezávislé, pokud vědomí o jednom nezmění pravděpodobnost druhého ( $P(X \mid Y) = P(X)$ ). Umožňuje sdruženou distribuci kompletně rozložit na součin separátních tabulek: $P(X, Y) = P(X)P(Y)$. V reálném světě je však takto čistá nezávislost vzácná.
 * **Podmíněná nezávislost (Conditional independence):** Jevy $X$ a $Y$ jsou nezávislé *za předpokladu* znalosti třetího jevu $Z$, pokud platí $P(X \mid Y, Z) = P(X \mid Z)$. Toto je nejdůležitější koncept pro redukci komplexnosti v AI (základ Bayesovských sítí) – např. symptomy pacienta jsou na sobě nezávislé, jakmile známe samotnou diagnózu (příčinu).
+
+<details>
+<summary>Názorné vysvětlení na příkladu</summary>
+
+Máme dva následky: **Mokré boty ($X$)** a **Sousedovo mokré auto ($Y$)**.
+
+* **Když nic nevíme (Absolutní závislost):** Podíváš se z okna a vidíš, že *soused má mokré auto*. Změní to tvůj odhad, jestli venku zmokneš? **Ano.** Protože mokré auto napovídá, že asi prší, a tudíž budeš mít i ty mokré boty. Jevy se navzájem ovlivňují.
+* **Když známe příčinu (Podmíněná nezávislost):** Sedíš doma a stoprocentně víš, že **venku prší ($Z$)**. Už předem tedy víš, že budeš mít mokré boty. Pokud ti v tu chvíli někdo řekne: „Hele, soused má mokré auto,“ řekne ti to něco nového? **Ne.** Informace o sousedově autě ti v ten moment nepřináší vůbec žádnou novou informaci o tvých botách. 
+
+Jakmile známe společnou příčinu (déšť $Z$), vazba mezi oběma následky ($X$ a $Y$) zaniká a stávají se na sobě nezávislými. V AI díky tomu nemusíme v grafech složitě propojovat následky mezi sebou, stačí je připojit k jejich společné příčině.
+</details>
+
 * **Marginalizace (Marginalization / Summing out):** Výpočet pravděpodobnosti menší množiny proměnných sečtením pravděpodobností přes všechny možné hodnoty ostatních (skrytých) proměnných $Z$. V praxi se často kombinuje s podmíněním pro výpočet dotazu $Y$ při známém pozorování $e$: 
 $$P(Y \mid e) = \alpha P(Y, e) = \alpha \sum_{z \in Z} P(Y, e, z)$$
-*(kde $\alpha$ je normalizační konstanta zajišťující, že součet pravděpodobností výsledného vektoru bude přesně 1).*
+*(kde* $\alpha$ *je normalizační konstanta zajišťující, že součet pravděpodobností výsledného vektoru bude přesně 1).*
+
+<details>
+<summary>Názorný příklad marginalizace (Summing out)</summary>
+
+Máme dvě proměnné: **Počasí** (hodnoty: `Prší`, `Slunečno`) a **Zpoždění vlaku** (hodnoty: `Ano`, `Ne`). 
+
+Sdružená pravděpodobnostní distribuce (tabulka všech kombinací) vypadá takto:
+
+| Počasí ($Z$) | Zpoždění ($Y$) | $P(\text{Počasí}, \text{Zpoždění})$ |
+| :--- | :--- | :--- |
+| `Prší` | `Ano` | **0.15** |
+| `Prší` | `Ne` | **0.05** |
+| `Slunečno` | `Ano` | **0.08** |
+| `Slunečno` | `Ne` | **0.72** |
+*(Všimni si, že součet všech hodnot v tabulce je přesně 1.0)*
+
+### Úkol: Chceme zjistit celkovou pravděpodobnost, že vlak bude mít zpoždění, tedy $P(\text{Zpoždění} = \text{Ano})$.
+
+Počasí nás v tomto dotazu vůbec nezajímá – je to pro nás **skrytá proměnná ($Z$)**, kterou chceme marginalizací (sečtením) eliminovat. 
+
+Podle vzorce $P(Y) = \sum_{z \in Z} P(Y, z)$ vezmeme všechny řádky, kde je `Zpoždění = Ano`, a sečteme jejich pravděpodobnosti přes všechny možné stavy počasí:
+
+$$P(\text{Zpoždění} = \text{Ano}) = P(\text{Ano}, \text{Prší}) + P(\text{Ano}, \text{Slunečno})$$
+$$P(\text{Zpoždění} = \text{Ano}) = 0.15 + 0.08 = \mathbf{0.23}$$
+
+**Výsledek:** Celková pravděpodobnost zpoždění vlaku je 23 %. Proměnnou *Počasí* jsme z výpočtu úspěšně „vysčítali“ (summed out).
+</details>
+
 * **Bayesův teorém (Bayes' theorem):** Základní vztah odvozený z definice podmíněné pravděpodobnosti, umožňující otočit směr podmínění. To je klíčové pro diagnostické systémy určující pravděpodobnost skryté příčiny na základě pozorovaných efektů/symptomů, které lze snadno statisticky měřit z opačného směru: 
 $$P(\text{příčina} \mid \text{efekt}) = \frac{P(\text{efekt} \mid \text{příčina}) \times P(\text{příčina})}{P(\text{efekt})}$$
 
@@ -475,9 +515,6 @@ $$P(\text{příčina} \mid \text{efekt}) = \frac{P(\text{efekt} \mid \text{pří
 Plná sdružená distribuce je kvůli své velikosti v praxi nepoužitelná. Bayesovská síť (Bayesian Network) řeší tento problém tím, že 
 explicitně reprezentuje vztahy podmíněné nezávislosti mezi náhodnými proměnnými pomocí grafu.
 
-$X_i$ představuje náhodnou proměnnou (uzel v grafu), $\text{parents}(X_i)$ značí přímé rodiče uzlu $X_i$ 
-a $x_i$ vyjadřuje konkrétní hodnotu proměnné.
-
 Jedná se o **Orientovaný acyklický graf (Directed Acyclic Graph - DAG)**. Uzly představují náhodné proměnné a hrany vyjadřují přímou závislost. 
 Každý uzel obsahuje vlastní **Tabulku podmíněné pravděpodobnosti (Conditional Probability Table - CPT)**, která definuje distribuci 
 $P(X_i \mid \text{Parents}(X_i))$ vůči všem kombinacím hodnot jeho přímých rodičů. Hodnotu libovolného globálního stavu lze spočítat jako součin 
@@ -486,6 +523,9 @@ $$P(x_1, \dots, x_n) = \prod_{i=1}^{n} P(x_i \mid \text{parents}(X_i))$$
 Díky této dekompozici klesá paměťová náročnost z původních $2^n$ na pouhých $n \cdot 2^k$ parametrů (kde $k$ je maximální počet rodičů uzlu). 
 Při stavbě sítě se doporučuje volit *kauzální směr* (od příčin k efektům) $\rightarrow$ vede k řídkým grafům s minimem hran. Diagnostické 
 řazení (od efektů k příčinám) generuje hustě propojené sítě s mnoha redundantními závislostmi.
+
+Značení: $X_i$ představuje náhodnou proměnnou (uzel v grafu), $\text{parents}(X_i)$ značí přímé rodiče uzlu $X_i$ 
+a $x_i$ vyjadřuje konkrétní hodnotu proměnné.
 
 <img alt="cpt.png" src="img/metody_umele_inteligence/cpt.png" width="300"/>
 
@@ -496,10 +536,6 @@ Při stavbě sítě se doporučuje volit *kauzální směr* (od příčin k efek
 Odvozování (Inference) v Bayesovských sítích spočítá výslednou podmíněnou distribuci dotazované proměnné $X$ na základě pozorované evidence 
 $e$, přičemž volné proměnné $Y$ jsou eliminovány marginalizací: 
 $$P(X \mid e) = \alpha \sum_{y} P(X, e, y)$$
-
-$X$ představuje dotazovanou proměnnou, $e$ značí pozorovanou pevnou evidenci, $Y$ vyjadřuje skryté proměnné 
-určené k eliminaci, $y$ je konkrétní hodnota skrytých proměnných, $\alpha$ je normalizační konstanta a $w$ vyjadřuje přiřazenou váhu vzorku.
-
 
 **1. Exaktní odvozování (Exact Inference):** Cílem exaktních metod je určit matematicky přesný výsledek distribuce.
 * *Odvozování výčtem (Inference by enumeration):* Top-down rekurzivní procházení stromu možných stavů. Je neefektivní, protože opakovaně 
@@ -528,8 +564,6 @@ proměnných v momentě průchodu. Výsledná distribuce se následně normalizu
 ## Čas a neurčitost
 
 Při modelování dynamického světa v čase se využívá rozdělení na diskrétní časové řezy (*time slices*). Rozlišujeme skryté náhodné proměnné $X_t$ (skutečný stav systému) a pozorovatelné proměnné $E_t$ (evidence/měření ze senzorů).
-
-$X_t$ představuje skrytou stavovou proměnnou v čase $t$, $E_t$ značí pozorovatelnou proměnnou v čase $t$, $e_t$ vyjadřuje konkrétní hodnotu pozorování, $X_{0:t}$ je sekvence skrytých stavů od času 0 do $t$ a $E_{1:t}$ vyjadřuje sekvenci pozorování od času 1 do $t$.
 
 Tento dynamický proces je v každém časovém kroku formálně popsán dvěma komponentami, které pro zajištění výpočetní realističnosti využívají zjednodušující **Markovské předpoklady**:
 
@@ -561,7 +595,7 @@ vygenerovala danou sekvenci pozorování (řeší se Viterbiho algoritmem).
 <img alt="img.png" src="img/metody_umele_inteligence/filt, pred, smoot.png" width="800"/>
 
 <details>
-<summary>Zobrazit případovou studii: Uvažování v čase (Svět s deštníkem)</summary>
+<summary>Detailní příklad: Svět s deštníkem</summary>
 
 <img alt="filt, smoot example.png" src="img/metody_umele_inteligence/filt%2C%20smoot%20example.png" width="800"/>
 
