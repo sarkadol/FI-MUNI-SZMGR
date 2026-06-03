@@ -102,11 +102,16 @@ zrychluje výpočetní čas jedné iterace.
 na základě definovaného přechodového operátoru (*move operator*): $N(s) = \{s' \in S \mid d(s', s) \le \epsilon\}$. Řešení je 
 *lokálním optimem* vzhledem k okolí $N$, pokud žádný z jeho sousedů nemá lepší hodnotu účelové funkce. Pro minimalizační problém platí: 
 $$f(s) \le f(s') \quad \forall s' \in N(s)$$
+
+<img alt="img.png" src="img/metody_umele_inteligence/neighborhood.png" width="400"/>
+
 U permutačních problémů využíváme *poziční okolí* založené na operátoru vkládání (**insertion** – prvek se vyjme a vloží na jinou pozici) 
 nebo *pořadové okolí* využívající operátor výměny (**swap/exchange** – prohození dvou prvků) či otočení podsekvence (**inversion**). 
 U Problému obchodního cestujícího (TSP) definujeme okolí jako $k$-distance (výměna pozic $k$ měst, kde pro $2$-distance je velikost 
 okolí $\frac{n(n - 1)}{2}$) nebo $k$-opt (odstranění $k$ hran a jejich nahrazení jinými tak, aby vznikla nová platná okružní cesta, 
 kde pro $2$-opt je velikost okolí rovna $\left[\frac{n(n - 1)}{2} - n\right]$ ).
+
+<img alt="img.png" src="img/metody_umele_inteligence/typy okoli.png" width="600"/>
 
 **Inkrementální vyhodnocování okolí (Incremental Evaluation):** Výpočet hodnoty účelové funkce od nuly pro každého kandidáta v okolí 
 je výpočetně velmi náročný. Efektivní algoritmy implementují inkrementální vyhodnocení pomocí výpočtu pouhé diferenční změny $\Delta f$. 
@@ -127,6 +132,8 @@ repeat
     s* = accept(s*, s'_*, search_memory); // Akceptační kritérium
 until stopping_criteria;
 ```
+
+<img alt="img.png" src="img/metody_umele_inteligence/ils.png" width="300"/>
 
 ---
 
@@ -162,14 +169,29 @@ provedených tahů (např. prohozené dvojice prvků u TSP). Tyto atributy jsou 
 
 **Prohledávání s velmi velkým okolím (Very Large-Scale Neighborhood Search - VLNS):** Využívá se, pokud velikost okolí roste exponenciálně 
 nebo jako vysoký polynom. Cílem je najít zlepšujícího souseda efektivně bez kompletní enumerace.
+Od klasického lokálního prohledávání se liší tím, že místo postupného procházení malých změn (např. prohození 2 měst u TSP) 
+mění obrovské části řešení naráz (např. 30 měst) a k nalezení zlepšení využívá chytřejší algoritmy namísto kompletní enumerace všech sousedů.
+
 * *Vyhazovací řetězce (Ejection chains):* Sekvence lokálních opravných operací (přesunů). První krok odstraní aktuální defekt (porušení omezení), 
 ale vyvolá vznik sekundárního defektu. Následující krok opraví ten sekundární, přičemž vyvolá terciární. Řetězec úspěšně končí, když se 
 defekt v nějakém kroku zcela eliminuje bez generování nového.
-* *Large Neighborhood Search (LNS):* Metaheuristika založená na opakované destrukci (**Destroy**) a následné opravy (**Repair**) aktuálního 
-řešení. Algoritmus záměrně znehodnotí část aktuálního stavu a následně ji rekonstruuje výhodnějším způsobem. Destrukce se provádí jako 
-*Random removal* (náhodné odebrání), *Worst-case removal* (odebrání prvků s nejhorším přínosem) nebo *Shaw removal* (odebrání podobných entit). 
-Oprava využívá *Greedy insertion* (vkládání na lokálně nejlepší pozice) nebo *Regret insertion* (upřednostňuje entity s nejvyšší hodnotou 
-lítosti – rozdílem skóre mezi prvním a druhým nejlepším přiřazením).
+
+<img alt="img.png" src="img/metody_umele_inteligence/ejectionchain.png" width="300"/>
+
+* *Large Neighborhood Search (LNS):* Metaheuristika založená na opakované destrukci (**Destroy**) a následné opravě (**Repair**) aktuálního řešení. Algoritmus záměrně znehodnotí část aktuálního stavu (odebere přiřazení podmnožiny rozhodovacích proměnných) a následně ji rekonstruuje výhodnějším způsobem. 
+
+    * **Míra destrukce (Degree of destruction):** Klíčový parametr určující velikost okolí (zpravidla závislý na velikosti instance). Pokud je smazaná část *příliš malá*, algoritmus má problém efektivně prozkoumat prostor a uniknout z lokálních optim. Pokud je *příliš velká*, LNS degraduje na neefektivní *multistart local search*. V praxi se proto míra destrukce buď volí náhodně z určitého rozsahu, nebo se v průběhu výpočtu postupně zvyšuje.
+
+    * **Metody destrukce (Destroy):**
+        * *Random removal:* Náhodné odebrání proměnných/entit (jednoduché, vysoká diverzifikace).
+        * *Worst-case removal:* Odebrání prvků s nejhorším příspěvkem k účelové funkci (např. vyřazení nejdražších tras v logistice).
+        * *Shaw removal:* Odebrání prvků, které jsou si vzájemně podobné (geometricky, časově či strukturálně). Myšlenkou je, že podobné entity lze při následné opravě nejsnáze prohodit a najít lepší kombinaci. *Příklad:* **Skládání krabic do prostoru (3D Bin Packing)** – vyjmeme krabice podobných rozměrů umístěné blízko sebe, abychom je v daném rohu palety poskládali těsněji a bez mezer. V **plánování tras (VRP)** takto odebereme zákazníky, kteří jsou blízko sebe a mají podobná časová okna.
+
+    * **Metody opravy (Repair):** Hledají nové optimální přiřazení pro uvolněné proměnné. Exaktní oprava bývá výpočetně neúnosná, proto se volí heuristiky:
+        * *Greedy insertion:* Vkládání entit na jejich lokálně nejlepší pozice.
+        * *Regret insertion:* Upřednostňuje entity s nejvyšší hodnotou „lítosti“ (*regret*) – tedy ty, které vykazují největší bodovou ztrátu (skóre) mezi svým prvním (nejlepším) a druhým nejlepším možným umístěním. Algoritmus tuto entitu zařadí na její nejlepší pozici prioritně, aby v dalších krocích nelitoval, že mu toto slibné místo obsadil někdo jiný.
+
+    * **Akceptace (Acceptance):** Nově zrekonstruované řešení je přijato buď čistě deterministicky (pouze pokud přináší zlepšení), nebo stochasticky (přijímají se i horší stavy pro únik z lokálního optima, např. podle šablony simulovaného žíhání).
 
 ```pascal
 s := initialSolution; s_best := initialSolution;

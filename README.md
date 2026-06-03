@@ -1,8 +1,13 @@
 # FI-MUNI-SZMGR – Státní závěrečná magisterská zkouška
 
-Materiály k přípravě na státní závěrečnou magisterskou zkoušku na Fakultě informatiky Masarykovy univerzity (FI MUNI). Zpracovala Šárka Blaško s využitím materiálů z hodin vyučujících FI MUNI a jazykových modelů. 2026.
+Materiály k přípravě na státní závěrečnou magisterskou zkoušku na Fakultě informatiky Masarykovy univerzity (FI MUNI). 
+Zpracovala Šárka Blaško s využitím materiálů z hodin vyučujících FI MUNI a jejich kompilací pomocí jazykových modelů. 2026.
 
 Otázky viz https://www.fi.muni.cz/studies/fe-mgr/uizd2018.html
+
+Pokud vám tyto poznámky aspoň trochu pomohly, budu ráda za příspěvek na kafe :)
+
+<img alt="qrkod.jpg" src="img/qrkod.jpg" width="200"/>
 
 # Otázky N-UIZD Umělá inteligence a zpracování dat
 
@@ -29,3 +34,4 @@ _Pro studium od kontrolní šablony 2024/2025 a pro absolventy PV056 od jara 202
 5) **✅[Softwarové inženýrství](./Softwarove_inzenyrstvi.md).** Proces vývoje SW. Metodika Rational Unified Process. Agilní vývoj SW. Fáze testování a typy testů. Softwarové metriky, refaktoring kódu. Kvalita softwaru. Odhadování nákladů a času vývoje SW. Údržba a znovupoužitelnost. (PA017)
 > 6) **Aplikovaná kryptografie.** Symetrická a asymetrická kryptografie, rozdíly a použití. Hašovací funkce a jejich aplikace. Digitální podpis: konstrukce, nepopiratelnost, správa veřejných klíčů, certifikační autority a infrastruktury veřejných klíčů. Autentizace, autorizace a kontrola přístupu. (PV079) (povinné pro studium dle kontrolní šablony 2021/2022 nebo starší)
 > 7) **Programování, organizace a administrace souborů.** UNIX systém: architektura jádra, paměťový model jádra. Program: start a ukončení, argumenty, proměnné prostředí. Proces: atributy procesu, stavy procesu, komunikace mezi procesy (roura, signály, spolehlivé signály). Indexování a hašování: B+ stromy, lineární a rozšiřitelné hašování. Souborový systém: principy, organizace dat, rysy vnějších pamětí, I/O operace, pokročilé I/O operace (multiplexing pomocí select() a poll(), zamykání souborů, scatter-gather I/O, paměťově mapované I/O operace), speciální soubory, distribuované souborové systémy. (PV065, PA152) (povinné pro studium dle kontrolní šablony 2021/2022 nebo starší)
+
