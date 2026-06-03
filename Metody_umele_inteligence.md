@@ -2,7 +2,7 @@
 
 > Prohledávání stavového prostoru, lokální prohledávání a metaheuristiky s jedním řešením, 
 > populační metaheuristiky (evoluční algoritmy, inteligence hejna). 
-> Plánování, reprezentace problému, planning se stavovým prostorem. 
+> Plánování, reprezentace problému, plánování se stavovým prostorem. 
 > Práce s neurčitostí, Bayesovské sítě, exaktní a aproximační odvozování, čas a neurčitost, 
 > teorie užitku, Markovský rozhodovací proces, iterace hodnot, iterace strategie. 
 > Robotika, plánování pohybu robota (konfigurační prostor, kombinatorické a pravděpodobnostní přístupy).
@@ -359,6 +359,8 @@ Změnu stavu realizuje přechodová funkce $\gamma$, přičemž akce a události
 $$\gamma: S \times A \times E \rightarrow 2^S \quad \text{případně} \quad \gamma: S \times (A \cup E) \rightarrow 2^S$$
 
 Plánovací úloha hledá posloupnost kroků vedoucí z počátečního stavu do cíle, přičemž cíl může být definován jako koncový stav, omezení nad trajektorií stavů nebo optimalizace účelové funkce (celkový čas trvání, finanční náklady).
+
+<img alt="img.png" src="img/metody_umele_inteligence/planning.png" width="400"/>
 
 ---
 
@@ -835,7 +837,6 @@ Odvozená strategie $\pi_i$ v praxi konverguje k optimální verzi mnohem dřív
 *Příklady využití z praxe:*
 * ***Optimalizace skladových zásob při stochastické poptávce:** Sklady potřebují znát přesnou dlouhodobou finanční hodnotu (užitek) stavu „mám aktuálně na skladě $X$ kusů zboží“. Iterace hodnot pomáhá přesně spočítat očekávané náklady na skladování a ztráty z nedostatku zboží v situaci, kdy se nákupní chování zákazníků mění podle pravděpodobnostního modelu. Přesná hodnota užitku každého stavu je zde kritická pro správné účetní a logistické plánování.*
 * ***Navigace mobilního robota v měnícím se prostředí:** Pokud se robot (např. autonomní vysavač nebo doručovací rover) pohybuje po diskretizované mřížce, kde hrozí uklouznutí kol nebo neočekávané zablokování cesty, iterace hodnot průběžně přepočítává absolutní bezpečnostní ohodnocení každého čtverce prostoru. Výsledná mapa užitků dává robotovi přesné vodítko, jak moc riskantní je dané místo v porovnání s alternativami.*
-* ***Oceňování finančních derivátů a opcí:** V ekonomických modelech se iterace hodnot využívá k určení exaktní vnitřní hodnoty finanční opce v závislosti na stochastickém vývoji tržních cen (např. u amerických opcí, které lze uplatnit kdykoli před vypršením). Pro investora je klíčové znát přesnou peněžní hodnotu stavu, aby věděl, zda opci držet, nebo prodat.*
 
 Protože optimální chování konverguje mnohem dříve než přesné číselné hodnoty užitků, je v praxi často výhodnější se namísto zdlouhavého zpřesňování čísel zaměřit přímo na stabilizaci pravidel v navazující **Iteraci strategie**.
 
@@ -864,7 +865,6 @@ iterace hodnot.
 
 *Příklady využití z praxe:*
 * ***Řízení robotických paží a manipulátorů (Motion Control):** Pro mechanické systémy s mnoha stupni volnosti je prohledávání všech možných silových akcí v každém kroku (operátor max u iterace hodnot) výpočetně neúnosné. Iterace strategie vezme stávající stabilní chování (např. „udržuj plynulý směr k cíli“), vyhodnotí jeho celkový efekt a v jednom kroku ho globálně vylepší. Hledá se stabilní fyzická odezva, přičemž přesná čísla užitku jednotlivých mikropozic nejsou podstatná.*
-* ***Dynamické směrování paketů v počítačových sítích:** Síťové routery vyžadují stabilní pravidla (strategii) pro předávání dat, která nezačnou chaoticky oscilovat při každém drobném zakolísání šířky pásma. Pomocí iterace strategie se vyhodnotí aktuální směrovací tabulky, a pokud se prokáže, že pro daný uzel existuje dlouhodobě propustnější cesta, pravidla se skokově aktualizují. Algoritmus konverguje v minimu kroků, což je pro vysokorychlostní sítě klíčové.*
 * ***Hraní deskových her a herní AI (např. Backgammon):** Herní agent nepotřebuje znát absolutní matematickou hodnotu šachovnice na tisíciny procenta, ale potřebuje jasnou a stabilní strategii – vědět, jakým konkrétním tahem reagovat na tah soupeře. Iterace strategie umožňuje AI zkonvergovat k optimálnímu hernímu stylu mnohem dříve, než by se stihly dopočítat přesné hodnoty všech miliard teoreticky možných herních stavů.*
 
 ---
@@ -879,6 +879,23 @@ Stav robota se dělí na *kinematický stav* (geometrická pozice a orientace kl
 Percepce (vnímání) je proces mapování měření ze senzorů (zatížených šumem) do vnitřní reprezentace světa. Tento proces se typicky modeluje jako 
 temporální odvozování pomocí Dynamických Bayesovských sítí, které pokrývá lokalizaci (zjišťování polohy robota v mapě), mapování (konstrukce 
 mapy neznámého prostředí) a **SLAM (Simultaneous Localization and Mapping)**, kdy robot současně staví mapu i odhaduje svou polohu v ní.
+
+Podle způsobu interakce s prostředím a mobility dělíme roboty do dvou hlavních kategorií:
+* **Manipulátory (Stacionární roboti):** Jsou pevně ukotveni ke svému pracovišti (např. průmyslová robotická ramena). Mění pouze konfiguraci svého těla a manipulují s objekty v dosahu.
+* **Mobilní roboti:** Pohybují se v prostředí pomocí kol, pásů nebo nohou. Patří sem autonomní pozemní vozidla (**UGV**), drony a bezpilotní letouny (**UAV**), podvodní sondy (**AUV**) či planetární vozítka (rovery).
+
+Kromě energetického hlediska (pasivní vs. aktivní – kde aktivní poskytují více informací za cenu vyšší spotřeby a rizika vzájemného rušení) dělíme senzory podle účelu:
+* **Senzory prostředí (Exteroceptivní):** Měří vlastnosti okolí. Patří sem dálkoměry (LiDAR, sonar) měřící vzdálenost k překážkám.
+* **Senzory polohy (Proprioceptivní/Lokalizační):** Určují pozici robota v globálním rámci. Vně vnímavé jako GPS (venku) či triangulace pomocí Wi-Fi (uvnitř), a vnitřní jako gyroskopy a akcelerometry měřící vlastní zrychlení a změny rychlosti.
+* **Senzory vnitřní konfigurace:** Měří stav samotného robota. Patří sem snímače otáček v kloubech a motorech nebo silové a momentové senzory (klíčové pro manipulaci s křehkými objekty).
+
+Pohybové možnosti robotů jsou definovány jejich mechanickou konstrukcí, která se skládá z kloubů (rotační *revolute* klouby a posuvné *prismatic* klouby) poháněných aktovátory (elektrické, pneumatické či hydraulické pohony).
+
+* **Stupeň volnosti (Degree of Freedom - DOF):** Každý nezávislý směr, kterým se může robot nebo jeho efektor v prostoru pohybovat. Například plně volné podvodní vozidlo (AUV) má 6 DOF: pozici $(x, y, z)$ a úhlovou orientaci (yaw, roll, pitch).
+* **Holonomnost (Holonomic vs. Non-holonomic):**
+  * **Holonomní robot:** Počet ovládaných prvků (motorů/pohonů) odpovídá celkovému počtu stupňů volnosti v konfiguraci. Robot se dokáže okamžitě pohnout jakýmkoliv směrem (např. robotické rameno nebo všesměrový podvozek). Snadno se softwarově řídí.
+  * **Neholonomní robot:** Má méně ovládaných prvků než je celkový počet stupňů volnosti jeho kinematické konfigurace. 
+  *Příklad:* Běžné auto na ploše má 3 kinematické stupně volnosti (může dosáhnout jakékoli souřadnice $[x, y]$ s libovolným natočením $\theta$). Má však pouze 2 ovládané prvky (plyn/zpátečka a volant). Auto se neumí posunout čistě bokem, k dosažení pozice vedle sebe musí složitě manévrovat (paralelní parkování). Řízení takového robota je výpočetně mnohem náročnější.
 
 ---
 
@@ -895,7 +912,6 @@ $q_I$ představuje počáteční stav (konfiguraci) robota a $q_G$ vyjadřuje c�
 Spojitý prostor nelze prohledávat přímo, proto je nutné provést jeho diskretizaci (převod na graf či mřížku) a následně aplikovat vyhledávací 
 algoritmy typu $A^*$ nebo prohledávání do šířky (BFS).
 
-<img alt="img.png" src="img/metody_umele_inteligence/planning.png" width="400"/>
 
 ---
 
@@ -918,6 +934,8 @@ efektoru v pracovním prostoru. Protože explicitní konstrukce celého $C_{obs}
 (probing) – vygenerovaný bod se pomocí dopředné kinematiky otestuje v pracovním prostoru přes "black-box" kolizní detektor.
 
 <img alt="img.png" src="img/metody_umele_inteligence/config vs workspace.png" width="400"/>
+
+<img alt="img.png" src="img/metody_umele_inteligence/configworkexample2.png" width="400"/>
 
 ---
 
