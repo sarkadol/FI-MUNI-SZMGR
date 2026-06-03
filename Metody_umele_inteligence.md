@@ -346,10 +346,10 @@ zdroje nektaru a průzkumníky zajišťující diversifikaci náhodným hledán�
 
 Klasické prohledávání stavového prostoru nebere v úvahu **sémantiku akcí** – operátory přechodu považuje za neprůhledné „černé skříňky“ a slepě generuje uzly bez znalosti vnitřní logiky kroků. Automatické plánování (Automated Planning) dává agentovi schopnost uvažovat o vnitřní struktuře a budoucích důsledcích svého chování na základě explicitního modelu světa, což umožňuje doménově nezávislým algoritmům porozumět významu akcí (jejich předpodmínkám a efektům) a efektivně nalézt optimální posloupnost kroků pro dosažení cíle.
 
-$\Sigma$ představuje stavový transformační systém, $S$ je rekurzivně spočetná množina stavů, $A$ značí rekurzivně spočetnou množinu akcí pod kontrolou plánovače, $E$ je rekurzivně spočetná množina vnějších událostí a $\gamma$ vyjadřuje přechodovou funkci.
-
 Formálně je plánovací prostředí modelováno jako stavový transformační systém o čtyřech prvcích: 
 $$\Sigma = (S, A, E, \gamma)$$
+
+$\Sigma$ představuje stavový transformační systém, $S$ je rekurzivně spočetná množina stavů, $A$ značí rekurzivně spočetnou množinu akcí pod kontrolou plánovače, $E$ je rekurzivně spočetná množina vnějších událostí a $\gamma$ vyjadřuje přechodovou funkci.
 
 V rámci tohoto systému rozlišujeme dva typy přechodových prvků:
 * **Akce ($A$):** Změny stavu, které jsou plně pod kontrolou plánovače (jejich součástí je i prázdná akce `no-op`).
@@ -365,12 +365,9 @@ Plánovací úloha hledá posloupnost kroků vedoucí z počátečního stavu do
 ## Reprezentace problému
 
 Aby bylo možné plánovací problémy řešit univerzálními, doménově nezávislými algoritmy, je nutné zavést formální reprezentaci stavů 
-a akcí. Klasický přístup staví na prvořádové logice (např. koncept STRIPS).
+a akcí. Klasický přístup staví na **predikátové logice**, která se od výrokové logiky liší tím, že namísto práce s nedělitelnými True/False výroky dokáže reprezentovat konkrétní objekty, proměnné a vztahy mezi nimi (predikáty), což umožňuje vytvářet univerzální parametrické šablony akcí (např. koncept STRIPS).
 
-$o$ představuje plánovací operátor, $a$ je plně instanciovaná akce, $s$ značí stav světa, $P$ je plánovací problém, 
-$O$ vyjadřuje doménový model, $s_0$ je počáteční stav, $g$ představuje cílové podmínky, $S_g$ je množina vyhovujících stavů a $\pi$ vyjadřuje výsledný plán.
-
-Aby mohl plánovač logicky odvozovat, definuje stav jako konečnou množinu plně instanciovaných atomů (neobsahuje volné proměnné). 
+Tyto predikáty se v konkrétních stavech projevují jako **atomy** (*Příklad atomu: `at(truck1, brno)` – vyjadřuje konkrétní fakt, že kamion s ID `truck1` se nachází v uzlu `brno`.*). Aby mohl plánovač logicky odvozovat, definuje stav jako konečnou množinu plně instanciovaných atomů (neobsahuje volné proměnné). 
 *Fluenty (Fluents)* jsou atomy, jejichž pravdivostní hodnota se v závislosti na akcích mění (např. `at(robot, location)`). *Rigidní atomy (Rigid atoms)* jsou konstantní a nezávislé na stavu systému (např. `adjacent(loc1, loc2)`). Při vyhodnocování platí **Předpoklad uzavřeného světa (Closed World Assumption - CWA)** – jakýkoli atom, který není explicitně uveden v popisu daného stavu, je považován za nepravdivý.
 
 **Plánovací operátor ($o$):** Parametrická šablona definovaná jako trojice $(\text{name}(o), \text{precond}(o), \text{effects}(o))$. Název obsahuje proměnné, 
@@ -423,19 +420,34 @@ $s_0$ vyjadřuje počáteční stav, $g$ značí cíl plánování, $a$ je akce 
 aplikací všech akcí, které jsou v daném uzlu proveditelné. Je korektní a úplné. Hlavním úskalím je velký faktor větvení (branching factor) 
 – počáteční stav může generovat množství aplikovatelných akcí nesouvisejících s cílem. V reálných plánovačích se proto dopředné prohledávání 
 kombinuje s algoritmem $A^*$, pokročilými doménově nezávislými heuristikami a detekcí duplicitních stavů.
+*Např.: Řízení autonomního vozidla na křižovatce. 
+Počáteční stav je dokonale znám (přesná pozice auta, rychlost, semafor). 
+Počet možných akcí v daný moment je velmi malý (jet rovně, odbočit, brzdit). 
+Dopředný plánovač dokáže bleskově nasimulovat několik kroků dopředu a vybrat bezpečnou trajektorii. 
+Zpětné plánování by zde selhalo, protože cíl („bezpečně projet“) je příliš obecný a pozpátku by 
+generoval miliony teoretických kombinací stavů silnice.*
 
 **2. Zpětné plánování (Backward Planning / Regression):** Startuje od popisu cíle $g$ a postupuje pozpátku k počátečním stavům vytvářením 
 podcílů. V každém kroku vybere pouze takovou akci, která je pro aktuální cíl relevantní ($g \cap \text{effects}(a) \neq \emptyset$ a efekty 
 nejsou v přímém konfliktu s cílem). Výsledkem je regresní množina, která reprezentuje nový podcíl: 
 $$\gamma^{-1}(g, a) = (g \setminus \text{effects}(a)) \cup \text{precond}(a)$$
 Zpětný přístup vykazuje menší faktor větvení než dopředné plánování, protože vůbec neuvažuje irelevantní akce, ale vyžaduje striktní 
-implementaci detekce cyklů na prohledávané větvi.
+implementaci detekce cyklů na prohledávané větvi. 
+*Např.: Globální logistika se 100 kamiony po celé Evropě, kde je cílem doručit jeden jediný balík z Brna do 
+Prahy. Zpětné plánování vyjde z cíle `at(balík, praha)` a okamžitě ví, že ho zajímá pouze akce 
+`vyložit(balík)`. Zbytek světa a zbylých 99 kamionů úplně ignoruje. Dopředný plánovač by v počátečním 
+stavu začal zbytečně simulovat pohyby všech kamionů po celé Evropě.*
 
 **3. Částečně instanciované zpětné plánování (Lifted Backward Planning):** Tato technika odstraňuje zbytečné větvení zpětného plánování 
 tím, že nedosazuje konstanty okamžitě, ale ponechává parametry akcí jako volné proměnné, dokud to není nutné. Využívá 
 **MGU (Most General Unifier - nejobecnější unifikátor)**, což je minimální nutná substituce proměnných, která sjednotí atom v cíli s atomem v efektech operátoru. 
 Tímto způsobem dokáže algoritmus v jednom kroku pokrýt celou sadu potenciálních objektů bez větvení stromu, výměnou za složitější 
-správu unifikačních omezení.
+správu unifikačních omezení. *Např.: Máme cíl doručit balík do Prahy: `at(balík1, praha)`. 
+Standardní zpětné plánování by se větvilo pro každý jednotlivý kamion v doméně 
+(akce `vylož(balík1, praha, kamion1)`, `vylož(balík1, praha, kamion2)`, atd.). 
+Lifted přístup aplikuje MGU a vytvoří jedinou obecnou zpětnou akci `vylož(balík1, praha, ?kamion)`. 
+Identita konkrétního kamionu zůstává otevřená proměnná `?kamion` a specifikuje se až v 
+pozdějších krocích, kdy se prohledávání propojí s reálnou počáteční pozicí nějakého vozu.*
 
 <img alt="img.png" src="img/metody_umele_inteligence/back-for-plan.png" width="900"/>
 
