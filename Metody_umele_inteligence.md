@@ -5,7 +5,7 @@
 > Plánování, reprezentace problému, planning se stavovým prostorem. 
 > Práce s neurčitostí, Bayesovské sítě, exaktní a aproximační odvozování, čas a neurčitost, 
 > teorie užitku, Markovský rozhodovací proces, iterace hodnot, iterace strategie. 
-> Robotika, planning pohybu robota (konfigurační prostor, kombinatorické a pravděpodobnostní přístupy).
+> Robotika, plánování pohybu robota (konfigurační prostor, kombinatorické a pravděpodobnostní přístupy).
 
 ---
 
@@ -500,6 +500,7 @@ Počasí nás v tomto dotazu vůbec nezajímá – je to pro nás **skrytá prom
 Podle vzorce $P(Y) = \sum_{z \in Z} P(Y, z)$ vezmeme všechny řádky, kde je `Zpoždění = Ano`, a sečteme jejich pravděpodobnosti přes všechny možné stavy počasí:
 
 $$P(\text{Zpoždění} = \text{Ano}) = P(\text{Ano}, \text{Prší}) + P(\text{Ano}, \text{Slunečno})$$
+
 $$P(\text{Zpoždění} = \text{Ano}) = 0.15 + 0.08 = \mathbf{0.23}$$
 
 **Výsledek:** Celková pravděpodobnost zpoždění vlaku je 23 %. Proměnnou *Počasí* jsme z výpočtu úspěšně „vysčítali“ (summed out).
@@ -550,12 +551,14 @@ Pro obecné, vícenásobně propojené sítě je tento problém NP-těžký, př
 **2. Aproximační odvozování (Approximate Inference):** Pro rozsáhlé sítě je exaktní výpočet nezvládnutelný, využívají se proto stochastické 
 Monte Carlo algoritmy, které generují velké množství náhodných vzorků a výsledek odhadují z jejich statistické četnosti.
 * *Přímé vzorkování (Direct sampling):* Generuje vzorky od kořenů k listům v topologickém uspořádání grafu podle pravděpodobností v CPT. 
-Neumí nativně zakomponovat pevnou evidenci.
+Neumí nativně zakomponovat pevnou evidenci. *Je výhodné, když nemáme žádnou pevnou evidenci ($e = \emptyset$) a chceme zjistit nepodmíněnou (apriorní) distribuci, simulovat celkové chování systému nebo vygenerovat syntetická data reprezentující typickou populaci.*
 * *Zamítavé vzorkování (Rejection sampling):* Generuje kompletní vzorky pomocí přímého vzorkování, ale jakmile je vygenerovaný vzorek v rozporu 
 s pozorovanou evidencí $e$, okamžitě ho zamítne (zahodí). Pokud je evidence vzácná, algoritmus zlikviduje většinu vzorků a efektivita prudce klesá.
+*Využívá se v situacích, kdy je síť malá, nebo když je evidence vysoce pravděpodobná a běžná, takže k zahazování vzorků nedochází tak často. Jeho výhodou je, že generuje zcela nezkreslené, čisté vzorky bez nutnosti složitého přepočítávání vah.*
 * *Váhová věrohodnost (Likelihood weighting):* Algoritmus, který předchází plýtvání vzorky. Proměnné obsažené v evidenci $e$ zafixuje napevno 
 a náhodně vzorkuje pouze volné proměnné. Každému vzorku přiřadí váhu $w$, jež odpovídá součinu podmíněných pravděpodobností všech fixovaných 
 proměnných v momentě průchodu. Výsledná distribuce se následně normalizuje přes sumu těchto vah.
+*Použije se typicky u rozsáhlých diagnostických úloh se vzácnou evidencí (např. odhad pravděpodobnosti poruchy reaktoru, pokud už svítí varovná kontrolka). Algoritmus neodmítne ani jeden vzorek, ale ty, které neodpovídají realitě přirozeně (např. simulují bezchybný motor, ačkoliv kontrolka svítí), dostanou mizivou váhu $w \approx 0$ a výsledek nezkreslí.*
 
 <img alt="img.png" src="img/metody_umele_inteligence/directsampl-likelweigh.png" width="800"/>
 
@@ -751,7 +754,7 @@ Výpočet provádí rekurzivní vyhodnocování maximální cesty (Viterbiho alg
 Zatímco teorie pravděpodobnosti popisuje, čemu by měl agent věřit, teorie užitku definuje jeho vnitřní cíle a preference. Jejich spojením 
 vzniká **teorie rozhodování (Decision theory)**, která poskytuje rámec pro racionální chování agenta v neurčitém prostředí.
 
-$s$ představuje konkrétní stav světa, $U(s)$ vyjadřuje hodnotu užitku stavu $s$, $a$ značí akci vybranou 
+značení: $s$ představuje konkrétní stav světa, $U(s)$ vyjadřuje hodnotu užitku stavu $s$, $a$ značí akci vybranou 
 agentem, $e$ je pozorovaná evidence a $EU(a \mid e)$ představuje očekávaný užitek akce $a$ za předpokladu evidence $e$.
 
 * **Princip maximalizace očekávaného užitku (Maximum Expected Utility - MEU):** Každému stavu přiřadí užitková funkce $U(s)$ reálné číslo 
@@ -762,9 +765,32 @@ Racionální agent bezpodmínečně volí akci, která tento očekávaný užite
 což znamená, že přírůstek bohatství přináší klesající marginální užitek.
 * **Rozhodovací sítě (Decision Networks / Influence Diagrams):** Mechanismus pro výpočet optimálních rozhodnutí, který rozšiřuje klasické 
 Bayesovské sítě o rozhodovací uzly (obdélníky – body volby akce agenta) a užitkové uzly (kosočtverce – vyjadřují užitkovou funkci).
+* **Vícekriteriální teorie užitku (Multi-attribute utility theory):** Používá se v situacích, kdy jsou výsledné stavy charakterizovány dvěma nebo více různými atributy (např. cena vs. bezpečnost). Pokud nechceme (nebo nemůžeme) všechny tyto atributy hned sloučit do jednoho celkového čísla užitku, využíváme koncept **dominance** pro odfiltrování nevhodných možností:
+  * **Striktní dominance v deterministickém prostředí (Deterministic attributes):** Možnost $A$ je striktně dominována možností $B$, pokud má $B$ lepší nebo rovné hodnoty ve všech sledovaných atributech zároveň. *(Na obrázku: Bod B se nachází ve žluté oblasti, která kompletně dominuje bod A v obou osách $X_1$ i $X_2$. Body C a D jsou s A nedosrovnatelné).*
+  * **Striktní dominance v neurčitém prostředí (Uncertain attributes):** Používá se, pokud jsou výsledky popsány pravděpodobnostním rozložením (oblastmi). Možnost $A$ je striktně dominována možností $B$, pokud všechny možné výsledné stavy z oblasti $B$ striktně dominují všem možným stavům z oblasti $A$. V neurčitém prostředí nastává tato situace méně často, ale představuje silný filtr pro okamžité vyřazení prokazatelně nejhorších strategií bez nutnosti složitých výpočtů. *(Na obrázku: Oblast B kompletně dominuje oblast A, protože je ve všech bodech posunuta vpravo a nahoru).*
+  * **Stochastická dominance (Stochastic dominance):** Nastává v situaci, kdy se pravděpodobnostní distribuce možností $A$ a $B$ v grafu překrývají (nelze použít striktní dominanci), ale z pohledu kumulativní distribuční funkce (CDF) leží distribuce $B$ prokazatelně výhodněji než $A$ (zkratka: pro jakoukoli hodnotu parametru má $B$ vyšší nebo rovnou šanci na dobrý výsledek než $A$). Umožňuje ořezávat možnosti na základě čistého porovnání tvarů pravděpodobnostních křivek.
+  
+<img alt="img.png" src="img/metody_umele_inteligence/decision net.png" width="700"/>
 
 
-<img alt="img.png" src="img/metody_umele_inteligence/decision net.png" width="400"/>
+---
+
+### Užitečnost v čase a optimální strategie (Utilities over time)
+Pokud agent provádí sekvenci kroků, výsledkem není jeden stav, ale sekvence stavů $[s_0, s_1, s_2, \dots]$. Otázkou je, jak definovat celkovou hodnotu užitku takové sekvence.
+
+* **Rozhodovací horizont (Horizon):**
+  * **Konečný horizont (Finite):** Existuje pevný čas $N$, po kterém už na ničem nezáleží. Optimální strategie je **nestacionární** – akce agenta v identickém stavu se mění podle toho, kolik času mu zbývá do uzávěrky (např. jinak riskuje v čase $N-3$ a jinak v čase $N-100$).
+  * **Nekonečný horizont (Infinite):** Neexistuje pevný časový limit. Strategie je **stacionární** – ve stejném stavu se agent chová vždy stejně bez ohledu na aktuální čas.
+
+* **Přiřazení užitku sekvencím (při stacionárních preferencích):**
+  * **Aditivní odměny:** $U([s_0, s_1, s_2, \dots]) = R(s_0) + R(s_1) + R(s_2) + \dots$ (Lze použít jen tehdy, pokud agent garantovaně dorazí do koncového stavu, jinak užitek diverguje do $\pm\infty$).
+  * **Diskontované odměny:** Budoucí odměny mají nižší váhu než okamžité. Pomocí diskontního faktoru $\gamma \in (0, 1)$ je užitek nekonečné sekvence vždy konečný:
+    $$U([s_0, s_1, s_2, \dots]) = \sum_{t=0}^{\infty} \gamma^t R(s_t) \le \frac{R_{\max}}{1 - \gamma}$$
+    *(Vztah vyplývá ze součtu nekonečné geometrické řady).*
+
+* **Optimální strategie ($\pi^*$):**
+  Rozlišujeme **krátkodobou odměnu** za stav $R(s)$ a **dlouhodobý celkový užitek** stavu $U(s) = U^{\pi^*}(s)$. Optimální strategie $\pi^*(s)$ pak v každém stavu vybírá akci, která maximalizuje očekávaný užitek stavu následujícího:
+  $$\pi^*(s) = \arg\max_{a} \sum_{s'} P(s' \mid s, a) U(s')$$
 
 ---
 
@@ -788,6 +814,8 @@ Základním vztahem pro výpočet užitků stavů je **Bellmanova rovnice (Bellm
 plus očekávanému diskontovanému užitku následného stavu za předpokladu, že agent zvolí optimální akci: 
 $$U(s) = R(s) + \gamma \max_{a \in A(s)} \sum_{s'} P(s' \mid s, a) U(s')$$
 
+<img alt="img.png" src="img/metody_umele_inteligence/bellman.png" width="400"/>
+
 ---
 
 ## Iterace hodnot
@@ -804,12 +832,12 @@ Bellmanova aktualizace vykazuje matematickou vlastnost kontrakce s faktorem $\ga
 nezávisle na počátečních hodnotách. Iterace končí, jakmile je maximální změna užitku menší než stanovená mez: $\delta < \epsilon(1-\gamma)/\gamma$. 
 Odvozená strategie $\pi_i$ v praxi konverguje k optimální verzi mnohem dříve, než plně zkonvergují samotné numerické hodnoty užitků $U_i$.
 
-### Příklady využití z praxe:
-* **Optimalizace skladových zásob při stochastické poptávce:** Sklady potřebují znát přesnou dlouhodobou finanční hodnotu (užitek) stavu „mám aktuálně na skladě $X$ kusů zboží“. Iterace hodnot pomáhá přesně spočítat očekávané náklady na skladování a ztráty z nedostatku zboží v situaci, kdy se nákupní chování zákazníků mění podle pravděpodobnostního modelu. Přesná hodnota užitku každého stavu je zde kritická pro správné účetní a logistické plánování.*
-* **Navigace mobilního robota v měnícím se prostředí:** Pokud se robot (např. autonomní vysavač nebo doručovací rover) pohybuje po diskretizované mřížce, kde hrozí uklouznutí kol nebo neočekávané zablokování cesty, iterace hodnot průběžně přepočítává absolutní bezpečnostní ohodnocení každého čtverce prostoru. Výsledná mapa užitků dává robotovi přesné vodítko, jak moc riskantní je dané místo v porovnání s alternativami.*
-* **Oceňování finančních derivátů a opcí:** V ekonomických modelech se iterace hodnot využívá k určení exaktní vnitřní hodnoty finanční opce v závislosti na stochastickém vývoji tržních cen (např. u amerických opcí, které lze uplatnit kdykoli před vypršením). Pro investora je klíčové znát přesnou peněžní hodnotu stavu, aby věděl, zda opci držet, nebo prodat.*
+*Příklady využití z praxe:*
+* ***Optimalizace skladových zásob při stochastické poptávce:** Sklady potřebují znát přesnou dlouhodobou finanční hodnotu (užitek) stavu „mám aktuálně na skladě $X$ kusů zboží“. Iterace hodnot pomáhá přesně spočítat očekávané náklady na skladování a ztráty z nedostatku zboží v situaci, kdy se nákupní chování zákazníků mění podle pravděpodobnostního modelu. Přesná hodnota užitku každého stavu je zde kritická pro správné účetní a logistické plánování.*
+* ***Navigace mobilního robota v měnícím se prostředí:** Pokud se robot (např. autonomní vysavač nebo doručovací rover) pohybuje po diskretizované mřížce, kde hrozí uklouznutí kol nebo neočekávané zablokování cesty, iterace hodnot průběžně přepočítává absolutní bezpečnostní ohodnocení každého čtverce prostoru. Výsledná mapa užitků dává robotovi přesné vodítko, jak moc riskantní je dané místo v porovnání s alternativami.*
+* ***Oceňování finančních derivátů a opcí:** V ekonomických modelech se iterace hodnot využívá k určení exaktní vnitřní hodnoty finanční opce v závislosti na stochastickém vývoji tržních cen (např. u amerických opcí, které lze uplatnit kdykoli před vypršením). Pro investora je klíčové znát přesnou peněžní hodnotu stavu, aby věděl, zda opci držet, nebo prodat.*
 
-*Protože optimální chování konverguje mnohem dříve než přesné číselné hodnoty užitků, je v praxi často výhodnější se namísto zdlouhavého zpřesňování čísel zaměřit přímo na stabilizaci pravidel v navazující **Iteraci strategie**.*
+Protože optimální chování konverguje mnohem dříve než přesné číselné hodnoty užitků, je v praxi často výhodnější se namísto zdlouhavého zpřesňování čísel zaměřit přímo na stabilizaci pravidel v navazující **Iteraci strategie**.
 
 <img alt="img.png" src="img/metody_umele_inteligence/vi-pi.png" width="800"/>
 
@@ -834,10 +862,10 @@ Algoritmus končí v momentě, kdy v kroku greedy aktualizace nedojde k žádné
 konečný a každá iterace přináší strukturální zlepšení, algoritmus garantovaně konverguje a v praxi vyžaduje podstatně méně iterací než čistá 
 iterace hodnot.
 
-### Příklady využití z praxe:
-* **Řízení robotických paží a manipulátorů (Motion Control):** Pro mechanické systémy s mnoha stupni volnosti je prohledávání všech možných silových akcí v každém kroku (operátor max u iterace hodnot) výpočetně neúnosné. Iterace strategie vezme stávající stabilní chování (např. „udržuj plynulý směr k cíli“), vyhodnotí jeho celkový efekt a v jednom kroku ho globálně vylepší. Hledá se stabilní fyzická odezva, přičemž přesná čísla užitku jednotlivých mikropozic nejsou podstatná.*
-* **Dynamické směrování paketů v počítačových sítích:** Síťové routery vyžadují stabilní pravidla (strategii) pro předávání dat, která nezačnou chaoticky oscilovat při každém drobném zakolísání šířky pásma. Pomocí iterace strategie se vyhodnotí aktuální směrovací tabulky, a pokud se prokáže, že pro daný uzel existuje dlouhodobě propustnější cesta, pravidla se skokově aktualizují. Algoritmus konverguje v minimu kroků, což je pro vysokorychlostní sítě klíčové.*
-* **Hraní deskových her a herní AI (např. Backgammon):** Herní agent nepotřebuje znát absolutní matematickou hodnotu šachovnice na tisíciny procenta, ale potřebuje jasnou a stabilní strategii – vědět, jakým konkrétním tahem reagovat na tah soupeře. Iterace strategie umožňuje AI zkonvergovat k optimálnímu hernímu stylu mnohem dříve, než by se stihly dopočítat přesné hodnoty všech miliard teoreticky možných herních stavů.*
+*Příklady využití z praxe:*
+* ***Řízení robotických paží a manipulátorů (Motion Control):** Pro mechanické systémy s mnoha stupni volnosti je prohledávání všech možných silových akcí v každém kroku (operátor max u iterace hodnot) výpočetně neúnosné. Iterace strategie vezme stávající stabilní chování (např. „udržuj plynulý směr k cíli“), vyhodnotí jeho celkový efekt a v jednom kroku ho globálně vylepší. Hledá se stabilní fyzická odezva, přičemž přesná čísla užitku jednotlivých mikropozic nejsou podstatná.*
+* ***Dynamické směrování paketů v počítačových sítích:** Síťové routery vyžadují stabilní pravidla (strategii) pro předávání dat, která nezačnou chaoticky oscilovat při každém drobném zakolísání šířky pásma. Pomocí iterace strategie se vyhodnotí aktuální směrovací tabulky, a pokud se prokáže, že pro daný uzel existuje dlouhodobě propustnější cesta, pravidla se skokově aktualizují. Algoritmus konverguje v minimu kroků, což je pro vysokorychlostní sítě klíčové.*
+* ***Hraní deskových her a herní AI (např. Backgammon):** Herní agent nepotřebuje znát absolutní matematickou hodnotu šachovnice na tisíciny procenta, ale potřebuje jasnou a stabilní strategii – vědět, jakým konkrétním tahem reagovat na tah soupeře. Iterace strategie umožňuje AI zkonvergovat k optimálnímu hernímu stylu mnohem dříve, než by se stihly dopočítat přesné hodnoty všech miliard teoreticky možných herních stavů.*
 
 ---
 
