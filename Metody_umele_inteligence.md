@@ -452,22 +452,20 @@ pozdějších krocích, kdy se prohledávání propojí s reálnou počáteční
 <img alt="img.png" src="img/metody_umele_inteligence/back-for-plan.png" width="900"/>
 
 ---
-
 ## Práce s neurčitostí
 
 Čistě logické odvozování v reálném světě naráží na neúplnost informací a šum senzorů. Teorie pravděpodobnosti poskytuje exaktní matematický 
 aparát pro reprezentaci neurčitosti, kvantifikaci rizika a optimální rozhodování.
 
-$Y$ představuje dotazovanou proměnnou, $Z$ značí množinu skrytých proměnných, $z$ je konkrétní stav skrytých 
-proměnných, $x, y$ vyjadřují konkrétní jevy a $P(x \mid y)$ je podmíněná pravděpodobnost jevu $x$ za předpokladu $y$.
+$Y$ představuje dotazovanou proměnnou, $E$ značí množinu pozorovaných proměnných (evidence) s konkrétními hodnotami $e$, $Z$ značí množinu skrytých (nezařazených) proměnných, $z$ je konkrétní stav skrytých proměnných, $x, y$ vyjadřují konkrétní jevy a $P(x \mid y)$ je podmíněná pravděpodobnost jevu $x$ za předpokladu $y$.
 
-* **Sdružená pravděpodobnostní distribuce (Joint probability distribution):** Tabulka pokrývající pravděpodobnosti všech možných kombinací 
-stavů v doméně. Umožňuje odpovědět na jakýkoli dotaz, ale její velikost roste exponenciálně ($2^n$).
-* **Marginalizace (Marginalization / Summing out):** Výpočet pravděpodobnosti menší množiny proměnných sečtením (integrováním) pravděpodobností 
-přes všechny možné hodnoty ostatních (skrytých) proměnných $Z$: 
-$$P(Y) = \sum_{z \in Z} P(Y, z)$$
-* **Bayesův teorém (Bayes' theorem):** Základní vztah umožňující otočit směr podmínění, což je klíčové pro diagnostické systémy určující 
-pravděpodobnost skryté příčiny na základě pozorovaných efektů: 
+* **Sdružená pravděpodobnostní distribuce (Joint probability distribution):** Kompletní tabulka pokrývající pravděpodobnosti všech možných kombinací stavů všech proměnných v doméně. Umožňuje exaktně odpovědět na jakýkoli dotaz, ale její velikost roste exponenciálně ($2^n$), což ji činí pro reálné systémy výpočetně i paměťově neúnosnou.
+* **Absolutní nezávislost (Independence):** Jevy $X$ a $Y$ jsou nezávislé, pokud vědomí o jednom nezmění pravděpodobnost druhého ($P(X \mid Y) = P(X)$). Umožňuje sdruženou distribuci kompletně rozložit na součin separátních tabulek: $P(X, Y) = P(X)P(Y)$. V reálném světě je však takto čistá nezávislost vzácná.
+* **Podmíněná nezávislost (Conditional independence):** Jevy $X$ a $Y$ jsou nezávislé *za předpokladu* znalosti třetího jevu $Z$, pokud platí $P(X \mid Y, Z) = P(X \mid Z)$. Toto je nejdůležitější koncept pro redukci komplexnosti v AI (základ Bayesovských sítí) – např. symptomy pacienta jsou na sobě nezávislé, jakmile známe samotnou diagnózu (příčinu).
+* **Marginalizace (Marginalization / Summing out):** Výpočet pravděpodobnosti menší množiny proměnných sečtením pravděpodobností přes všechny možné hodnoty ostatních (skrytých) proměnných $Z$. V praxi se často kombinuje s podmíněním pro výpočet dotazu $Y$ při známém pozorování $e$: 
+$$P(Y \mid e) = \alpha P(Y, e) = \alpha \sum_{z \in Z} P(Y, e, z)$$
+*(kde $\alpha$ je normalizační konstanta zajišťující, že součet pravděpodobností výsledného vektoru bude přesně 1).*
+* **Bayesův teorém (Bayes' theorem):** Základní vztah odvozený z definice podmíněné pravděpodobnosti, umožňující otočit směr podmínění. To je klíčové pro diagnostické systémy určující pravděpodobnost skryté příčiny na základě pozorovaných efektů/symptomů, které lze snadno statisticky měřit z opačného směru: 
 $$P(\text{příčina} \mid \text{efekt}) = \frac{P(\text{efekt} \mid \text{příčina}) \times P(\text{příčina})}{P(\text{efekt})}$$
 
 ---
@@ -529,21 +527,20 @@ proměnných v momentě průchodu. Výsledná distribuce se následně normalizu
 
 ## Čas a neurčitost
 
-Při modelování dynamického světa v čase se využívá rozdělení na diskrétní časové řezy (*time slices*). Rozlišujeme skryté náhodné 
-proměnné $X_t$ (stav systému) a pozorovatelné proměnné $E_t$ (evidence/měření ze senzorů).
+Při modelování dynamického světa v čase se využívá rozdělení na diskrétní časové řezy (*time slices*). Rozlišujeme skryté náhodné proměnné $X_t$ (skutečný stav systému) a pozorovatelné proměnné $E_t$ (evidence/měření ze senzorů).
 
-$X_t$ představuje skrytou stavovou proměnnou v čase $t$, $E_t$ značí pozorovatelnou proměnnou v čase $t$, 
-$e_t$ vyjadřuje konkrétní hodnotu pozorování, $X_{0:t}$ je sekvence skrytých stavů od času 0 do $t$ a $E_{1:t}$ vyjadřuje sekvenci pozorování 
-od času 1 do $t$.
+$X_t$ představuje skrytou stavovou proměnnou v čase $t$, $E_t$ značí pozorovatelnou proměnnou v čase $t$, $e_t$ vyjadřuje konkrétní hodnotu pozorování, $X_{0:t}$ je sekvence skrytých stavů od času 0 do $t$ a $E_{1:t}$ vyjadřuje sekvenci pozorování od času 1 do $t$.
 
-Aby byl model výpočetně realizovatelný, zavádí se dva základní předpoklady:
-* *Markovský předpoklad (Markov property / assumption):* Aktuální skrytý stav systému závisí striktně pouze na stavu bezprostředně předcházejícím: 
-$P(X_t \mid X_{0:t-1}) = P(X_t \mid X_{t-1})$. Starší historie nemá na budoucnost vliv. Pokud se pravidla přechodů v čase nemění, jde o stacionární proces.
-* *Senzorický Markovský předpoklad (Sensor Markov assumption):* Evidence $E_t$ v čase $t$ závisí výhradně na současném skrytém stavu světa $X_t$: 
-$P(E_t \mid X_{0:t}, E_{1:t-1}) = P(E_t \mid X_t)$.
+Tento dynamický proces je v každém časovém kroku formálně popsán dvěma komponentami, které pro zajištění výpočetní realističnosti využívají zjednodušující **Markovské předpoklady**:
 
+* **Přechodový model (Transition model):** Definuje distribuci $P(X_t \mid X_{0:t-1})$ popisující „fyziku“ vývoje stavu v čase. Abychom nemuseli uvažovat celou historii až do počátku věků, aplikuje se **Markovský předpoklad (Markov property)**: aktuální stav závisí striktně pouze na stavu bezprostředně předcházejícím:
+  $$P(X_t \mid X_{0:t-1}) = P(X_t \mid X_{t-1})$$
+  Pokud se tato pravidla v čase nemění (stacionární proces), lze model v diskrétním případě reprezentovat jako fixní *Matici přechodu*.
 
 <img alt="img.png" src="img/metody_umele_inteligence/markov.png" width="400"/>
+
+* **Senzorický model (Sensor / Observation model):** Definuje distribuci $P(E_t \mid X_{0:t}, E_{1:t-1})$ určující, s jakou pravděpodobností senzory vygenerují měření $E_t$. Zde se uplatňuje **Senzorický Markovský předpoklad (Sensor Markov assumption)**: aktuální měření závisí výhradně na současném skrytém stavu světa $X_t$ a historická měření ani staré stavy na něj nemají vliv:
+  $$P(E_t \mid X_{0:t}, E_{1:t-1}) = P(E_t \mid X_t)$$
 
 Celý časový vývoj lze popsat dynamickou Bayesovskou sítí jako součin lokálních přechodových a senzorických modelů: 
 $$P(X_{0:t}, E_{1:t}) = P(X_0) \prod_{i=1}^{t} P(X_i \mid X_{i-1}) P(E_i \mid X_i)$$
