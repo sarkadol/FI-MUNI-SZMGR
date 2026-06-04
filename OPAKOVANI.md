@@ -279,11 +279,10 @@
   * *Kritérium celkové variability:* Ponechat dostatek komponent pro zachování 80–90 % původního rozptylu.
 * **Scores vs. Loadings:** *Loadings* jsou korelace mezi původními proměnnými a hlavními komponentami (vlastní vektory). *Scores* jsou nově transformované souřadnice původních pozorování v novém prostoru hlavních komponent.
 </details>
-
 # Infrastrukturní a cloudové systémy
 
 <details>
-<summary>Architektura datových center (Data-center architecture)</summary>
+<summary>Data-center architecture</summary>
 
 * **Datové centrum (DC):** Komplexní technologický objekt navržený pro integraci IT vybavení (servery, úložiště, síťové prvky) a podpůrné infrastruktury (napájení, chlazení, bezpečnost).
 * **PUE (Power Usage Effectiveness):** Klíčová metrika efektivity DC vyjadřující poměr celkové energie spotřebované objektem k energii spotřebované čistě IT hardwarem: $\text{PUE} = \frac{\text{Celková energie}}{\text{Energie IT vnější zátěže}}$. Ideální hodnota je 1.0, moderní cloudová DC dosahují ~1.1.
@@ -294,7 +293,7 @@
 </details>
 
 <details>
-<summary>Superpočítače vs. heterogenní clustery (Supercomputers vs. heterogeneous clusters)</summary>
+<summary>Supercomputers vs. heterogeneous clusters</summary>
 
 * **Superpočítače (HPC - High Performance Computing):** Monolitické, vysoce specializované systémy složené z homogenního hardware, navržené pro řešení extrémně **těsně vázaných (tightly-coupled)** úloh vyžadujících masivní synchronizaci v reálném čase.
 * **MPI (Message Passing Interface):** Standardizovaný komunikační protokol a knihovna používaná u superpočítačů pro předávání zpráv mezi procesy běžícími na tisících samostatných výpočetních jader v distribuované paměti.
@@ -304,12 +303,12 @@
 </details>
 
 <details>
-<summary>Orchestrační architektury (PBS/grids, Kubernetes, OpenStack)</summary>
+<summary>Orchestration architectures (PBS/grids, Kubernetes, OpenStack)</summary>
 
-* **Orchestrace infrastruktury:** Automatizovaný proces správy, plánování, alokace zdrojů a životního cyklu aplikací nebo hardwarových prostředků v distribuovaném prostředí.
+* **Orchestrace infrastruktury:** Automatizovaný proces správy, planningu, alokace zdrojů a životního cyklu aplikací nebo hardwarových prostředků v distribuovaném prostředí.
 * **PBS (Portable Batch System) / Slurm:** Plánovače zaměřené na dávkové zpracování úloh (*Batch processing*) v HPC. Uživatel zadá úlohu do fronty s požadavky na zdroje a systém ji spustí v momentě, kdy je HW volný, s cílem maximalizovat celkovou utilizaci strojů.
 * **Fairshare algoritmus:** Prioritizační mechanismus v dávkových systémech, který dynamicky upravuje prioritu čekajících úloh na základě historického objemu prostředků, které daný uživatel či projekt v poslední době vyčerpal.
-* **Backfilling:** Optimalizační strategie plánovače HPC, která do dočasně vzniklých časových a kapacitních mezer (kdy systém čeká na uvolnění velkého počtu uzlů pro masivní výpočet) "vsune" menší, krátké úlohy, které stihnou doběhnout před startem hlavní úlohy.
+* **Backfilling:** Optimalizační strategie plánovače HPC, která do dočasně vzniklých časových a kapacitních mezer (kdy systém čeká na uvolnění velkého počtu uzlů pro masivní výpočet) "vsune" menší, krátké úlohy, které stihnou dříve doběhnout před startem hlavní úlohy.
 * **OpenStack (IaaS):** Komplexní modulární open-source cloudová platforma pro správu a virtualizaci hardwarových zdrojů, poskytující uživatelům on-demand přístup k virtuálním strojům (VM) s plnými administrátorskými (root) právy.
 * **Komponenty OpenStack:** *Nova* (compute modul řídící životní cyklus VM), *Neutron* (správa virtuálních sítí a firewallů), *Keystone* (autentizace a autorizace), *Cinder* (perzistentní blokové úložiště pro VM).
 * **Kubernetes (K8s / CaaS):** Orchestrační platforma specializovaná na automatizaci nasazování, škálování a správu aplikací zabalených do **kontejnerů**, které na rozdíl od VM sdílejí jádro hostitelského OS.
@@ -318,7 +317,7 @@
 </details>
 
 <details>
-<summary>GPU vs. CPU výpočty a masivní paralelismus (GPU vs. CPU computing & workloads)</summary>
+<summary>GPU vs. CPU computing and workloads that benefit from massive parallelism</summary>
 
 * **CPU (Latency Oriented):** Architektura optimalizovaná pro minimalizaci času vykonání jednoho sekvenčního vlákna (nízká latence). Většinu plochy čipu zabírá složitá řídicí logika (Control Unit, Branch Prediction) a masivní vyrovnávací paměti (*Cache*).
 * **GPU (Throughput Oriented):** Architektura optimalizovaná pro maximální celkový objem paralelně vykonané práce za jednotku času (vysoká propustnost). Skládá se z tisíců jednoduchých jader (ALU) seskupených do bloků sdílejících řídicí logiku.
@@ -331,7 +330,7 @@
 </details>
 
 <details>
-<summary>Škálovatelné aplikační modely (Scalable application models)</summary>
+<summary>Scalable application models</summary>
 
 * **Škálovatelnost:** Schopnost systému efektivně absorbovat zvýšený objem požadavků/zátěže lineárním navýšením hardwarových prostředků bez strukturální změny architektury či degradace výkonu.
 * **Vertikální škálování (Scale-up):** Zvyšování výkonu stávajícího uzlu přidáním silnějšího procesoru, více RAM či rychlejšího disku. Má pevné hardwarové limity a finančně roste exponenciálně.
@@ -344,7 +343,7 @@
 </details>
 
 <details>
-<summary>Úrovně úložišť, technologie, teplota dat a přesun (Storage tiers & movement)</summary>
+<summary>Storage tiers, technologies, data temperature and movement</summary>
 
 * **Teplota dat:** Klasifikace dat na základě frekvence přístupu a modifikace. Rozlišuje se data **Horká** (Hot - aktivně využívaná, kritická latence), **Teplá** (Warm - méně častý přístup, vyvážený poměr cena/výkon) a **Studená/Archivní** (Cold - přístup výjimečně, důraz na nejnižší cenu za GB).
 * **Hierarchie úložišť (Storage Tiers):** Odstupňování technologií od nejrychlejších po nejlevnější. *Tier 0/1* (HBM, RAM, NVMe SSD pro horká data), *Tier 2* (SAS/SATA HDD pro teplá data), *Tier 3* (Páskové knihovny LTO, cloudové cold archivy pro studená data).
@@ -359,7 +358,7 @@
 </details>
 
 <details>
-<summary>Odolnost a spolehlivost infrastruktury (Infrastructure resilience)</summary>
+<summary>Infrastructure resilience and reliability</summary>
 
 * **SPOF (Single Point of Failure):** Jakákoliv kritická komponenta systému (např. jeden switch, jeden napájecí zdroj, jeden disk), jejíž případné selhání způsobí okamžitý výpadek celé infrastruktury či služby. Cílem resilientního návrhu je eliminace všech SPOF.
 * **Klasifikace Uptime Institute (Data Center Tiers):** Standardizované hodnocení spolehlivosti fyzických DC. *Tier I* (základní bez redundance), *Tier II* (částečná redundance komponent N+1), *Tier III* (souběžná udržitelnost bez přerušení provozu IT), *Tier IV* (úplná odolnost proti chybám - Fault Tolerance, zvládne jakýkoliv výpadek HW větví).
@@ -371,7 +370,7 @@
 </details>
 
 <details>
-<summary>Automatizace, DevOps/GitOps a SRE</summary>
+<summary>Automation, DevOps/GitOps and SRE</summary>
 
 * **DevOps:** Kulturní a organizační hnutí zaměřené na smazání bariér mezi vývojem softwaru (*Dev*) a jeho provozem (*Ops*) skrze sdílenou odpovědnost, kontinuální zpětnou vazbu a masivní automatizaci.
 * **CI/CD (Continuous Integration / Continuous Deployment):** *CI* automaticky integruje, sestavuje a testuje kód při každé změně v Gitu pro včasnou detekce chyb. *CD* zajišťuje automatizované a bezpečné nasazení úspěšně otestovaného buildu přímo do produkčního prostředí.
@@ -384,7 +383,7 @@
 </details>
 
 <details>
-<summary>Workflow manažeři a přenositelnost úloh (Workflow managers & portability)</summary>
+<summary>Workflow managers and workload portability</summary>
 
 * **Workflow Manager:** Softwarový nástroj navržený pro orchestraci, exekuci a monitorování komplexních výpočetních řetězců (pipelines), kde výstup jednoho programu tvoří vstup pro další. Kroky a jejich závislosti jsou typicky modelovány jako **DAG** (Directed Acyclic Graph).
 * **Příklady workflow nástrojů:** *Nextflow* a *Snakemake* (standardy v bioinformatice a zpracování velkých vědeckých dat, podporující nativní integraci s HPC a cloudem), *Apache Airflow* (využívaný v datovém inženýrství).
@@ -394,7 +393,7 @@
 </details>
 
 <details>
-<summary>Identita, SSO a AAI (Identity, SSO, and AAI)</summary>
+<summary>Identity, SSO, and AAI</summary>
 
 * **Identita uživatele:** Digitální reprezentace entity v systému, složená z unikátního identifikátoru a sady doprovodných atributů (jméno, e-mail, role, domovská organizace).
 * **Autentizace (AuthN):** Bezpečnostní proces ověření deklarované identity subjektu (odpověď na otázku „Kdo jsi?“), realizovaný pomocí jednoho či více faktorů (heslo, hardwarový token, biometrie, MFA).
@@ -406,14 +405,13 @@
 * **OIDC (OpenID Connect):** Moderní identifikační vrstva postavená nad autorizačním protokolem OAuth 2.0. Pro přenos identity využívá odlehčený formát JSON a kryptograficky podepsané **JWT tokeny** (JSON Web Token), což z něj dělá standard pro cloudové a webové mikroslužby.
 * **Proxy IdP:** Pokročilý integrační mezičlánek (např. systém *Perun* nebo *Unity* v e-INFRA CZ), který vystupuje jako jednotná brána mezi stovkami externích federativních IdP a koncovými službami. Agreguje uživatelské identity, obohacuje je o specifické atributy a spravuje členství ve virtuálních organizacích (*VO*).
 </details>
-
 # Databáze
 
 <details>
 <summary>Ukládání dat</summary>
 
 * **I/O úzké hrdlo (I/O Bottleneck):** Primární limit výkonu DBMS způsobený řádovým rozdílem rychlostí mezi operacemi v operační paměti RAM a sekundárním úložištěm. Architektura DB je navržena tak, aby minimalizovala diskové operace.
-* **Stránky (Bloky):** Atomická jednotka přenosu dat mezi RAM a diskem. Hardwarová vrstva nedokáže efektivně číst/zapisovat jednotlivé bajty, proto komunikace probíhá vždy v ucelených blocích (typicky o velikosti $4\text{ KiB}$ až $8\text{ KiB}$).
+* **Stránky (Bloky):** Atomická jednotka přenosu datet mezi RAM a diskem. Hardwarová vrstva nedokáže efektivně číst/zapisovat jednotlivé bajty, proto komunikace probíhá vždy v ucelených blocích (typicky o velikosti $4\text{ KiB}$ až $8\text{ KiB}$).
 * **Náhodný vs. Sekvenční přístup u HDD:** Mechanická konstrukce pevných disků (seek hlavy + rotační latence) způsobuje, že náhodný přístup (*Random I/O*) je až $300\times$ pomalejší než sekvenční přístup (*Sequential I/O*), u kterého se čtecí hlava přesune pouze jednou.
 * **Out-of-place Updates (SSD):** Architektonická vlastnost NAND Flash pamětí, kde lze číst a zapisovat po stránkách, ale mazat pouze po celých blocích. Data nelze přepsat na stejném místě; nová verze se zapíše na čistou stránku a stará se označí za neplatnou.
 * **Write Amplification (Zesílení zápisu):** Nežádoucí jev u SSD disků, kdy interní správa a čištění neplatných stránek (*Garbage Collection*) vyvolá přesuny dat na pozadí, v důsledku čehož disk fyzicky zapíše mnohonásobně více dat, než databáze reálně požadovala.
@@ -430,7 +428,7 @@
 * **Nepřímé adresování:** Výhoda architektury Slotted-Page. Externí struktury (indexy) neodkazují na absolutní fyzickou adresu řádku, ale na **ID slotu**. Pokud se řádek v rámci stránky posune, změní se pouze ofset v adresáři, ID slotu zůstává stejné a indexy netřeba aktualizovat.
 * **Record ID (RID / ROWID):** Logicko-fyzický identifikátor řádku, který jednoznačně definuje umístění záznamu na disku. Skládá se z trojice: $\text{RID} = \langle \text{File ID}, \text{Page ID}, \text{Slot ID} \rangle$.
 * **Heap File (Hromada):** Organizace souboru, kde se řádky ukládají na stránky v takovém pořadí, v jakém přicházejí, na libovolné volné místo. Zápis je extrémně rychlý $O(1)$, vyhledávání vyžaduje pomalý full table scan $O(N)$.
-* **Sequential File (Sekvenční soubor):** Soubor udržovaný v permanentně setříděném pořadí podle vyhledávacího klíče. Vyhledávání je rychlé $O(\log N)$ pomocí binárního půlení intervalů nad bloky, ale zápis je extrémně drahý kvůli nutnosti fyzického přesunu dat.
+* **Sequential File (Sekvenční soubor):** Soubor udržovaný v permanentně setříděném pořadí podle vyhledávacího klíče. Vyhledávání je rychlé $O(\log N)$ pomocí binárního půlení intervalů nad bloky, ale zápis jest extrémně drahý kvůli nutnosti fyzického přesunu dat.
 * **Hashed File (Hašovaný soubor):** Organizace, kde je číslo cílové stránky (bucketu) pevně určeno matematickou funkcí: $\text{Číslo stránky} = h(\text{Klíč}) \bmod M$. Vyhledávání na přesnou shodu je okamžité $O(1)$, ale rozsahové dotazy jsou zcela nepoužitelné.
 </details>
 
@@ -452,7 +450,7 @@
 
 * **Rastrový (Bitmap) index:** Index reprezentující přítomnost či nepřítomnost konkrétní hodnoty pomocí sekvencí bitů (jedniček a nul) namísto klasických RID ukazatelů. Každému unikátnímu řádku odpovídá jedna bitová pozice ve vektoru.
 * **Rychlost bitových operací:** Hlavní výhoda bitmap. Vyhledávání kombinovaných podmínek (`AND`, `OR`, `NOT`) probíhá extrémně rychle na hardwarové úrovni procesoru pouhým protnutím či sloučením bitových vektorů.
-* **Vhodnost použití:** Ideální pro sloupce s **nízkou kardinalitou** (malý počet unikátních hodnot, napž. stav objednávky, pohlaví, kraj) a pro analytické systémy typu datových skladů (OLAP), kde převládá hromadné čtení nad zápisy.
+* **Vhodnost použití:** Ideální pro sloupce s **nízkou kardinalitou** (malý počet unikátních hodnot, např. stav objednávky, pohlaví, kraj) a pro analytické systémy typu datových skladů (OLAP), kde převládá hromadné čtení nad zápisy.
 * **Zamykání souběhu (Lock Contention):** Hlavní nevýhoda v transakčních systémech (OLTP). Modifikace byť jediného řádku vyžaduje aktualizaci bitmapového vektoru, což efektivně zamyká celý příslušný datový blok řádků a paralyzuje paralelní zápisy.
 * **Run-Length Encoding (RLE) komprese:** Kompresní metoda bitmapových indexů, která namísto ukládání jednotlivých bitů zaznamenává délku nepřerušených úseků shodných hodnot (runů) zakončených jedničkou, což radikálně zmenšuje prostor na disku.
 * **Unární kódování délky (Prefixové):** Mechanismus v RLE umožňující parseru správně oddělit komprimovaná čísla v nepřerušeném bitovém proudu. Před samotnou hodnotu se zapíše její bitová délka v unární soustavě zakončená nulou (např. délka 4 bity se zapíše jako `11110`).
@@ -470,10 +468,9 @@
 </details>
 
 <details>
-<summary>Vyhodnocování dotazu, algoritmy a odhady nákladů</summary>
+<summary>Vyhodnocování dotazu a algoritmy</summary>
 
 * **Logický vs. Fyzický plán:** Logický plán je strom operátorů relační algebry definující *co* se má provést (např. Natural Join). Fyzický plán specifikuje konkrétní algoritmickou implementaci, tedy *jak* se to provede (např. Hash Join).
-* **Cost-Based Optimizer (CBO):** Moderní optimalizátor, který generuje ekvivalentní prováděcí plány a na základě statistických metadat odhaduje jejich cenu v arbitrárních jednotkách (I/O operace + CPU cykly). Vybírá plán s nejnižší cenou.
 * **Pipelining (Proudové zpracování):** Ideální režim exekuce, kdy si operátory ve stromu předávají mezivýsledky průběžně po jednotlivých řádcích přímo v paměti RAM bez nutnosti zápisu na disk.
 * **Materializace a Pipeline Breakers:** Stav, kdy operátor musí kompletně zpracovat všechna data ze vstupu a zapsat celkový mezivýsledek do dočasné tabulky, než jej může předat dál. Operátory jako `ORDER BY`, `GROUP BY` nebo Build fáze `Hash Join` fungují jako bariéry proudového zpracování.
 * **Externí třídění (External Merge Sort):** Třídicí algoritmus pro data, která se nevejdou do RAM ($M$ bloků). V první fázi se data po částech načtou, setřídí a zapíšou jako setříděné běhy (*runs*). V druhé fázi se runs paralelně slévají za využití $M-1$ vstupních bufferů.
@@ -481,19 +478,30 @@
 * **Indexed Nested-Loop Join:** Pokud má vnitřní tabulka index nad spojovacím sloupcem, neprochází se celá. Pro každý řádek z vnější tabulky se shoda vyhledá přímo přes index. Výhodné, pokud je vnější tabulka malá.
 * **Sort-Merge Join:** Algoritmus, který obě relace nejprve samostatně setřídí podle spojovacího klíče a následně je paralelně prochází jedním lineárním průchodem, při kterém rovnou páruje shody.
 * **Hash Join:** Nejejefektivnější join pro velké tabulky bez indexů. V *Build fázi* se nad menší tabulkou vybuduje v paměti RAM hashovací tabulka. V *Probe fázi* se sekvenčně čte větší tabulka a její klíče se okamžitě ověřují proti hashovací tabulce v RAM.
+</details>
+
+<details>
+<summary>Statistiky a odhady nákladů</summary>
+
+* **Cost-Based Optimizer (CBO):** Moderní optimalizátor, který generuje ekvivalentní prováděcí plány a na základě statistických metadat odhaduje jejich cenu v arbitrárních jednotkách (I/O operace + CPU cykly). Vybírá plán s nejnižší cenou.
 * **Metadata katalogu:** $T(R)$ je celkový počet řádků (kardinalita), $B(R)$ je počet diskových bloků, $V(R, A)$ je počet unikátních hodnot atributu $A$. Tyto statistiky doplňují frekvenční histogramy zachycující datové zešikmení (*skew*).
 * **Odhad selektivity ($sf$):** Podíl řádků splňujících podmínku. Pro rovnost platí $sf = 1 / V(R, A)$. Pro konjunkci (`AND`) nezávislých podmínek se selektivity násobí: $sf(C_1 \land C_2) = sf(C_1) \cdot sf(C_2)$. Pro disjunkci (`OR`) platí princip inkluze a exkluze: $sf(C_1) + sf(C_2) - (sf(C_1) \cdot sf(C_2))$.
 * **Odhad velikosti Natural Join:** Výpočet předpokládající rovnoměrné rozdělení, kde se velikost výsledku odhaduje na základě maximálního počtu unikátních hodnot společného atributu $A$: $T(R_1 \bowtie R_2) = \frac{T(R_1) \cdot T(R_2)}{\max\{V(R_1, A), V(R_2, A)\}}$.
 </details>
 
 <details>
-<summary>Optimalizace dotazů, schémat a pravidla transformace</summary>
+<summary>Optimalizace dotazů a schémat</summary>
 
 * **Normalizace vs. Denormalizace:** Normalizace (až do BCNF) odstraňuje redundanci a anomálie rozdělením dat do více tabulek, což ale vynucuje drahé `JOIN` operace. Denormalizace záměrně porušuje normální formy (duplikuje data) pro zrychlení kritických dotazů za cenu vyšších nároků na zápis.
 * **Clusterované ukládání (Clustered Storage):** Fyzické ukládání záznamů ze dvou různých tabulek k sobě na disku na základě společného klíče (např. řádky položek objednávky přímo za konkrétní hlavičku objednávky), což umožňuje bleskové čtení bez logického joinování.
 * **Materializovaný pohled (Materialized View):** Pohled, jehož výsledná data jsou fyzicky vypočtena a uložena jako tabulka na disku. Urychluje čtení; optimalizátor umí přepsat původní složitý dotaz přímo na materializovaný pohled (*Query Rewrite*).
+</details>
+
+<details>
+<summary>Pravidla pro transformaci dotazů</summary>
+
 * **Komutativita a Asociativita operátorů:** Logická pravidla umožňující optimalizátoru libovolně měnit pořadí provádění operací ve stromu dotazu (platí pro Natural Join, Kartézský součin i Sjednocení), aniž by se změnil výsledek: $R \bowtie S = S \bowtie R$ a $(R \bowtie S) \bowtie T = R \bowtie (S \bowtie T)$.
-* **Včasná selekce (Pushing Selections Down):** Zásadní heuristika optimalizace. Přesunutí filtračního operátoru $\sigma$ hlouběji do stromu (přímo ke zdrojovým tabulkám ještě před provedením drahého spojení $\bowtie$). Tím se radikálně zmenší objem dat putujících do joinu: $\sigma_{p}(R \bowtie S) = [\sigma_{p}(R)] \bowtie S$.
+* **Včasná selekce (Pushing Selections Down):** Zásadní heuristika optimalizaci. Přesunutí filtračního operátoru $\sigma$ hlouběji do stromu (přímo ke zdrojovým tabulkám ještě před provedením drahého spojení $\bowtie$). Tím se radikálně zmenší objem dat putujících do joinu: $\sigma_{p}(R \bowtie S) = [\sigma_{p}(R)] \bowtie S$.
 * **Včasná projekce (Pushing Projections Down):** Heuristika odřezávání nepotřebných sloupců $\pi$ co nejdříve v exekučním stromu, což zúží šířku řádků a šetří paměťové buffery. Při posunu pod join se však v projekci musí povinně zachovat spojovací atributy $Z$: $\pi_{XY}(R \bowtie S) = \pi_{XY}([\pi_{X \cup Z}(R)] \bowtie [\pi_{Y \cup Z}(S)])$.
 </details>
 
@@ -531,10 +539,10 @@
 <details>
 <summary>Výpadky a zotavení</summary>
 
-* **Write-Ahead Logging (WAL):** Kardinální pravidlo trvanlivosti: Žádný modifikovaný (špinavý) datový blok z RAM bufferu nesmí být zapsán do primárních souborů na disku dříve, než je příslušný záznam o této změně bezpečně synchronizován a zapsán v transakčním logu.
+* **Write-Ahead Logging (WAL):** Kardinální pravidlo trvanlivosti: Žádaný modifikovaný (špinavý) datový blok z RAM bufferu nesmí být zapsán do primárních souborů na disku dříve, než je příslušný záznam o této změně bezpečně synchronizován a zapsán v transakčním logu.
 * **Politika Steal vs. No-Steal:** *Steal* dovoluje správci bufferu zapsat na disk stránku změněnou dosud nepotvrzenou transakcí (vyžaduje fázi **UNDO** při pádu). *No-Steal* zakazuje zápis necommitovaných dat na disk (při pádu netřeba UNDO, ale limituje kapacitu RAM).
 * **Politika Force vs. No-Force:** *Force* vyžaduje, aby při commitu byla všechna změněná data okamžitě zapsána do datových souborů (velmi pomalé, netřeba REDO). *No-Force* dovoluje potvrdit transakci pouze zápisem do logu, data se zapíší asynchronně později (rychlé, vyžaduje fázi **REDO** při pádu).
-* **Kombinace Steal / No-Force:** Nejrychlejší možný produkční režim správy bufferu. Poskytuje paměti absolutní svobodu pro asynchronní dávkové zápisy na pozadí, avšak proces zotavení po havárii musí povinně implementovat fázi **REDO i UNDO**.
+* **Kombinace Steal / No-Force:** Nejrychlejší možný produkční režim správy bufferu. Poskytuje paměti absolutní svobodu pro asynchronní dávkové zápisy na pozadí, avšak proces zotavení po havárii musí bezpodmínečně implementovat fázi **REDO i UNDO**.
 * **UNDO vs. REDO Logování:** *UNDO log* obsahuje staré hodnoty a při pádu prochází log od konce dozadu a maže změny nedokončených transakcí. *REDO log* obsahuje nové hodnoty, prochází log od začátku dopředu a znovu vynucuje změny potvrzených transakcí.
 * **Algoritmus ARIES:** Standard pro moderní UNDO/REDO zotavení. Každá operace v logu má číslo LSN (Log Sequence Number) a datové stránky mají políčko `pageLSN` zajišťující idempotenci (ochranu před duplicitním zápisem téže změny).
 * **Tři fáze zotavení ARIES:** 1. *Analytická fáze* (prochází log dopředu, identifikuje aktivní transakce - *losers* a špinavé stránky v momentě pádu), 2. *Fáze REDO* (prochází log dopředu a zopakuje úplně všechny změny z historie do stavu před pádem), 3. *Fáze UNDO* (prochází log pozpátku a rollbuje změny všech loser transakcí).
@@ -543,15 +551,14 @@
 </details>
 
 <details>
-<summary>Bezpečnost a přístupová oprávnění</summary>
+<summary>Bezpečnost, přístupová oprávnění</summary>
 
 * **Diskreční řízení přístupu (DAC):** Bezpečnostní model, kde vlastník/tvůrce datového objektu má plnou diskréční pravomoc rozhodovat o tom, kterým dalším uživatelům udělí nebo odebere přístupová práva.
 * **GRANT a WITH GRANT OPTION:** SQL příkaz pro přidělení práv (`SELECT`, `INSERT` atd.) nad objektem. Doložka `WITH GRANT OPTION` dává příjemci legální právo toto oprávnění distribuovat a delegovat dále na další subjekty.
 * **REVOKE a kaskádový efekt:** Příkaz pro odnětí dříve udělených oprávnění. Pokud je právo odebráno uživateli, který jej distribuoval dál přes grant option, systém provede kaskádové (řetězové) stažení práv u všech takto ovlivněných sub-uživatelů.
-* **Řízení přístupu na základě rolí (RBAC):** Pokročilý model, kde se oprávnění neváží na konkrétní uživatele, ale na logické **role** reprezentující pracovní funkce v organizaci (např. role `účetní`). Uživatelům jsou následně tyto role pouze přiřazovány, což usnadňuje audit management.
+* **Řízení přístupu na základě rolí (RBAC):** Pokročilý model, kde se oprávnění neváží na konkrétní uživatele, ale na logické **role** reprezentující pracovní funkce v organizaci (např. role `účetní`). Uživatelům jsou následně tightening role pouze přiřazovány, což usnadňuje audit management.
 * **Row-Level Security (RLS):** Dynamické zabezpečení na úrovni jednotlivých řádků. Databázový engine na pozadí automaticky modifikuje uživatelský SQL dotaz o bezpečnostní predikát (např. obchodník uvidí pouze řádky, kde figuruje jeho ID), čímž filtruje citlivá data bez nutnosti úpravy schématu.
 </details>
-
 
 # Neuronové sítě
 
@@ -736,7 +743,7 @@
 # Dobývání znalostí
 
 <details>
-<summary>Asociační pravidla a hledání frekventovaných vzorů</summary>
+<summary>Asociační pravidla a algoritmy pro hledání frekventovaných vzorů (A-Priori, PCY)</summary>
 
 * **Model tržního koše:** Abstraktní datový model pro identifikaci skrytých kauzalit a korelací mezi položkami. Sestává z univerza položek (*items*) a souboru transakcí (*baskets*), kde každý koš je malou podmnožinou všech položek. Cílem je nalézt pravidla typu $I \rightarrow j$, kde $I$ je množina položek (antecedent) a $j$ je položka (konsekvent).
 * **Support (Podpora):** Pravděpodobnost, s jakou se daná množina položek $I$ vyskytuje napříč všemi transakcemi v datasetu: $\text{Support}(I) = \frac{\text{počet košů obsahujících } I}{\text{celkový počet košů}}$. Definuje se minimální práh podpory ($s$), pod kterým se množiny ignorují.
@@ -744,35 +751,48 @@
 * **Interest (Zajímavost):** Rozdíl mezi spolehlivostí konkrétního pravidla a osamocenou celkovou pravděpodobností výskytu konsekventu $j$ v celém datasetu: $\text{Interest}(I \rightarrow j) = \text{Confidence}(I \rightarrow j) - \text{Support}(\{j\})$. Vysoká kladná hodnota indikuje silný sémantický vztah; hodnota blízká 0 značí statistickou nezávislost.
 * **Princip monotonicity (Apriori vlastnost):** Základní pilíř pro boj s kombinatorickou explozí. Říká, že *pokud je množina položek frekventovaná, musí být garantovaně frekventované i všechny její podmnožiny*. Obráceně platí: pokud je libovolný prvek/dvojice nefrekventovaný, jakákoli nadmnožina obsahující tento prvek nemůže dosáhnout prahu podpory.
 * **Algoritmus A-Priori:** Víceprůchodový algoritmus využívající princip monotonicity. V prvním průchodu (*Pass 1*) spočítá výskyty jednotlivých prvků a sestaví seznam frekventovaných jednoprvkových množin ($L_1$). V druhém průchodu (*Pass 2*) generuje kandidáty na dvojice ($C_2$) **striktně a pouze** kombinací prvků obsažených v $L_1$, čímž radikálně omezuje velikost prohledávaného paměťového prostoru. Proces pokračuje pro trojice ($C_3$) atd.
-</details>
-
-<details>
-<summary>Algoritmus PCY a jeho rozšíření (Multistage, Multihash)</summary>
-
 * **Algoritmus PCY (Park-Chen-Yu):** Optimalizace algoritmu A-Priori, která efektivně vytěžuje nevyužitou operační paměť RAM během prvního průchodu daty (*Pass 1*). Vedle počítání frekvencí jednotlivých položek si v RAM alokuje **hashovací tabulku bucketů**.
 * **Princip redukce kandidátů v PCY:** Během *Pass 1* se pro každý koš vezmou všechny dostupné dvojice a proženou se hashovací funkcí do příslušných kbelíků (bucketů), kde se inkrementují jejich čítače. Na konci průchodu se buckety porovnají s prahem $s$ a transformují se do **bitové mapy** (1 pro frekventovaný bucket, 0 pro nefrekventovaný). Pokud je celková suma výskytů v bucketu menší než $s$, žádná dvojice v něm obsažená nemůže být frekventovaná.
 * **PCY Pass 2 Filter:** V druhém průchodu je dvojice zařazena mezi kandidáty ($C_2$) tehdy a jen tehdy, pokud: 1. Obě položky jsou samostatně frekventované (pravidlo A-Priori) **A ZÁROVEŇ** 2. Její hash spadá do bucketu, který má v bitmapě hodnotu 1. Výrazně se tím redukuje počet prvků, pro které je nutné v paměti alokovat přesné celočíselné čítače.
-* **Multistage PCY:** Rozšíření, které mezi *Pass 1* a *Pass 2* vkládá dodatečné průchody daty za účelem filtrace falešně pozitivních kandidátů. Využívá pokaždé novou, nezávislou hashovací funkci, přičemž do další tabulky hashují pouze ty dvojice, které úspěšně prošly bitovými mapami všech předchozích fází. Výsledkem je kaskáda bitmap drasticky čistící prostor kandidátů.
-* **Multihash PCY:** Paralelní přístup, který namísto sekvenčních fází implementuje **více nezávislých hashovacích tabulek přímo v prvním průchodu** (*Pass 1*). Paměť RAM pro hashování se rozdělí mezi tyto tabulky. Dvojice se stane legitimním kandidátem v *Pass 2* pouze tehdy, pokud její hash dosáhne prahu podpory ve všech tabulkách simultánně.
 </details>
 
 <details>
-<summary>Principy shlukovacích algoritmů (k-means, hierarchické shlukování, DBSCAN, Chameleon)</summary>
+<summary>Principy shlukovacích algoritmů</summary>
 
-* **Shluková analýza (Clustering):** Disciplína nesupervizovaného učení s cílem rozsegmentovat data do homogenních skupin (shluků) tak, aby vnitřní podobnost objektů uvnitř shluku (*intra-cluster similarity*) byla maximalizována a vnější podobnost mezi shluky (*inter-cluster similarity*) minimalizována.
+* **Shluková analýza (Clustering):** Disciplína nessupervizovaného učení s cílem rozsegmentovat data do homogenních skupin (shluků) tak, aby vnitřní podobnost objektů uvnitř shluku (*intra-cluster similarity*) byla maximalizována a vnější podobnost mezi shluky (*inter-cluster similarity*) minimalizována.
+</details>
+
+<details>
+<summary>k-means</summary>
+
 * **k-means:** Partitní (rozdělovací) algoritmus minimalizující součet čtverců eukleidovských vzdáleností bodů od příslušných těžišť shluků — **centroidů**. Začíná náhodnou inicializací $k$ centroidů, načež cyklicky opakuje dvě fáze: *přiřazení* (každý bod je alokován k nejbližšímu centroidu) a *aktualizace* (poloha centroidu se přepočítá jako aritmetický průměr souřadnic všech jemu přiřazených bodů).
 * **Limity k-means:** Vyžaduje striktní manuální zadání parametru $k$ předem, je extrémně citlivý na odlehlá pozorování (outliery, které deformují průměr polohy centroidu) a dokáže korektně identifikovat výhradně sférické (kulovité) shluky podobných velikostí a hustot.
+</details>
+
+<details>
+<summary>hierarchické shlukování</summary>
+
 * **Hierarchické shlukování (Aglomerativní):** Přístup "zdola nahoru", který buduje stromovou strukturu vzájemných vazeb — **dendrogram**. Na počátku tvoří každý datový bod samostatný mikroshluk. V každém dalším kroku algoritmus vyhledá a sloučí dva geometricky nejbližší shluky, což opakuje, dokud se vše nesjednotí do jednoho finálního shluku. Výsledný počet shluků se definuje dodatečným horizontálním "uříznutím" dendrogramu v požadované výšce.
 * **Metodiky měření vzdálenosti (Linkage) v hierarchickém shlukování:**
   * **Single Link (MIN):** Vzdálenost dvou nejbližších bodů z různých shluků. Dokáže flexibilně obepnout protáhlé nelineární tvary, ale trpí na anomálii **řetězení** (*chaining*), kdy se dva odlišné shluky chybně slijí v jeden kvůli úzkému náhodnému mostu bodů.
   * **Complete Link (MAX):** Vzdálenost dvou nejvzdálenějších bodů z různých shluků. Generuje striktně kompaktní, kulovité, husté struktury, ale je vysoce náchylný na outliery.
   * **Average Link / Group Average:** Průměrná eukleidovská vzdálenost vypočítaná mezi všemi páry bodů obou shluků. Stabilní kompromis odolný vůči šumu.
   * **Centroid Linkage:** Vzdálenost mezi těžišti obou shluků. Může vykazovat neintuitivní chování (ne-monotonní zvraty v dendrogramu), pokud mají shluky diametrálně odlišný rozsah.
+</details>
+
+<details>
+<summary>DBSCAN</summary>
+
 * **DBSCAN:** Shlukování striktně založené na **hustotě**. Vyžaduje dva konfigurační parametry: poloměr okolí ($Eps$) a minimální počet bodů v tomto poloměru ($MinPts$). Dokáže detekovat shluky libovolných amorfních tvarů a automaticky izoluje šum.
 * **Klasifikace bodů v DBSCAN:**
   * **Core Point (Jádrový bod):** Bod, který má ve svém kruhovém okolí $Eps$ alespoň $MinPts$ bodů (včetně sebe samého).
   * **Border Point (Hraniční bod):** Bod, který sám nesplňuje limit hustoty pro jádro, ale fyzicky leží v sousedství jiného jádrového bodu.
   * **Noise Point (Šum / Outlier):** Bod, který není ani jádrový, ani hraniční; je algoritmem ignorován a nezařazen do žádného shluku.
+</details>
+
+<details>
+<summary>Chameleon</summary>
+
 * **Chameleon:** Pokročilý dvoufázový hierarchický algoritmus, který odstraňuje nedostatky statických modelů zavedením dynamického modelování pro slučování shluků.
 * **Dvě fáze algoritmu Chameleon:**
   1. **Fáze rozdělení:** Data se transformují na graf nejbližších sousedů (*$k$-nearest neighbor graph*), který se následně pomocí pokročilého topologického grafového řezání (např. systém METIS) rozseká na velké množství miniaturních, vysoce homogenních podshluků (*sub-clusters*).
@@ -780,7 +800,7 @@
 </details>
 
 <details>
-<summary>Analýza temporálních dat (Vlastnosti a předzpracování časových řad)</summary>
+<summary>Analýza temporálních dat: vlastnosti a předzpracování časových řad</summary>
 
 * **Časová řada:** Chronologicky uspořádaná posloupnost skalárních pozorování $X = x_1, x_2, \dots, x_n$ snímaných v čase. Pořadí bodů je striktně invariantní a body vykazují časovou závislost (**autokorelaci**).
 * **Základní strukturální komponenty časové řady:**
@@ -797,7 +817,7 @@
 </details>
 
 <details>
-<summary>Dynamic Time Warping (DTW)</summary>
+<summary>DTW</summary>
 
 * **Dynamic Time Warping (DTW):** Algoritmus navržený pro exaktní měření sémantické podobnosti mezi dvěma časovými řadami, které mohou vykazovat odlišnou délku, nebo jsou vůči sobě v čase fázově posunuté, lokálně roztažené či smrštěné.
 * **Selhání Eukleidovské vzdálenosti:** Klasická eukleidovská vzdálenost striktně porovnává body ve stejném čase $t$ ($x_t$ proti $y_t$). Pokud jsou dvě řady tvarově naprosto identické, ale jedna je pouze o jeden časový krok posunutá, eukleidovská vzdálenost vrátí obrovskou hodnotu (indikuje falešnou nepodobnost).
@@ -809,7 +829,7 @@
 </details>
 
 <details>
-<summary>Klouzavý průměr (Moving Average — MA)</summary>
+<summary>klouzavý průměr (MA)</summary>
 
 * **Jednoduchý klouzavý průměr (Simple Moving Average — SMA):** Základní deterministická technika digitálního předzpracování a vyhlazování dat. Každý bod časové řady v čase $t$ je nahrazen aritmetickým průměrem hodnot spadajících do lokálního časového okna o fixní délce $k$:
   $$MA_t = \frac{1}{k} \sum_{i=0}^{k-1} x_{t-i}$$
@@ -820,7 +840,7 @@
 # Vizualizace
 
 <details>
-<summary>Metriky hodnocení kvality a pre-attentive vnímání</summary>
+<summary>Základní metriky pro hodnocení kvality vizualizace (efektivita a expresivita)</summary>
 
 * **Vizualizační transformace:** Matematicko-grafický proces mapování surových dat přes vizuální reprezentaci do lidského vědomí a kognitivní paměti: $\text{Data} \rightarrow \text{Presentation} \rightarrow \text{Mind}$.
 * **Expresivita (Expressiveness):** Základní kvalitatívní metrika (Bertin, Mackinlay). Definuje schopnost vizualizace prezentovat **právě a pouze všechny relevantní informace** obsažené v datech a vůbec nic navíc:
@@ -828,11 +848,6 @@
   *Porušení expresivity (Sémantický šum):* Pokud vizualizace indukuje klamnou informaci, která v datech neexistuje (např. použití stupňovaného jasu jedné barvy pro nominální kategorie nutí lidský zrak chybně hledat v datech neexistující uspořádání či hierarchii).
 * **Efektivita (Effectiveness):** Metrika hodnotící kognitivní rychlost a přesnost přenosu informace k lidskému mozku a technickou náročnost vykreslení. Určuje, zda byly zvoleny optimální vizuální proměnné pro daný datový typ:
   $$M_{eff} = \frac{1}{1 + \text{interpretace} + \text{vykreslování}} \quad \text{kde} \quad 0 \le M_{eff} \le 1$$
-* **Pre-attentive (předmnožinové) vnímání:** Vizuální stimuly a podněty, které lidské oko a vizuální kortex zpracovávají podvědomě, okamžitě (v časovém okně do 200–250 ms) a bez nutnosti vědomého soustředění či skenování scény položku po položce.
-* **Třídy pre-attentive prvků:**
-  * *Geometrické:* Pozice v prostoru, prostorová orientace/sklon, délka čáry, velikost, zakřivení objektu, tloušťka čáry.
-  * *Optické:* Odstín barvy (*hue*), intenzita/jas barvy (*value*), shlukování prvků.
-  * *Dynamické:* Pohyb v prostoru, rychlost pohybu, blikání či oscilace (nejsilnější pre-attentive stimul vůbec).
 </details>
 
 <details>
@@ -846,14 +861,19 @@
 5. **Barva / Odstín (Hue):** Konkrétní barevný tón (červená, zelená). **Čistě nominální proměnná** vhodná pro klasifikaci. Nemá přirozené uspořádání (duhová paleta je kognitivně nevhodná, protože vytváří umělé optické hranice). Bezpečná kardinalita pro člověka je max. 5–8 odstínů současně.
 6. **Orientace (Orientation):** Úhel natočení vizuálního prvku v rovině. Klíčový pre-attentive prvek pro vizualizaci směrových vektorových polí.
 7. **Textura (Texture):** Grafický vzor definovaný hustotou a velikostí vnitřních prvků. Změna hustoty prvků dodává textuře ordinální charakter, na který lidský zrak reaguje s vysokou citlivostí.
-8. **Pohyb (Motion):** Zahrnuje směr, rychlost, blikání nebo oscilaci grafického prvku. Dominantní pre-attentive stimul upoutávající pozornost i na periferii zorného pole.
+8. **Pohyb (Motion):** Zahrnuje směr, rychlost, blikání nebo oscilace grafického prvku. Dominantní pre-attentive stimul upoutávající pozornost i na periferii zorného pole.
 </details>
 
 <details>
-<summary>Vizualizační techniky pro 1D, 2D a 3D prostor</summary>
+<summary>Základní vizualizační techniky pro 1D, 2D, 3D</summary>
 
 * **1D data (Sekvence jedné proměnné):** Čárové grafy, sloupcové grafy, barevné pruhy (*color bar*). Pro zobrazení vícerozměrných 1D dat se využívá buď **juxtapositioning** (skládání samostatných grafů izolovaně vedle sebe/pod sebe), nebo **superimpositioning** (překrývání více křivek v jednom souřadném systému s rozlišením barvou/stylem).
 * **2D data (Data mapovaná na plochu):** *Scatterplot* (bodový graf bez interpolace pro detekci korelací), *choroplethy* (geografické mapy s vybarvenými polygony), *rastrový obraz* (spojitá interpolovaná pixelová data), *cityscape* (2.5D zobrazení výšky bloků nad rovinou) a *izolinie/kontury* (spojnice míst se stejnou hodnotou skalárního pole, např. vrstevnice, izobary).
+</details>
+
+<details>
+<summary>Explicitní a implicitní reprezentace povrchu</summary>
+
 * **3D data (Objemová data):** Data reprezentovaná jako spojitý prostor diskrétně vzorkovaný do pravidelné mřížky (**Voxely**) nebo nepravidelné mřížky (**Tetrahedry**). Rozlišujeme dva základní přístupy k zobrazení povrchů v 3D vizualizaci:
 * **Explicitní reprezentace povrchu (Boundary Representation):** Povrch je přesně a pevně definován konkrétním výčtem strukturních prvků. Sestává z explicitního seznamu 3D vrcholů (*vertices*), hran (*edges*) a rovinných polygonů (*faces*) tvořících polygonální síť, která se bleskově renderuje na GPU pomocí rasterizace.
 * **Implicitní reprezentace povrchu:** Povrch není v datech přímo definován, ale je popsán geometricky jako izohladina matematické funkce nebo hustotního pole ve tvaru $f(x, y, z) = c$, kde $c$ je prahová hodnota (*isovalue*).
@@ -862,28 +882,62 @@
 </details>
 
 <details>
-<summary>Vizualizace multidimenzionálních dat a hierarchických struktur</summary>
+<summary>Techniky pro vizualizaci multidimenzionálních dat</summary>
 
 * **Multidimenzionální vizualizace:** Metody pro transformaci a projekci vztahů vysokorozměrných dat ($N$-dimenzí) do srozumitelného 2D prostoru obrazovky.
+</details>
+
+<details>
+<summary>paralelní souřadnice</summary>
+
 * **Paralelní souřadnice (Parallel Coordinates):** Geometrická technika, kde jsou osy $X_1, X_2, \dots, X_n$ uspořádány rovnoběžně a vertikálně vedle sebe na obrazovce. Každá vícerozměrná datová položka (bod) je reprezentována jako spojitá **lomená čára (polyline)**, která protíná jednotlivé osy v místech svých hodnot. Trpí vizuálním zahlcením (*cluttering*) při velkém objemu dat.
   * *Detekce korelací:* Pokud se lomené čáry mezi dvěma sousedními osami masivně kříží, indikuje to negativní korelaci; pokud běží rovnoběžně a horizontálně, indikuje to pozitivní korelaci.
+</details>
+
+<details>
+<summary>RadViz</summary>
+
 * **RadViz (Radial Coordinate Visualization):** Nelineární projekce inspirovaná Hookeovým elastickým zákonem. Kotvy jednotlivých $N$ dimenzí jsou rovnoměrně rozmístěny po obvodu kružnice. Datový bod je zobrazen jako bod uvnitř kružnice v místě, kde se přitažlivé síly fiktivních "pružin" všech dimenzí ustálí v rovnováze (síla pružiny je úměrná normalizované hodnotě dané dimenze). Nevýhodou je riziko překryvu odlišných bodů uprostřed kružnice.
+</details>
+
+<details>
+<summary>scatterplot matrices</summary>
+
 * **Matice bodových grafů (Scatterplot Matrices — SPLOM):** Symetrická čtvercová matice o velikosti $N \times N$, kde každá buňka obsahuje standardní 2D scatterplot pro danou dvojici dimenzí. Na hlavní diagonále jsou obvykle zobrazeny jednorozměrné histogramy. Špatně škáluje pro vysoké desítky dimenzí z důvodu miniaturizace jednotlivých oken.
+</details>
+
+<details>
+<summary>dimensional stacking</summary>
+
 * **Dimensional Stacking:** Mapování diskrétního prostoru do 2D pomocí rekurzivního vnořování souřadných systémů. Hlavní dvojice dimenzí rozdělí obrazovku na makro-mřížku a každá její buňka se vnitřně dělí na sub-mřížky podle dvojic méně významných dimenzí, což vytváří hierarchický vizuální vzor.
+</details>
+
+<details>
+<summary>hierarchických struktur (treemaps)</summary>
+
 * **Treemaps (pro hierarchické struktury):** *Space-filling* metoda zobrazující stromová data jako do sebe rekurzivně vnořené obdélníky, čímž stoprocentně využívá plochu obrazovky. Celá plocha se dělí střídavě horizontálně a vertikálně podle hierarchických úrovní. Plocha obdélníku kóduje kvantitativní metriku (např. velikost souboru), barva kóduje kategorii či stav.
   * **Squarified Treemaps:** Pokročilý algoritmus pro tvorbu treemaps. Na rozdíl od základního *Slice-and-Dice* (který generuje příliš úzké, nečitelné nudle) optimalizuje řezání plochy tak, aby se poměr stran obdélníků co nejvíce blížil čtverci ($1:1$), což usnadňuje lidské porovnávání velikosti ploch.
 </details>
 
 <details>
-<summary>Interakční techniky a koncept Focus + Context</summary>
+<summary>Základní třídy interakčních technik</summary>
 
-* **Koncept Focus + Context:** Základní interakční a kognitivní paradigma řešící problém, jak detailně analyzovat specifickou podmnožinu dat (*Focus*) bez ztráty globálního přehledu o struktuře celku (*Context*), a to bez nutnosti přepínání oken či neustálého zoomování.
+</details>
+
+<details>
+<summary>fisheye</summary>
+
 * **Fisheye (Rybí oko):** Deformační operátor aplikovaný v **prostoru grafického zobrazení (v rovině obrazovky)**. Uživatel definuje střed ohniska (fokus), poloměr lupy a matematickou míru deformace. Centrální oblast se geometricky zvětší pro detailní analýzu prvků, zatímco okolní kontext zůstane plynule komprimován a stlačen směrem k okrajům obrazovky, aniž by zmizel z dohledu.
+</details>
+
+<details>
+<summary>perspektivní stěny</summary>
+
 * **Perspektivní stěny (Perspective Walls):** Deformační technika řešící navigaci v **prostoru samotných dat/objektů** (typicky lineárně dlouhé struktury, např. časové osy). Data se horizontálně rozprostřou na virtuální trojdílnou stěnu. Centrální panel (rovnoběžný s rovinou obrazovky) zobrazuje nezkreslená data v plném detailu (*Focus*), zatímco dva boční panely ubíhají do 3D pozadí pomocí perspektivní deformace (*Context*), čímž dramaticky šetří šířku obrazovky.
 </details>
 
 <details>
-<summary>Aplikace interakcí v prostoru dat vs. v prostoru atributů</summary>
+<summary>specifika aplikace interakčních technik v prostoru samotných dat a v prostoru jejich atributů</summary>
 
 * **1. Interakce v prostoru samotných dat (Space of data values):**
   Interakční techniky, které operují přímo nad **abstraktními hodnotami proměnných, logickou strukturou, metadaty nebo topologií dat**. Tyto operace mění výběr, uspořádání nebo věcný rozsah zobrazovaných datových řádků/položek.
@@ -896,7 +950,7 @@
   Interakční techniky, které operují výhradně nad **vizuálními vlastnostmi grafických entit na obrazovce** (pixely, barevné palety, parametry shaderů, geometrické transformace zobrazení). Tyto techniky **nijak nemění podkladová data ani jejich strukturu**, upravují pouze způsob, jakým jsou data na monitoru vykreslena a vnímána lidským okem.
   * *Příklady technik:*
     * **Modifikace přenosových funkcí (Transfer Functions):** U objemového vykreslování (Ray Casting) uživatel interaktivně křivkami mění vztah, jaká 3D hustota bude mít jakou barvu a neprůhlednost. Lze tak interaktivně "zneviditelnit" měkké tkáně (nastavením jejich opacity na 0) a nechat zobrazenou pouze kostru, přičemž zdrojová voxelová data pacienta zůstávají netknutá.
-    * **Optické a渲染 úpravy:** Změna jasu, kontrastu, změna barevné palety (např. přepnutí z barevného kódování do stupňů šedi z důvodu barvosleposti) nebo interaktivní úprava parametrů stínování (*shading*, např. Phongův osvětlovací model) a pozice světel pro lepší vnímání 3D tvarů.
+    * **Optické a rendering úpravy:** Změna jasu, kontrastu, změna barevné palety (např. přepnutí z barevného kódování do stupňů šedi z důvodu barvosleposti) nebo interaktivní úprava parametrů stínování (*shading*, např. Phongův osvětlovací model) a pozice světel pro lepší vnímání 3D tvarů.
     * **Geometrická navigace prezentace:** Standardní operace typu pan (posun kamery), zoom (přiblížení scény) nebo aplikace deformačních filtrů v rovině obrazovky (Fisheye).
 </details>
 
