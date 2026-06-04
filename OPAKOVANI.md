@@ -35,9 +35,14 @@
 </details>
 
 <details>
-<summary>Plánování a reprezentace problému</summary>
+<summary>Plánování</summary>
 
 * **Plánování v AI:** Hledání optimální sekvence akcí, které transformují počáteční stav světa na stav cílový. Oproti klasickému prohledávání grafů pracuje se strukturovanou vnitřní reprezentací stavů.
+</details>
+
+<details>
+<summary>Reprezentace problému</summary>
+
 * **Klasická reprezentace (STRIPS):** Stavy jsou popsány jako konjunkce pozitivních literálů bez proměnných. Akce mají definované *Preconditions* (podmínky splnitelnosti) a *Effects* (efekty rozdělené na ADD list a DELETE list).
 * **PDDL (Planning Domain Definition Language):** Standardizovaný jazyk, který odděluje definici domény (typy, predikáty, obecné akce) od definice konkrétního problému (objekty, konkrétní počáteční stav a cílové podmínky).
 * **Předpoklad uzavřeného světa (Closed-World Assumption):** Syntaktické pravidlo, kde vše, co není explicitně uvedeno v popisu daného stavu jako pravdivé, se automaticky považuje za nepravdivé.
@@ -52,6 +57,11 @@
 * **Heuristiky pro plánování:** Často založené na relaxaci problému – např. ignorování DELETE listů v STRIPS doméně, což umožňuje snadno v polynomiálním čase spočítat délku optimálního plánu zjednodušeného problému ($h_{FF}$ heuristika).
 </details>
 
+<details>
+<summary>Práce s neurčitostí</summary>
+
+* **Práce s neurčitostí:** Cílem je formalizovat a kvantifikovat neúplné, nestabilní nebo zašuměné informace o stavu světa, se kterými se agent v reálném prostředí setkává. Namísto striktní pravdivostní logiky se využívají pravděpodobnostní modely a teorie užitku k nalezení nejlepšího možného rozhodnutí za neoptimálních podmínek.
+</details>
 
 <details>
 <summary>Bayesovské sítě</summary>
@@ -60,7 +70,7 @@
 * **Tabulka podmíněných pravděpodobností (CPT):** Každý uzel $X_i$ v síti obsahuje CPT tabulku specifikující rozdělení $P(X_i \mid Parents(X_i))$, což výrazně redukuje počet parametrů oproti plné sdružené tabulce.
 * **Podmíněná nezávislost:** Veličiny $X$ a $Y$ jsou podmíněně nezávislé při známém $Z$, pokud platí $P(X, Y \mid Z) = P(X \mid Z) P(Y \mid Z)$. Bayesovské sítě tuto nezávislost přímo strukturálně kódují.
 * **D-separace (Directed Separation):** Grafické kritérium pro ověření podmíněné nezávislosti mezi skupinami uzlů. Rozlišuje 3 základní konfigurace: kaskádu ($X \rightarrow Y \rightarrow Z$), vidlici ($X \leftarrow Y \rightarrow Z$) a obrácenou vidlici/kolizor ($X \rightarrow Y \leftarrow Z$).
-* **Markovovo přikrytí (Markov Blanket):** Nejmenší množina uzlů, která plně izoluje daný uzel od zbytku sítě. Skládá se z rodičů uzlu, jeho dětí a ostatních rodičů jeho dětí.
+* **Markovovo přikrytí (Markov Blanket):** Nejmenší množina uzlů, která plně izoluje daný uzel od zbytku sítě. Skládá se z rodičů uzlu, jeho dětí a ostatních rodičů his dětí.
 </details>
 
 <details>
@@ -85,7 +95,6 @@
 * **Kalmanův filtr:** Analytické řešení filtrování pro spojité lineární systémy zatížené Gaussovým šumem. Reprezentuje stav pomocí střední hodnoty a kovarianční matice.
 </details>
 
-
 <details>
 <summary>Teorie užitku</summary>
 
@@ -107,16 +116,32 @@
 </details>
 
 <details>
-<summary>Iterace hodnot a iterace strategie</summary>
+<summary>Iterace hodnot</summary>
 
 * **Iterace hodnot (Value Iteration):** Algoritmus dynamického programování pro výpočet $V^*(s)$. Začíná s libovolnými hodnotami a rekurzivně aplikuje Bellmanův update jako operátor kontrakce, dokud hodnoty nekonvergují ($\max |V_{k+1} - V_k| < \epsilon$).
-* **Iterace strategie (Policy Iteration):** Alternativní algoritmus, který střídá dva kroky: *Evaluace strategie* (výpočet hodnot $V^{\pi}$ pro pevnou strategii řešením soustavy lineárních rovnic) a *Zlepšení strategie* (greedy aktualizace $\pi$ na základě vypočtených hodnot). Často konverguje v méně iteracích.
 * **Asynchronní MDP algoritmy:** Aktualizují hodnoty stavů selektivně (např. pouze ty státy, které jsou reálně navštěvované), místo procházení celého stavového prostoru v každém jednotlivém kroku, což výrazně šetří výpočetní čas.
 </details>
 
+<details>
+<summary>Iterace strategie</summary>
+
+* **Iterace strategie (Policy Iteration):** Alternativní algoritmus, který střídá dva kroky: *Evaluace strategie* (výpočet hodnot $V^{\pi}$ pro pevnou strategii řešením soustavy lineárních rovnic) a *Zlepšení strategie* (greedy aktualizace $\pi$ na základě vypočtených hodnot). Často konverguje v méně iteracích.
+</details>
 
 <details>
-<summary>Robotika a konfigurační prostor</summary>
+<summary>Robotika</summary>
+
+* **Robotika:** Multidisciplinární obor zabývající se návrhem, konstrukcí a řízením autonomních nebo poloautonomních strojů (robotů). V kontextu AI řeší reaktivní a kognitivní řízení systémů, interakci s fyzickým světem přes senzory/efektory a algoritmizaci prostorového chování.
+</details>
+
+<details>
+<summary>Plánování pohybu robota</summary>
+
+* **Plánování pohybu robota:** Algoritmické vyhledávání trajektorie, která bezpečně a optimálně provede těleso robota ze startovní pozice do požadované cílové pozice ve fyzickém prostředí, a to bez kolize s jakýmikoliv překážkami.
+</details>
+
+<details>
+<summary>Konfigurační prostor</summary>
 
 * **Konfigurační prostor (C-space):** Množina všech možných pozic a orientací (konfigurací $q$), kterých může robot v prostředí nabýt. Počet dimenzí C-prostoru odpovídá počtu stupňů volnosti (DoF) robota.
 * **C-Obstacle ($C_{obs}$):** Oblast v konfiguračním prostoru, která odpovídá kolizním stavům (kde těleso robota fyzicky koliduje s překážkami v reálném pracovním prostoru $W$).
@@ -125,14 +150,14 @@
 </details>
 
 <details>
-<summary>Kombinatorické a pravděpodobnostní přístupy k plánování pohybu</summary>
+<summary>Kombinatorické a pravděpodobnostní přístupy</summary>
 
 * **Kombinatorické přístupy (Exaktní):** Budují explicitní geometrickou reprezentaci volného prostoru $C_{free}$. Jsou výpočetně velmi drahé a netraktovatelné pro vysoké dimenze (vysoké DoF), ale poskytují stoprocentní záruku úplnosti.
 * **Grafy viditelnosti (Visibility Graphs):** Kombinatorická metoda pro 2D polygony. Spojuje vrcholy překážek lineárními úsečkami, které neprocházejí vnitřkem překážek. Nejkratší cesta v tomto grafu odpovídá nejkratší bezkolizní cestě.
 * **Voronoiův diagram (Skeletizace):** Množina bodů, které mají stejnou vzdálenost ke dvěma nebo více nejbližším překážkám. Plánování na Voronoiově diagramu maximalizuje bezpečnostní clearance (vzdálenost robota od překážek).
 * **Pravděpodobnostní přístupy:** Neplánují v explicitně vyjádřeném $C_{free}$, ale testují náhodně vzorkované konfigurace pomocí rychlého detektoru kolizí (*Collision Checker*). Ideální pro roboty s vysokým počtem stupňů volnosti (kloubová ramena).
 * **PRM (Probabilistic Roadmaps):** Dvoufázový algoritmus vhodný pro vícenásobné dotazy (multi-query). V *učící fázi* náhodně vzorkuje body v $C_{free}$ a spojuje blízké body lokálním plánovačem do grafu. V *dotazovací fázi* napojí start a cíl na tento graf a hledá cestu pomocí $A^*$.
-* **RRT (Rapidly-exploring Random Trees):** Algoritmus pro rychlé budování stromu z počáteční pozice směrem k cíli, ideální pro single-query problémy. V každém kroku vygeneruje náhodný bod $q_{rand}$, najde k němu nejbližší uzel stromu $q_{near}$ a vytvoří nový uzel $q_{new}$ ve směru k $q_{rand}$ o krok $\Delta q$. Má silnou tendenci expandovat do neprozkoumaných oblastí (tzv. *Voronoi bias*).
+* **RRT (Rapidly-exploring Random Trees):** Algoritmus pro rychlé budování stromu z počáteční pozice studia směrem k cíli, ideální pro single-query problémy. V každém kroku vygeneruje náhodný bod $q_{rand}$, najde k němu nejbližší uzel stromu $q_{near}$ a vytvoří nový uzel $q_{new}$ ve směru k $q_{rand}$ o krok $\Delta q$. Má silnou tendenci expandovat do neprozkoumaných oblastí (tzv. *Voronoi bias*).
 * **Pravděpodobnostní úplnost:** Klíčová vlastnost pravděpodobnostních algoritmů (PRM, RRT), která garantuje, že pokud bezkolizní cesta reálně existuje, pravděpodobnost jejího nalezení se limitně blíží 1 s rostoucím časem / počtem vygenerovaných vzorků.
 </details>
 
