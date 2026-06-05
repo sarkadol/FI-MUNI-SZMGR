@@ -279,7 +279,7 @@ Důvodem je overhead spojený s komunikací v týmu a čas, který musí stávaj
 
 **Expertní odhady a tříbodový odhad (PERT) staví na tom, že jsou** založeny na zkušenostech seniorních inženýrů. Pro potlačení subjektivity se definují tři scénáře: Optimistický ($O$), Pesimistický ($P$) a Nejvíc pravděpodobný ($M$).
 * *Očekávané úsilí:* $$E = \frac{O + 4M + P}{6}$$
-*Příklad PERT: Expert odhadne, že za idealních podmínek zabere úkol 2 dny ( $O$ ), standardně 3 dny ( $M$ ), a když selže server, tak až 10 dní ( $P$ ). Očekávané úsilí bude* $E = (2 + 4\times3 + 10) / 6 = 4$ *dny.*
+*Příklad PERT: Expert odhadne, že za idealních podmínek zabere úkol 2 dny (* $O$ *), standardně 3 dny (* $M$ *), a když selže server, tak až 10 dní (* $P$ *). Očekávané úsilí bude* $E = (2 + 4\times3 + 10) / 6 = 4$ *dny.*
 
 **Algoritmické modely: COCOMO (Constructive Cost Model) fungují tak, že** (B. Boehm, 1981) hlavním indikátorem velikosti a práce je počet tisíc řádků zdrojového kódu (**KSLOC** / #SLOC). 
 
