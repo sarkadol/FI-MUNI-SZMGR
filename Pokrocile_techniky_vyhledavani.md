@@ -62,6 +62,8 @@ V clusterech s tisíci stroji jsou selhání hardwaru na denním pořádku. Map-
 
 Hledání podobných objektů (Near-Neighbor Search) ve vysokodimenzionálních prostorech je výpočetně náročné. Klasické porovnávání všech párů dokumentů má kvadratickou složitost $O(n^2)$, což je u velkých dat neúnosné. Proces se proto dělí do tří kroků: Shingling (převod na množiny), Min-Hashing (zkrácení na signatury) a LSH (rychlé nalezení kandidátů).
 
+Ilustrovany blog: https://www.pinecone.io/learn/series/faiss/locality-sensitive-hashing/
+
 <img alt="img.png" src="img/pokroc/vyhled.png" width="400"/>
 
 ## Shingling
