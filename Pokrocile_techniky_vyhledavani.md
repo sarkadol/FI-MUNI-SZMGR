@@ -264,12 +264,8 @@ Princip Shingling $\rightarrow$ Min-Hashing $\rightarrow$ LSH lze aplikovat na j
 
 U proudových dat (Data Streams) předpokládáme, že data přicházejí vysokou rychlostí, jsou potenciálně nekonečná a nelze je všechna uložit. Zpracování probíhá v reálném čase s omezenou pamětí, často pomocí klouzavých oken (Sliding Windows).
 
----
-## Bloomovy filtry
-Bloomův filtr je prostorově efektivní pravděpodobnostní datová struktura sloužící k rychlému testování příslušnosti prvku do množiny. Hlavní motivací je ušetřit obrovské množství operační paměti v situacích, kdy si nemůžeme dovolit ukládat skutečné prvky (např. miliardy URL adres), ale potřebujeme bleskově rozhodnout, zda jsme daný prvek už viděli.
-
 <details>
-<summary>Proč potřebujeme proudové algoritmy?</summary>
+<summary>Proč potřebujeme proudové algoritmy? Konkrétní čísla.</summary>
 
 U proudových dat narážíme na **fyzikální limity hardwaru**. Představme si reálný scénář: monitorování provozu na páteřním síťovém routeru.
 
@@ -284,6 +280,12 @@ U proudových dat narážíme na **fyzikální limity hardwaru**. Představme si
 * **Proudové řešení:** Algoritmy jako Bloomovy filtry nebo DGIM tento problém řeší tak, že **zahazují samotná data (IP adresy)** a ukládají pouze extrémně komprimované bitové struktury (statistické indikátory). Místo stovek gigabajtů RAM jim stačí řádově **megabajty nebo desítky megabajtů**, přičemž operace kontroly a zápisu trvají fixní čas $O(1)$ v řádu nanosekund.
 
 </details>
+
+
+---
+## Bloomovy filtry
+Bloomův filtr je prostorově efektivní pravděpodobnostní datová struktura sloužící k rychlému testování příslušnosti prvku do množiny. Hlavní motivací je ušetřit obrovské množství operační paměti v situacích, kdy si nemůžeme dovolit ukládat skutečné prvky (např. miliardy URL adres), ale potřebujeme bleskově rozhodnout, zda jsme daný prvek už viděli.
+
 
 ### Princip a fungování
 Struktura se skládá z bitového pole o délce $m$ (všechny bity jsou na začátku 0) a $k$ nezávislých hashovacích funkcí $h_1, h_2, \dots, h_k$.
@@ -325,7 +327,8 @@ Při zpracování proudu o objemu **100 milionů bitů** (např. blesková detek
 
 <img alt="img.png" src="img/pokroc/buckets.png" width="400"/>
 
-### Proč má DGIM maximální chybu právě 50 %?
+<details>
+<summary>Proč má DGIM maximální chybu právě 50 %?</summary>
 
 Abychom pochopili, kde se bere chyba až 50 %, musíme se podívat na to, jak DGIM odhaduje výsledek na konci (při dotazu na posledních $N$ bitů):
 
@@ -340,6 +343,8 @@ Představme si, že nejstarší kbelík, který zasáhl do našeho okna, má vel
 * **Nejhorší případ B (Skutečnost je 64):** Všechny jedničky z tohoto kbelíku ve skutečnosti leží *uvnitř* našeho okna $N$ (staly se těsně po začátku okna). Skutečný počet je **64**. DGIM ale přičetl jen **32**. Podhodnotil výsledek o 32.
 
 Protože pravidla DGIM striktně nařizují, že celkový součet všech *předchozích* (novějších) kbelíků v okně musí být prokazatelně větší nebo roven velikosti tohoto posledního kbelíku, tato absolutní chyba na hraně (která je maximálně $C/2$) nikdy nepřesáhne **50 % celkového odhadovaného součtu**.
+
+</details>
 
 ### Příklady využití DGIM
 
@@ -481,3 +486,8 @@ Tvůrci webů se odjakživa snaží podvádět vyhledávače, aby na jejich str�
 Google nepoužívá PageRank jen při samotném vyhledávání, ale i při indexování internetu (tzv. crawling).
 * Internet je příliš obrovský na to, aby robot stíhal neustále procházet úplně všechny stránky světa každou minutu.
 * **Využití:** Googlebot navštěvuje stránky s vysokým PageRankem (např. zpravodajské servery jako iDNES.cz nebo NYTimes) klidně každých pár minut, protože ví, že jsou důležité a často se mění. Naopak zapadlé osobní weby s nízkým PageRankem navštíví třeba jen jednou za měsíc.
+
+#### Závěrečné shrnutí: Současný stav PageRanku
+* **Ústup z hlavní role:** Původní čistý algoritmus již sám o sobě nerozhoduje o konečném pořadí výsledků; v moderních vyhledávačích byl doplněn pokročilými AI modely (sémantické vyhledávání) a analýzou chování uživatelů na stránce.
+* **Přetrvávající význam ve vyhledávání:** Nadále funguje na pozadí jako základní indikátor důvěryhodnosti webu (obrana proti spamu) a určuje prioritu procházení internetu vyhledávacími roboty (alokace zdrojů pro crawling).
+* **Přesah do jiných oborů:** Matematický aparát mocninné iterace nad maticemi přechodu se dnes masivně využívá mimo oblast webu – například v doporučovacích systémech sociálních sítí, v bioinformatice nebo při analýze finančních toků pro detekci podvodů.
