@@ -265,8 +265,8 @@ Pro hodnocení nefunkčních požadavků se používá také akronym **FURPS** (
 
 Odhadování (Software Estimation) je predikce lidského úsilí (člověkoměsíce - Person-Months), kalendářního času a finančních nákladů.
 
-**Problémy odhadování vyjadřuje koncept nazvaný Kužel nejistoty (Cone of Uncertainty):**[cite: 1]
-Odhadování na samém začátku projektu (ve fázi iniciace a před specifikací) je zatíženo masivní chybou[cite: 1]. Kužel nejistoty ukazuje, že počáteční odhad se může lišit od reality **až čtyřikrát (4:1) oběma směry** ($0.25\times$ až $4\times$)[cite: 1]. S postupným upřesňováním specifikace a fází vývoje se odhad zpřesňuje a nejistota se zužuje k realitě ($1\times$)[cite: 1]. *Příklad: Pokud na první schůzce nad hrubým nápadem odhadneme čas vývoje na 12 měsíců, realita může kvůli Kuželu nejistoty skončit kdekoli v rozmezí od 3 do 48 měsíců.*[cite: 1]
+**Problémy odhadování vyjadřuje koncept nazvaný Kužel nejistoty (Cone of Uncertainty):**
+Odhadování na samém začátku projektu (ve fázi iniciace a před specifikací) je zatíženo masivní chybou. Kužel nejistoty ukazuje, že počáteční odhad se může lišit od reality **až čtyřikrát (4:1) oběma směry** ($0.25\times$ až $4\times$). S postupným upřesňováním specifikace a fází vývoje se odhad zpřesňuje a nejistota se zužuje k realitě ($1\times$). *Příklad: Pokud na první schůzce nad hrubým nápadem odhadneme čas vývoje na 12 měsíců, realita může kvůli Kuželu nejistoty skončit kdekoli v rozmezí od 3 do 48 měsíců.*
 
 <img alt="cone-uncert.png" src="img/swing/cone-uncert.png" width="400"/>
 
@@ -279,7 +279,7 @@ Důvodem je overhead spojený s komunikací v týmu a čas, který musí stávaj
 
 **Expertní odhady a tříbodový odhad (PERT) staví na tom, že jsou** založeny na zkušenostech seniorních inženýrů. Pro potlačení subjektivity se definují tři scénáře: Optimistický ($O$), Pesimistický ($P$) a Nejvíc pravděpodobný ($M$).
 * *Očekávané úsilí:* $$E = \frac{O + 4M + P}{6}$$
-*Příklad PERT: Expert odhadne, že za idealních podmínek zabere úkol 2 dny ( $O$ ), standardně 3 dny ( $M$ ), a když selže server, tak až 10 dní ( $P$ ). Očekávané úsilí bude* $E = (2 + 4\times3 + 10) / 6 = 4$ *dny.*
+*Příklad PERT: Expert odhadne, že za idealních podmínek zabere úkol 2 dny (* $O$ *), standardně 3 dny (* $M$ *), a když selže server, tak až 10 dní (* $P$ *). Očekávané úsilí bude* $E = (2 + 4\times3 + 10) / 6 = 4$ *dny.*
 
 **Algoritmické modely: COCOMO (Constructive Cost Model) fungují tak, že** (B. Boehm, 1981) hlavním indikátorem velikosti a práce je počet tisíc řádků zdrojového kódu (**KSLOC** / #SLOC). 
 

@@ -449,7 +449,14 @@ Kde $\mathbf{S}$ je kovarianční nebo korelační matice (můžeme si vybrat �
 
 *Příklad pro 3 původní proměnné (p = 3): Odčítání* $\lambda$ *od diagonály matice vztahů* $\mathbf{S}$ *a následný výpočet determinantu vypadá v obecném zápisu takto:*
 
-$$\det(\mathbf{S} - \lambda \mathbf{I}) = \det \begin{pmatrix} S_{11} - \lambda & S_{12} & S_{13} \\ S_{21} & S_{22} - \lambda & S_{23} \\ S_{31} & S_{32} & S_{33} - \lambda \end{pmatrix} = 0$$
+$$
+\det(\mathbf{S} - \lambda \mathbf{I}) = \det 
+\begin{pmatrix} 
+S_{11} - \lambda & S_{12} & S_{13} \\ 
+S_{21} & S_{22} - \lambda & S_{23} \\ 
+S_{31} & S_{32} & S_{33} - \lambda 
+\end{pmatrix} = 0
+$$
 
 
 4. *Vlastní čísla seřadíme sestupně od největšího po nejmenší:* $\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_p \ge 0$*. Největší* $\lambda_1$ *odpovídá první hlavní komponentě* ($PC_1$), *protože zachycuje největší podíl rozptylu.*

@@ -82,6 +82,8 @@ Přestože je Map-Reduce extrémně robustní pro masivní dávkové zpracován�
 
 Hledání podobných objektů (Near-Neighbor Search) ve vysokodimenzionálních prostorech je výpočetně náročné. Klasické porovnávání všech párů dokumentů má kvadratickou složitost $O(n^2)$, což je u velkých dat neúnosné. Proces se proto dělí do tří kroků: Shingling (převod na množiny), Min-Hashing (zkrácení na signatury) a LSH (rychlé nalezení kandidátů).
 
+Ilustrovany blog: https://www.pinecone.io/learn/series/faiss/locality-sensitive-hashing/
+
 <img alt="img.png" src="img/pokroc/vyhled.png" width="400"/>
 
 ## Shingling
@@ -143,7 +145,7 @@ Min-Hashing slouží k vytvoření krátkých "podpisů" (signatur) z velkých m
 - *V tomto specifickém případě vykazují signatury 100% shodu (3/3), což je odhad Jaccardovy podobnosti. Skutečná hodnota je 0,75. Rozdíl mezi odhadem a skutečností je dán velmi malým počtem permutací; v praxi se používají stovky permutací, aby se odhad (Sig/Sig) stabilizoval na hodnotě Jaccardovy podobnosti (0,75).*
 
 ## Locality-Sensitive Hashing (LSH)
-I když máme krátké signatury (např. 100 čísel), porovnat každý dokument s každým v milionech prvků je stále výpočetně nemožné ($O(n^2)$). LSH tento problém řeší tak, že dokumenty hashujeme do kbelíků (buckets) takovým způsobem, aby podobné dokumenty skončily ve stejném kbelíku s velmi vysokou pravděpodobností, zatímco nepodobné jen výjimečně.
+I když máme krátké signatury (např. 100 čísel), porovnat každý dokument s každým v milionech prvků je stále výpočetně nemožné ( $O(n^2)$ ). LSH tento problém řeší tak, že dokumenty hashujeme do kbelíků (buckets) takovým způsobem, aby podobné dokumenty skončily ve stejném kbelíku s velmi vysokou pravděpodobností, zatímco nepodobné jen výjimečně.
 
 ### Princip pásem (Bands) a řádků (Rows)
 Matici signatur rozdělíme na $b$ pásem, kde každé pásmo obsahuje $r$ řádků. Celková délka signatury je tedy $n = b \times r$.
@@ -214,7 +216,7 @@ Klíčem k efektivitě je správný poměr mezi velikostí pole $m$, počtem vlo
 - **Optimální hodnota $k$:** Abychom minimalizovali pravděpodobnost chyby pro dané $m$ a $n$, volíme počet hashovacích funkcí jako:
   $k = \frac{m}{n} \ln 2 \approx 0.7 \times \frac{m}{n}$
 - Při tomto nastavení je zaplněna právě polovina bitového pole jedničkami, což poskytuje nejvyšší informační hodnotu.
-- *Příklad: Pokud máme k dispozici 10 bitů na prvek ($m/n = 10$), optimální $k$ je 7 a pravděpodobnost chyby klesne pod 1 %.*
+- *Příklad: Pokud máme k dispozici 10 bitů na prvek (* $m/n = 10$ *), optimální* $k$ *je 7 a pravděpodobnost chyby klesne pod 1 %.*
 
 <img alt="img.png" src="img/pokroc/optimal.png" width="200"/>
 
