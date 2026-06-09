@@ -26,15 +26,15 @@ Pro exaktní popis prvků a cílů vyhledávacího procesu definujeme následuj�
     * $q$: Dotazový objekt (query object), kde $q \in M$.
 * **Cíl vyhledávání:** Nalézt podmnožinu objektů z databáze $X$, které vykazují minimální vzdálenost (maximální podobnost) k dotazovému objektu $q$.
 
-Při vyhodnocení dotazů rozlišujeme dva základní přístupy podle toho, zda je prioritou stoprocentní přesnost výsledků, nebo rychlost výpočtu:
-* **Exaktní vyhledávání (Exact / Precise Search):** Garantuje 100% přesnost výsledků (Recall = 1).
-    * Vrátí exaktně všechny objekty, které splňují matematickou definici daného dotazu.
-    * Index slouží pouze k urychlení výpočtu, výsledek je shodný se sekvenčním skenováním.
+*Při vyhodnocení dotazů rozlišujeme dva základní přístupy podle toho, zda je prioritou stoprocentní přesnost výsledků, nebo rychlost výpočtu:*
+* ***Exaktní vyhledávání (Exact / Precise Search):** Garantuje 100% přesnost výsledků (Recall = 1).*
+    * *Vrátí exaktně všechny objekty, které splňují matematickou definici daného dotazu.*
+    * *Index slouží pouze k urychlení výpočtu, výsledek je shodný se sekvenčním skenováním.*
 
-* **Aproximované vyhledávání (Approximate Search - ANN):**
-    * Obětuje část přesnosti výměnou za výrazné zrychlení vyhledávání a snížení I/O nákladů.
-    * Používá se v situacích, kdy pro uživatele není kritické najít absolutně nejbližší sousedy, ale stačí objekty „dostatečně blízké“.
-    * *Důvody zavedení:* Extrémní rozsah datových sad a negativní dopady prokletí dimenzionality na exaktní indexy.
+* ***Aproximované vyhledávání (Approximate Search - ANN):***
+    * *Obětuje část přesnosti výměnou za výrazné zrychlení vyhledávání a snížení I/O nákladů.*
+    * *Používá se v situacích, kdy pro uživatele není kritické najít absolutně nejbližší sousedy, ale stačí objekty „dostatečně blízké“.*
+    * *Důvody zavedení: Extrémní rozsah datových sad a negativní dopady prokletí dimenzionality na exaktní indexy.*
 
 
 ## Metrický prostor
