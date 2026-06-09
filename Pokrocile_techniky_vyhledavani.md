@@ -102,6 +102,9 @@ Min-Hashing slouží k vytvoření krátkých "podpisů" (signatur) z velkých m
 
 <img alt="img.png" src="img/pokroc/minhash.png" width="400"/>
 
+<details>
+<summary>Názorné vysvětlení na příkladu</summary>
+
 ### Příklad
 *Mějme vstupní matici 7 řádků (shingles) a 4 dokumentů (sloupců). Zaměříme se na dokumenty D1 a D3.*
 
@@ -144,8 +147,19 @@ Min-Hashing slouží k vytvoření krátkých "podpisů" (signatur) z velkých m
 ***Závěr příkladu:***
 - *V tomto specifickém případě vykazují signatury 100% shodu (3/3), což je odhad Jaccardovy podobnosti. Skutečná hodnota je 0,75. Rozdíl mezi odhadem a skutečností je dán velmi malým počtem permutací; v praxi se používají stovky permutací, aby se odhad (Sig/Sig) stabilizoval na hodnotě Jaccardovy podobnosti (0,75).*
 
+</details>
+
 ## Locality-Sensitive Hashing (LSH)
-I když máme krátké signatury (např. 100 čísel), porovnat každý dokument s každým v milionech prvků je stále výpočetně nemožné ( $O(n^2)$ ). LSH tento problém řeší tak, že dokumenty hashujeme do kbelíků (buckets) takovým způsobem, aby podobné dokumenty skončily ve stejném kbelíku s velmi vysokou pravděpodobností, zatímco nepodobné jen výjimečně.
+Locality-Sensitive Hashing (LSH) řeší zásadní problém: Min-Hashing sice zkrátil dokumenty na krátké signatury, ale pokud máme 1 milion dokumentů, stále bychom museli provést zhruba 500 miliard porovnání ($O(n^2)$), abychom našli ty podobné. 
+
+LSH proto funguje jako **předvýběr (filtr)**. Rozdělí matici signatur na $b$ pásem po $r$ řádcích. 
+* **S-křivka** je matematickým vyjádřením tohoto filtru. Ukazuje pravděpodobnost ($P$), že dva dokumenty se specifickou Jaccardovou podobností ($s$) projdou filtrem a stanou se kandidáty na detailní porovnání.
+* **Logika filtru (AND/OR):** * Aby se dva dokumenty shodovaly v rámci jednoho pásma, musí se shodovat ve **všech $r$ řádcích** (logické **AND**, pravděpodobnost je $s^r$). To funguje jako přísné síto, které propustí jen hodně podobné řádky. 
+Aby se staly celkovými kandidáty, stačí, když se shodují v **alespoň jednom z $b$ pásem** (logické **OR**, pravděpodobnost roste na $1 - (1 - s^r)^b$). To dává podobným dokumentům "více šancí" uspět, i kdyby se v některých pásech kvůli náhodě lišily.
+* Výsledná **S-křivka** má ostrý zlom kolem prahu $t \approx (1/b)^{1/r}$. Dokumenty s podobností nad tímto prahem propustí s pravděpodobností blížící se 100 %, zatímco dokumenty pod ním odfiltruje s pravděpodobností blížící se 0 %.
+
+V klasickém hashování (např. MD5, SHA-256) chceme pravý opak: aby i minimální změna na vstupu (např. jedno písmenko) vedla k úplně jinému hashi (lavinový efekt) a minimalizovaly se kolize. V LSH naopak **chceme, aby podobné vstupy kolidovaly (skončily ve stejném kbelíku)**.
+Konkrétní podoba hashovací funkce v LSH závisí na použitém typu dat a metriky podobnosti. Pro **Jaccardovu podobnost** se jako LSH funkce používá **kombinace Min-Hashingu a standardní hashovací funkce**.
 
 ### Princip pásem (Bands) a řádků (Rows)
 Matici signatur rozdělíme na $b$ pásem, kde každé pásmo obsahuje $r$ řádků. Celková délka signatury je tedy $n = b \times r$.
@@ -173,10 +187,12 @@ Pravděpodobnost, že se dva dokumenty s Jaccardovou podobností $s$ stanou kand
 
 <img alt="img.png" src="img/pokroc/chyby.png" width="300"/>
 
-- **Chyby:** 
-  - **Falešně negativní:** Podobné dokumenty, které náhodou nepadly do stejného pásma (lze minimalizovat zvýšením počtu pásem).
-  - **Falešně pozitivní:** Nepodobné dokumenty, které se náhodou shodly v jednom pásmu (lze odfiltrovat následným přesným výpočtem podobnosti).
+**Chyby:** 
+- **Falešně negativní:** Podobné dokumenty, které náhodou nepadly do stejného pásma (lze minimalizovat zvýšením počtu pásem).
+- **Falešně pozitivní:** Nepodobné dokumenty, které se náhodou shodly v jednom pásmu (lze odfiltrovat následným přesným výpočtem podobnosti).
 
+<details>
+<summary>Názorný příklad</summary>
 
 ### Konkrétní numerický příklad (S-křivka v praxi)
 Uvažujme nastavení parametrů $b = 20$ pásem a $r = 5$ řádků. Práh podobnosti je definován jako $t \approx (1/b)^{1/r} \approx (1/20)^{1/5} \approx 0.55$.
@@ -195,6 +211,33 @@ Výsledek: Dokumenty s vysokou podobností se stanou kandidáty s pravděpodobno
 4. $P = 1 - 0.9936 = \mathbf{0.0064}$ 
 Výsledek: Dokumenty s nízkou podobností se stanou kandidáty s pravděpodobností pouze cca 0.64 %. 
 
+</details>
+
+### Příklady
+
+Princip Shingling $\rightarrow$ Min-Hashing $\rightarrow$ LSH lze aplikovat na jakýkoliv problém, kde lze objekty reprezentovat jako množiny vlastností (features).
+
+* **Doporučovací systémy (E-shopy a streamovací služby):**
+    * **Položky:** Uživatelé.
+    * **"Slova" (Množina):** Seznam zakoupených produktů nebo zhlédnutých filmů.
+    * *Využití:* Hledání „vzhledově“ nebo zájmově podobných uživatelů (Collaborative Filtering). Pokud má uživatel A a uživatel B vysokou Jaccardovu podobnost své množiny zhlédnutých filmů, systém jim navzájem doporučí to, co ten druhý ještě neviděl. LSH zde brání tomu, aby systém musel porovnávat miliony uživatelů každý s každým.
+* **Detekce plagiátů a autorských práv u obrázků (Image Retrieval):**
+    * **Položky:** Digitální fotografie / obrázky.
+    * **"Slova" (Množina):** Vizuální vlastnosti (např. lokální deskriptory jako SIFT, SURF, nebo barevné histogramy jednotlivých segmentů obrázku).
+    * *Využití:* Vyhledávání vizuálně podobných obrázků (např. Google Obrázky). Pokud někdo vezme cizí fotku, ořízne ji a mírně změní barvy, množiny vizuálních prvků budou mít stále vysoký průnik. Min-Hashing a LSH bleskově najdou originál v databázi miliard obrázků.
+* **Bioinformatika (Porovnávání DNA a proteinů):**
+    * **Položky:** Genetické sekvence.
+    * **"Slova" (Množina):** Tzv. *k-mers* (krátké podsledy nukleotidů o délce *k*, což je přímá obdoba k-shingles v textu).
+    * *Využití:* Hledání podobných genů napříč různými organismy nebo identifikace mutací. Protože jsou genomy gigantické, klasické sekvenční porovnávání je extrémně pomalé. LSH dokáže okamžitě vyfiltrovat kandidátní sekvence, které vykazují vysokou shodu.
+* **Detekce malwaru a kybernetická bezpečnost:**
+    * **Položky:** Spustitelné soubory (.exe, .bin).
+    * **"Slova" (Množina):** Posloupnosti systémových volání (API calls) nebo sekvence bajtů (n-gramy instrukcí).
+    * *Využití:* Útočníci často vezmou známý virus a mírně upraví kód (přidají "junk" instrukce), aby obešli běžné antiviry založené na přesném kontrolním součtu (MD5/SHA256). Pokud se ale kód převede na množinu instrukcí, Jaccardova podobnost upraveného viru s původním zůstane velmi vysoká a LSH ho odhalí.
+* **Detekce podvodů s kreditními kartami (Fraud Detection):**
+    * **Položky:** Bankovní klienti.
+    * **"Slova" (Množina):** Množina obchodníků, poloh (GPS) a časových oken, kde běžně realizují transakce.
+    * *Využití:* Pokud se chování karty náhle radikálně odkloní od historické množiny typického chování daného uživatele (nebo naopak spadne do LSH kbelíku typického pro známé podvodné vzorce), systém transakci zablokuje.
+
 ---
 # Zpracování proudů dat
 
@@ -204,11 +247,30 @@ U proudových dat (Data Streams) předpokládáme, že data přicházejí vysoko
 ## Bloomovy filtry
 Bloomův filtr je prostorově efektivní pravděpodobnostní datová struktura sloužící k rychlému testování příslušnosti prvku do množiny. Hlavní motivací je ušetřit obrovské množství operační paměti v situacích, kdy si nemůžeme dovolit ukládat skutečné prvky (např. miliardy URL adres), ale potřebujeme bleskově rozhodnout, zda jsme daný prvek už viděli.
 
+<details>
+<summary>Proč potřebujeme proudové algoritmy?</summary>
+
+U proudových dat narážíme na **fyzikální limity hardwaru**. Představme si reálný scénář: monitorování provozu na páteřním síťovém routeru.
+
+* **Vstupní data:** Routerem projde **1 milion IP paketů za sekundu**. Chceme v reálném čase (např. v klouzavém okně posledních 24 hodin) sledovat počet unikátních IP adres, abychom detekovali DDoS útok.
+* **Analýza datového objemu:**
+    * Jedna IPv4 adresa má 4 bajty (32 bitů). Pokud bychom ukládali každou IP adresu, za sekundu spotřebujeme 4 MB.
+    * Za hodinu: $4 \text{ MB} \times 3600 = 14.4 \text{ GB}$.
+    * Za 24 hodin: $14.4 \text{ GB} \times 24 \approx \mathbf{345 \text{ GB}}$ hrubých dat, která musíme udržovat v paměti pro jedno klouzavé okno.
+* **Proč klasický přístup selže:**
+    * **Omezení RAM:** Uložit 345 GB do rychlé operační paměti (RAM) jednoho běžného routeru nebo serveru je extrémně drahé nebo nemožné.
+    * **Omezení disku (Latence):** Uložit data na SSD/disk sice lze, ale zápis a následné prohledávání (Lookup) milionu záznamů za sekundu vytvoří obrovské úzké hrdlo. Klasická databáze (např. SQL s `SELECT COUNT(DISTINCT ip)`) by měla latenci v řádu milisekund až sekund, což na síti znamená okamžitý kolaps a ztrátu paketů.
+* **Proudové řešení:** Algoritmy jako Bloomovy filtry nebo DGIM tento problém řeší tak, že **zahazují samotná data (IP adresy)** a ukládají pouze extrémně komprimované bitové struktury (statistické indikátory). Místo stovek gigabajtů RAM jim stačí řádově **megabajty nebo desítky megabajtů**, přičemž operace kontroly a zápisu trvají fixní čas $O(1)$ v řádu nanosekund.
+
+</details>
+
 ### Princip a fungování
 Struktura se skládá z bitového pole o délce $m$ (všechny bity jsou na začátku 0) a $k$ nezávislých hashovacích funkcí $h_1, h_2, \dots, h_k$.
 - **Vkládání (Insertion):** Pro prvek $x$ vypočítáme $k$ hashů a bity na pozicích $h_1(x), \dots, h_k(x)$ nastavíme na 1.
 - **Dotaz (Query):** Pro prvek $y$ zkontrolujeme bity na pozicích $h_1(y), \dots, h_k(y)$. Pokud je alespoň jeden z těchto bitů 0, prvek v množině **určitě není** (žádné False Negatives). Pokud jsou všechny 1, prvek v množině **pravděpodobně je** (možné False Positives).
 - **Klíčová vlastnost:** Bloomův filtr nikdy nelže, pokud řekne "NE". Pokud řekne "ANO", musíme počítat s malou pravděpodobností chyby, kterou lze ale matematicky minimalizovat.
+
+<img alt="img.png" src="img/pokroc/bloom.png" width="300"/>
 
 ### Optimální nastavení a matematika
 Klíčem k efektivitě je správný poměr mezi velikostí pole $m$, počtem vložených prvků $n$ a počtem hashovacích funkcí $k$.
@@ -221,13 +283,14 @@ Klíčem k efektivitě je správný poměr mezi velikostí pole $m$, počtem vlo
 <img alt="img.png" src="img/pokroc/optimal.png" width="200"/>
 
 ### Praktické využití
-- **Webové prohlížeče:** Google Chrome využívá Bloomův filtr ke kontrole, zda URL není na seznamu škodlivých stránek. Pokud filtr zahlásí "ANO", provede se teprve pak drahý dotaz na server pro potvrzení.
-- **Databáze:** Apache Cassandra nebo Google BigTable používají filtry k tomu, aby zabránily zbytečnému čtení z disku pro neexistující klíče.
-- *Příklad: Router filtrující spamové IP adresy – Bloomův filtr okamžitě propustí 99 % legitimního provozu bez nutnosti prohledávat obří databázi v RAM.*
+- *Webové prohlížeče: Google Chrome využívá Bloomův filtr ke kontrole, zda URL není na seznamu škodlivých stránek. Pokud filtr zahlásí "ANO", provede se teprve pak drahý dotaz na server pro potvrzení.*
+- *Databáze: Apache Cassandra nebo Google BigTable používají filtry k tomu, aby zabránily zbytečnému čtení z disku pro neexistující klíče.*
+- *Router filtrující spamové IP adresy – Bloomův filtr okamžitě propustí 99 % legitimního provozu bez nutnosti prohledávat obří databázi v RAM.*
 
 ---
 ## Algoritmus DGIM (Datar-Gionis-Indyk-Motwani)
 DGIM řeší problém odhadu počtu jedniček v posledních $N$ bitech datového proudu (problém "Counting ones"). Protože uložení celého okna vyžaduje $N$ bitů, DGIM využívá logaritmickou kompresi pro úsporu místa za cenu mírné nepřesnosti (chyba max 50 %).
+Při zpracování proudu o objemu **100 milionů bitů** (např. blesková detekce výpadků na síti) by klasické přesné řešení vyžadovalo v paměti neustále udržovat okno o velikosti 100 Mb (cca 12 MB RAM). Algoritmus DGIM dokáže zredukovat toto obří množství dat na pouhých **několik stovek bajtů** operační paměti, protože mu stačí uchovávat pouze logaritmicky komprimované kbelíky, a to za cenu maximálně 50% odchylky od skutečného počtu jedniček.
 
 * **Struktura kbelíků (Buckets):** Proud je rozdělen na kbelíky, které uchovávají časovou značku konce a počet jedniček (velikost), která musí být mocninou 2.
 * **Pravidla udržování:**
@@ -238,6 +301,22 @@ DGIM řeší problém odhadu počtu jedniček v posledních $N$ bitech datového
 * *Příklad: Monitorování počtu unikátních uživatelů za poslední hodinu v reálném čase – DGIM udržuje úspornou statistiku bez nutnosti držet miliony záznamů.*
 
 <img alt="img.png" src="img/pokroc/buckets.png" width="300"/>
+
+### Proč má DGIM maximální chybu právě 50 %?
+
+Abychom pochopili, kde se bere chyba až 50 %, musíme se podívat na to, jak DGIM odhaduje výsledek na konci (při dotazu na posledních $N$ bitů):
+
+1. **Uvnitř okna:** Všechny kbelíky, které do okna $N$ spadají celé, započítá DGIM stoprocentně. Tam žádná chyba nevzniká.
+2. **Na hraně okna:** Problém nastává u **úplně posledního (nejstaršího) kbelíku**, který do okna zasahuje jen zčásti. DGIM neví, kde přesně uvnitř tohoto kbelíku se ty jedničky nacházejí (zda jsou na jeho začátku, konci, nebo rovnoměrně rozložené) – pamatuje si jen celkovou velikost kbelíku a jeho koncový čas.
+3. **Pravidlo odhadu:** DGIM situaci řeší kompromisem: z tohoto posledního kbelíku o velikosti $C$ započítá do odhadu **přesně polovinu**, tedy $C/2$.
+
+**Extrémní scénáře (Kde vzniká největší chyba):**
+Představme si, že nejstarší kbelík, který zasáhl do našeho okna, má velikost $C = 64$ (obsahuje 64 jedniček). DGIM z něj automaticky započítá $64 / 2 = 32$ jedniček. 
+
+* **Nejhorší případ A (Skutečnost je 0):** Všechny jedničky z tohoto kbelíku ve skutečnosti leží *mimo* naše okno $N$ (staly se těsně před ním). Skutečný počet jedniček z tohoto kbelíku v našem okně je **0**. DGIM ale přičetl **32**. Nadhodnotil výsledek o 32.
+* **Nejhorší případ B (Skutečnost je 64):** Všechny jedničky z tohoto kbelíku ve skutečnosti leží *uvnitř* našeho okna $N$ (staly se těsně po začátku okna). Skutečný počet je **64**. DGIM ale přičetl jen **32**. Podhodnotil výsledek o 32.
+
+Protože pravidla DGIM striktně nařizují, že celkový součet všech *předchozích* (novějších) kbelíků v okně musí být prokazatelně větší nebo roven velikosti tohoto posledního kbelíku, tato absolutní chyba na hraně (která je maximálně $C/2$) nikdy nepřesáhne **50 % celkového odhadovaného součtu**.
 
 ---
 ## PageRank
@@ -286,4 +365,6 @@ PageRank lze matematicky chápat jako soustavu lineárních rovnic. Proč se ale
 - **Konvergence:** Opakujeme, dokud $\lvert r^{(t+1)} - r^{(t)} \rvert < \epsilon$.
 - *Příklad: V každém kroku se "hladina" ranku přelévá po hranách grafu, dokud nedosáhne stabilního stavu (rovnováhy).*
 
-<img alt="img.png" src="img/pokroc/iter.png" width="300"/>
+<img alt="img.png" src="img/pokroc/iter.png" width="400"/>
+
+
