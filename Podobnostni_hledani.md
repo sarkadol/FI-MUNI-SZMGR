@@ -53,8 +53,11 @@ Aby byla funkce $d$ regulérní metrikou, musí pro libovolné objekty $x, y, z 
 * **Kvazimetrika:** Nesplňuje axiom symetrie, tedy $d(x, y) \neq d(y, x)$ (např. vzdálenost v dopravní síti s jednosměrnými ulicemi).
 * **Semimetrika:** Nesplňuje trojúhelníkovou nerovnost. Nad semimetrickým prostorem nelze stavět standardní metrické indexy, protože nelze provádět prořezávání prostoru.
 
+<details>
+   <summary>
+      Koncepční srovnání: metrický vs. vektorový prostor
+   </summary>
 
-### Koncepční srovnání: metrický vs. vektorový prostor
 V praxi se nejčastěji setkáváme s vícerozměrnými vektory (např. embeddingy), avšak z matematického a indexačního hlediska jde o zásadní rozdíl v abstrakci.
 Každý normovaný vektorový prostor (kde umíme měřit délku vektoru) je metrickým prostorem, ale zdaleka ne každý metrický prostor je prostorem vektorovým.
 
@@ -68,6 +71,8 @@ V podobnostním vyhledávání existují obrovské rodiny dat, které nemají po
 3. **Grafy a sítě (Graph Spaces):** Objekty jsou uzly (např. v sociální nebo silniční síti) a metrikou je *nejkratší cesta v grafu*.
 
 **Důsledek pro indexování:** Zatímco vektorový index (např. K-D strom) může prostor rozseknout v půlce podle fixní osy (např. $X > 5$), čistě metrický index (např. M-Tree) toto udělat nedokáže, protože osy nemá. Musí proto zvolit reálný objekt z databáze jako **pivot $p$** a prostor dělit relativně vůči němu (např. pomocí metrických koulí).
+
+</details>
 
 ### Vzdálenostní funkce
 Volba konkrétní metriky závisí na povaze indexovaných dat a sémantickém významu, který odráží člověkem vnímanou podobnost. Mezi standardně využívané funkce patří:
@@ -102,7 +107,7 @@ Hlavní výzvou podobnostního vyhledávání je **sémantická propast (Semanti
 
 ---
 
-### Typy dotazů a jejich definice
+## Typy dotazů a jejich definice
 Při zadání databáze (množiny objektů) $X \subseteq M$ a dotazového objektu $q \in M$ (query object) 
 rozlišujeme typy podobnostních dotazů:
 
