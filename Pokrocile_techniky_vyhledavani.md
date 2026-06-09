@@ -82,7 +82,7 @@ Přestože je Map-Reduce extrémně robustní pro masivní dávkové zpracován�
 
 Hledání podobných objektů (Near-Neighbor Search) ve vysokodimenzionálních prostorech je výpočetně náročné. Klasické porovnávání všech párů dokumentů má kvadratickou složitost $O(n^2)$, což je u velkých dat neúnosné. Proces se proto dělí do tří kroků: Shingling (převod na množiny), Min-Hashing (zkrácení na signatury) a LSH (rychlé nalezení kandidátů).
 
-Ilustrovany blog: https://www.pinecone.io/learn/series/faiss/locality-sensitive-hashing/
+Ilustrovaný blog: https://www.pinecone.io/learn/series/faiss/locality-sensitive-hashing/
 
 <img alt="img.png" src="img/pokroc/vyhled.png" width="400"/>
 
@@ -150,11 +150,11 @@ Min-Hashing slouží k vytvoření krátkých "podpisů" (signatur) z velkých m
 </details>
 
 ## Locality-Sensitive Hashing (LSH)
-Locality-Sensitive Hashing (LSH) řeší zásadní problém: Min-Hashing sice zkrátil dokumenty na krátké signatury, ale pokud máme 1 milion dokumentů, stále bychom museli provést zhruba 500 miliard porovnání ($O(n^2)$), abychom našli ty podobné. 
+Locality-Sensitive Hashing (LSH) řeší zásadní problém: Min-Hashing sice zkrátil dokumenty na krátké signatury, ale pokud máme 1 milion dokumentů, stále bychom museli provést zhruba 500 miliard porovnání ( $O(n^2)$ ), abychom našli ty podobné. 
 
 LSH proto funguje jako **předvýběr (filtr)**. Rozdělí matici signatur na $b$ pásem po $r$ řádcích. 
 * **S-křivka** je matematickým vyjádřením tohoto filtru. Ukazuje pravděpodobnost ($P$), že dva dokumenty se specifickou Jaccardovou podobností ($s$) projdou filtrem a stanou se kandidáty na detailní porovnání.
-* **Logika filtru (AND/OR):** * Aby se dva dokumenty shodovaly v rámci jednoho pásma, musí se shodovat ve **všech $r$ řádcích** (logické **AND**, pravděpodobnost je $s^r$). To funguje jako přísné síto, které propustí jen hodně podobné řádky. 
+* **Logika filtru (AND/OR):** Aby se dva dokumenty shodovaly v rámci jednoho pásma, musí se shodovat ve **všech $r$ řádcích** (logické **AND**, pravděpodobnost je $s^r$). To funguje jako přísné síto, které propustí jen hodně podobné řádky. 
 Aby se staly celkovými kandidáty, stačí, když se shodují v **alespoň jednom z $b$ pásem** (logické **OR**, pravděpodobnost roste na $1 - (1 - s^r)^b$). To dává podobným dokumentům "více šancí" uspět, i kdyby se v některých pásech kvůli náhodě lišily.
 * Výsledná **S-křivka** má ostrý zlom kolem prahu $t \approx (1/b)^{1/r}$. Dokumenty s podobností nad tímto prahem propustí s pravděpodobností blížící se 100 %, zatímco dokumenty pod ním odfiltruje s pravděpodobností blížící se 0 %.
 
@@ -169,7 +169,8 @@ Matici signatur rozdělíme na $b$ pásem, kde každé pásmo obsahuje $r$ řád
 
 <img alt="img.png" src="img/pokroc/lsenh.png" width="400"/>
 
-### Matematika S-křivky
+### S-křivka
+**S-křivka slouží k** nastavení a vizualizaci citlivosti celého LSH filtru. Ukazuje, s jakou pravděpodobností ($P$) projdou dokumenty o určité reálné podobnosti ($s$) do stejného kbelíku, a stanou se tak kandidáty na porovnání. Pomáhá nám najít rovnováhu mezi množstvím falešně pozitivních a falešně negativních chyb.
 Pravděpodobnost, že se dva dokumenty s Jaccardovou podobností $s$ stanou kandidáty, je vyjádřena funkcí $P = 1 - (1 - s^r)^b$. Tato funkce vytváří charakteristickou **S-křivku**:
 1. **$s^r$**: Pravděpodobnost, že se dokumenty shodují ve všech řádcích jednoho konkrétního pásma.
 2. **$1 - s^r$**: Pravděpodobnost, že se v daném pásmu aspoň v jednom řádku liší.
@@ -190,6 +191,26 @@ Pravděpodobnost, že se dva dokumenty s Jaccardovou podobností $s$ stanou kand
 **Chyby:** 
 - **Falešně negativní:** Podobné dokumenty, které náhodou nepadly do stejného pásma (lze minimalizovat zvýšením počtu pásem).
 - **Falešně pozitivní:** Nepodobné dokumenty, které se náhodou shodly v jednom pásmu (lze odfiltrovat následným přesným výpočtem podobnosti).
+
+Změnou parametrů $b$ (počet pásem) a $r$ (počet řádků) můžeme S-křivku posouvat a měnit její vlastnosti. Tím určujeme, jak přísný náš vyhledávací filtr bude. Práh podobnosti je definován jako $t \approx (1/b)^{1/r}$.
+
+**Extrém 1: Velmi přísný filtr (Vysoké $r$, nízké $b$)**
+* **Nastavení:** Např. $h = 100$ čísel v signatuře rozdělíme na $b = 5$ pásem po $r = 20$ řádcích.
+* **Matematický práh:** $t \approx (1/5)^{1/20} \approx 0.92$
+* **Chování systému:** Aby se dva dokumenty staly kandidáty, musí se v některém pásmu shodovat ve všech 20 číslech naráz (přísná AND logika). Mají na to navíc jen 5 pokusů (nízké OR).
+* **Dopad na chyby:**
+    * **Falešně pozitivní $\rightarrow$ Téměř NULA.** Do stejného kbelíku se omylem nedostane téměř nic nepodobného.
+    * **Falešně negativní $\rightarrow$ Velmi VYSOKÉ.** I dokumenty s vysokou podobností (např. 85 %) filtr nekompromisně zahodí, protože neprojdou sítem 20 shodných řádků za sebou.
+* **Využití:** Hledání **identických kopií a stoprocentních plagiátů** (např. nahrání ukradeného videa na YouTube, kde se liší jen pár pixelů).
+
+**Extrém 2: Velmi volný filtr (Nízké $r$, vysoké $b$)**
+* **Nastavení:** Např. $h = 100$ čísel v signatuře rozdělíme na $b = 50$ pásem po $r = 2$ řádcích.
+* **Matematický práh:** $t \approx (1/50)^{1/2} \approx 0.14$
+* **Chování systému:** Stačí, aby se dokumenty shodovaly v pouhých 2 řádcích (volná AND logika), a navíc k tomu mají 50 nezávislých šancí (obrovské OR).
+* **Dopad na chyby:**
+    * **Falešně pozitivní $\rightarrow$ Extremně VYSOKÉ.** V kbelících skončí obrovské množství dokumentů, které jsou si podobné třeba jen z 15 % a reálně spolu nesouvisí. Výrazně se tím prodlouží následné přesné dohledávání.
+    * **Falešně negativní $\rightarrow$ Téměř NULA.** Systém nepřehlédne téměř žádný, byť jen vzdáleně podobný dokument.
+* **Využití:** **Široké asociační vyhledávání**, medicína (hledání mutací genů, kde stačí zachytit drobnou shodu a nesmí nám nic uniknout) nebo doporučování obsahu (zajímá nás cokoliv vzdáleně podobného vkusu uživatele).
 
 <details>
 <summary>Názorný příklad</summary>
@@ -274,11 +295,13 @@ Struktura se skládá z bitového pole o délce $m$ (všechny bity jsou na zač�
 
 ### Optimální nastavení a matematika
 Klíčem k efektivitě je správný poměr mezi velikostí pole $m$, počtem vložených prvků $n$ a počtem hashovacích funkcí $k$.
-- **Pravděpodobnost False Positive:** Přibližně $(1 - e^{-kn/m})^k$. Tato hodnota roste s počtem vložených prvků $n$.
-- **Optimální hodnota $k$:** Abychom minimalizovali pravděpodobnost chyby pro dané $m$ a $n$, volíme počet hashovacích funkcí jako:
-  $k = \frac{m}{n} \ln 2 \approx 0.7 \times \frac{m}{n}$
+- **Pravděpodobnost False Positive:** Přibližně $(1 - e^{-kn/m})^k$. Tato hodnota roste s počtem vložených prvků $n$. Pravděpodobnost False Positive závisí na zaplnění bitového pole. Pokud je $k$ příliš malé, kontrolujeme málo bitů a hrozí náhodná shoda. Pokud je $k$ příliš velké, pole se jedničkami zaplní příliš rychle ($n$ roste) a filtr začne bleskově vykazovat chyby.
+- **Optimální hodnota $k$:** Abychom minimalizovali pravděpodobnost chyby pro dané $m$ a $n$, volíme počet hashovacích funkcí jako hodnotu, která v bitovém poli nastaví právě polovinu bitů na jedničku, což znamená, že pravděpodobnost nulového bitu po vložení prvků musí být $e^{-kn/m} = \frac{1}{2}$. Z této rovnosti zlogaritmováním dostaneme $- \frac{kn}{m} = \ln(\frac{1}{2}) = - \ln 2$, z čehož osamostatněním $k$ vyjde finální vzorec, tedy:
+
+  $$k = \frac{m}{n} \ln 2 \approx 0.7 \times \frac{m}{n}$$
 - Při tomto nastavení je zaplněna právě polovina bitového pole jedničkami, což poskytuje nejvyšší informační hodnotu.
 - *Příklad: Pokud máme k dispozici 10 bitů na prvek (* $m/n = 10$ *), optimální* $k$ *je 7 a pravděpodobnost chyby klesne pod 1 %.*
+
 
 <img alt="img.png" src="img/pokroc/optimal.png" width="200"/>
 
@@ -300,7 +323,7 @@ Při zpracování proudu o objemu **100 milionů bitů** (např. blesková detek
 * **Odhad součtu:** Součet se spočítá jako součet velikostí všech kbelíků, které končí v okně $N$, přičemž z posledního (nejstaršího) kbelíku se započítá pouze polovina jeho velikosti.
 * *Příklad: Monitorování počtu unikátních uživatelů za poslední hodinu v reálném čase – DGIM udržuje úspornou statistiku bez nutnosti držet miliony záznamů.*
 
-<img alt="img.png" src="img/pokroc/buckets.png" width="300"/>
+<img alt="img.png" src="img/pokroc/buckets.png" width="400"/>
 
 ### Proč má DGIM maximální chybu právě 50 %?
 
@@ -317,6 +340,22 @@ Představme si, že nejstarší kbelík, který zasáhl do našeho okna, má vel
 * **Nejhorší případ B (Skutečnost je 64):** Všechny jedničky z tohoto kbelíku ve skutečnosti leží *uvnitř* našeho okna $N$ (staly se těsně po začátku okna). Skutečný počet je **64**. DGIM ale přičetl jen **32**. Podhodnotil výsledek o 32.
 
 Protože pravidla DGIM striktně nařizují, že celkový součet všech *předchozích* (novějších) kbelíků v okně musí být prokazatelně větší nebo roven velikosti tohoto posledního kbelíku, tato absolutní chyba na hraně (která je maximálně $C/2$) nikdy nepřesáhne **50 % celkového odhadovaného součtu**.
+
+### Příklady využití DGIM
+
+DGIM se v technologických firmách nasazuje všude tam, kde je potřeba v reálném čase sledovat frekvenci nějaké události v klouzavém okně (např. za poslední hodinu, den či týden), aniž by se musely ukládat gigabajty surových dat.
+
+* **Detekce DDoS útoků na Cloudflare / síťových routerech:**
+    * **Problém:** Síťový poskytovatel potřebuje vědět, zda na server v posledních 5 minutách nepřišel kritický počet požadavků (např. více než 1 milion paketů) z jedné IP adresy. 
+    * **Využití DGIM:** Systém pro každou IP adresu udržuje miniaturní DGIM strukturu (proud jedniček a nul představuje, zda v danou milisekundu paket přišel, či nikoliv). Místo ukládání miliard síťových logů do RAM stačí routeru pár stovek bajtů na každou IP adresu. Pokud DGIM odhadne, že frekvence jedniček překročila bezpečný limit, firewall IP adresu okamžitě zablokuje.
+
+* **Sledování Trendů na sociálních sítích (X / Twitter, TikTok):**
+    * **Problém:** Platforma chce v reálném čase zobrazovat „Trending Topics“ (témata, o kterých se zrovna teď mluví). Potřebuje vědět, kolikrát byl daný hashtag (např. `#Volby2026`) použit v posledních 24 hodinách.
+    * **Využití DGIM:** Pro každý populární hashtag běží samostatný DGIM stream, kde `1` znamená, že uživatel hashtag právě použil. TikTok tak nemusí v paměti držet obří databázi stovek milionů tweetů/postů z celého dne jen proto, aby mohl udělat průběžný součet. DGIM mu dává okamžitý, permanentně aktualizovaný odhad s minimální paměťovou režií.
+
+* **Počítání unikátních uživatelů (SaaS a Web Analytics):**
+    * **Problém:** Velké zpravodajské weby (např. iDNES.cz nebo NYTimes) sledují aktuální nápor na servery. Potřebují vědět, kolik uživatelů kliklo na hlavní článek za poslední hodinu (okno $N$), aby věděli, zda funguje monetizace a servery stíhají.
+    * **Využití DGIM:** Každé kliknutí generuje `1` do DGIM proudu daného článku. Vývojáři nemusí složitě doptávat SQL databázi přes drahé agregační dotazy typu `COUNT`, které by databázi při milionech přístupů za sekundu shodily. DGIM analytickému dashboardu okamžitě v čase $O(\log N)$ vrátí spolehlivý odhad návštěvnosti.
 
 ---
 ## PageRank
@@ -367,4 +406,78 @@ PageRank lze matematicky chápat jako soustavu lineárních rovnic. Proč se ale
 
 <img alt="img.png" src="img/pokroc/iter.png" width="400"/>
 
+<details>
+<summary>Příklad výpočtu iterační metdoy</summary>
 
+### Konkrétní příklad výpočtu PageRanku iterační metodou (Power Iteration)
+
+Mějme jednoduchý webový graf se 3 stránkami (**A**, **B**, **C**):
+* Stránka **A** odkazuje na **B** a **C**.
+* Stránka **B** odkazuje pouze na **C**.
+* Stránka **C** odkazuje pouze na **A**.
+
+Pro zjednodušení v tomto příkladu nepoužijeme zdanění ($\beta = 1$, tedy bez náhodného surfaře). Hledáme stabilní stav podle základní rovnice $r = M \cdot r$.
+
+#### 1. Sestavení matice přechodu $M$
+Sloupce představují odchozí odkazy, řádky příchozí odkazy.
+* **Sloupec A:** Odkazuje na 2 stránky (B, C), takže váha se dělí: $M_{BA} = 1/2$, $M_{CA} = 1/2$.
+* **Sloupec B:** Odkazuje na 1 stránku (C), takže celá váha jde tam: $M_{CB} = 1$.
+* **Sloupec C:** Odkazuje na 1 stránku (A), takže celá váha jde tam: $M_{AC} = 1$.
+
+Stochastická matice přechodu $M$ vypadá takto:
+$$M = \begin{pmatrix} 0 & 0 & 1 \\ 1/2 & 0 & 0 \\ 1/2 & 1 & 0 \end{pmatrix}$$
+
+#### 2. Inicializace (Iterace 0)
+Na začátku rozdělíme celkovou důležitost (rovnu 1) rovnoměrně mezi všechny 3 stránky:
+$$r^{(0)} = \begin{pmatrix} 1/3 \\ 1/3 \\ 1/3 \end{pmatrix} \approx \begin{pmatrix} 0.333 \\ 0.333 \\ 0.333 \end{pmatrix}$$
+
+#### 3. První iterační krok ($r^{(1)} = M \cdot r^{(0)}$)
+Vynásobíme matici $M$ naším počátečním vektorem $r^{(0)}$:
+* $r_A^{(1)} = 0 \cdot (1/3) + 0 \cdot (1/3) + 1 \cdot (1/3) = 1/3 \approx 0.333$
+* $r_B^{(1)} = (1/2) \cdot (1/3) + 0 \cdot (1/3) + 0 \cdot (1/3) = 1/6 \approx 0.167$
+* $r_C^{(1)} = (1/2) \cdot (1/3) + 1 \cdot (1/3) + 0 \cdot (1/3) = 1/6 + 1/3 = 1/2 = 0.500$
+
+$$r^{(1)} = \begin{pmatrix} 0.333 \\ 0.167 \\ 0.500 \end{pmatrix}$$
+
+#### 4. Druhý iterační krok ($r^{(2)} = M \cdot r^{(1)}$)
+Nyní vezmeme nový vektor $r^{(1)}$ a znovu ho přenásobíme maticí $M$:
+* $r_A^{(2)} = 0 \cdot 0.333 + 0 \cdot 0.167 + 1 \cdot 0.500 = 0.500$
+* $r_B^{(2)} = 0.5 \cdot 0.333 + 0 \cdot 0.167 + 0 \cdot 0.500 \approx 0.167$
+* $r_C^{(2)} = 0.5 \cdot 0.333 + 1 \cdot 0.167 + 0 \cdot 0.500 = 0.167 + 0.167 \approx 0.333$
+
+$$r^{(2)} = \begin{pmatrix} 0.500 \\ 0.167 \\ 0.333 \end{pmatrix}$$
+
+#### 5. Třetí iterační krok ($r^{(3)} = M \cdot r^{(2)}$)
+* $r_A^{(3)} = 1 \cdot 0.333 = 0.333$
+* $r_B^{(3)} = 0.5 \cdot 0.500 = 0.250$
+* $r_C^{(3)} = 0.5 \cdot 0.500 + 1 \cdot 0.167 = 0.250 + 0.167 = 0.417$
+
+$$r^{(3)} = \begin{pmatrix} 0.333 \\ 0.250 \\ 0.417 \end{pmatrix}$$
+
+#### Kam výpočet směřuje (Konvergence)
+Tento proces opakujeme (obvykle 50 až 100krát), dokud se hodnoty mezi dvěma kroky nepřestanou téměř měnit ($\lvert r^{(t+1)} - r^{(t)} \rvert < \epsilon$). Pokud bychom pokračovali dál, hodnoty by se stabilizovaly na přesném výsledku:
+
+$$r^{(\infty)} = \begin{pmatrix} 0.444 \\ 0.222 \\ 0.333 \end{pmatrix}$$
+
+**Závěr:** Nejdůležitější stránkou v grafu je stránka **A** (PageRank 0.444), protože na ni odkazuje stránka C, do které se slévá velká část ranku z celého grafu. Každým dalším násobením se tato "hladina" ranku jen přelévá po hranách, ale celkový součet zůstává vždy roven 1.
+
+</details>
+
+### K čemu slouží PageRank a proč určujeme důležitost stránek?
+
+Hlavním cílem PageRanku je **seřadit výsledky vyhledávání podle kvality a relevance**, aby uživatel našel to, co skutečně hledá, hned na první dobrou.
+
+**1. Řešení problému relevance (Kvalita vs. Kvantita)**
+Před PageRankem vyhledávače fungovaly naivně: spočítaly, kolikrát se hledané slovo na stránce vyskytuje (tzv. term frequency). 
+* **Důsledek:** Pokud někdo vytvořil prázdnou stránku a napsal na ni tisíckrát slovo „pivo“, staré vyhledávače ji vyhodnotily jako nejlepší výsledek.
+* **S PageRankem:** Vyhledávač sice stále kontroluje, zda stránka obsahuje slovo „pivo“, ale díky PageRanku navíc ví, jestli je ta stránka autoritativní web (např. Wikipedie nebo oficiální web Pilsner Urquell), nebo bezvýznamný spam. Ukáže ti weby, které mají vysokou globální důležitost.
+
+**2. Obrana proti spamu (SEO manipulace)**
+Tvůrci webů se odjakživa snaží podvádět vyhledávače, aby na jejich stránky chodilo víc lidí. 
+* PageRank zavedl princip, že **důležitost stránky nelze snadno zfalšovat přímo na té stránce samotné**. Tvoji důležitost ti musí „odvysílat“ ostatní stránky tím, že na tebe odkážou. 
+* Aby tvůj web získal vysoký PageRank, musí na tebe odkázat jiné důležité weby. Oklamat systém vytvořením tisíce vlastních falešných blogů nepomůže, protože ty blogy budou mít samy o sobě PageRank nula a nepředají ti žádnou váhu.
+
+**3. Efektivní procházení webu (Crawl Priority)**
+Google nepoužívá PageRank jen při samotném vyhledávání, ale i při indexování internetu (tzv. crawling).
+* Internet je příliš obrovský na to, aby robot stíhal neustále procházet úplně všechny stránky světa každou minutu.
+* **Využití:** Googlebot navštěvuje stránky s vysokým PageRankem (např. zpravodajské servery jako iDNES.cz nebo NYTimes) klidně každých pár minut, protože ví, že jsou důležité a často se mění. Naopak zapadlé osobní weby s nízkým PageRankem navštíví třeba jen jednou za měsíc.
