@@ -213,7 +213,10 @@ Tento princip uplatňuje předpočítané vzdálenosti mezi samotnými pivoty na
 
 ### D) Double-Pivot Distance Constraint
 Tato pokročilá technika zpřesňuje spodní odhad vzdálenosti zkombinováním informací od dvou různých pivotů ($p_1$ a $p_2$) vůči jednomu objektu $o$. Metoda je typická pro prostory dělené nadrovinou (např. struktury GHT), kde se datové objekty přiřazují k tomu pivotu, ke kterému mají geometricky blíže. Pokud se při vyhodnocování dotazu zjistí, že dotaz $q$ leží výrazně blíže k jednomu z pivotů, lze pomocí spodního odhadu vyřadit všechny objekty nacházející se v poloprostoru druhého pivota. Spodní odhad vzdálenosti $d(q, o)$ se konstruuje jako:
-$$\max\left\{ \frac{d(q, p_1) - d(q, p_2)}{2}, 0 \right\}$$
+
+$$\max\left\\{ \frac{d(q, p_1) - d(q, p_2)}{2}, 0 \right\\}$$
+
+
 K prořezání celého poloprostoru dochází v okamžiku, kdy je tato hodnota větší než poloměr vyhledávání $r$. Používá se pro maximalizaci prořezávacího efektu za cenu uložení většího objemu dat o vzdálenostech.
 
 
