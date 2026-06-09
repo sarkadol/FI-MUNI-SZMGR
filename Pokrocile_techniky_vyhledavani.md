@@ -54,7 +54,27 @@ V clusterech s tisíci stroji jsou selhání hardwaru na denním pořádku. Map-
 
 <img alt="img.png" src="img/pokroc/mapred.png" width="400"/>
 
+
 <img alt="img.png" src="img/pokroc/map.png" width="400"/>
+
+### Praktické příklady a využití Map-Reduce
+* **Budování vyhledávacích indexů (Inverted Index):** Používá se pro mapování slov na dokumenty, ve kterých se vyskytují. 
+    * *Mapper* vezme dokument a pro každé slovo vygeneruje `(slovo, ID_dokumentu)`. 
+    * *Reducer* shromáždí všechna ID pro dané slovo a vytvoří seznam: `(slovo, [doc1, doc4, doc12])`. Přesně takhle Google původně indexoval web.
+* **Analýza logů (Log Analysis):** Zpracování terabytů systémových logů z tisíců serverů.
+    * *Mapper* filtruje logy a hledá chybové hlášky, např. vyhodí `("HTTP 500", 1)`.
+    * *Reducer* chyby sečte a poskytne přehled o stabilitě systému v čase.
+* **Sociální sítě (Analýza grafů přátel):** Hledání "společných přátel" nebo doporučování lidí ke sledování.
+    * *Mapper* pro každého uživatele projde jeho přátele a vygeneruje dvojice potenciálních vazeb.
+    * *Reducer* spočítá, kolikrát se stejná vazba objevila, a navrhne propojení.
+
+### Limitace Map-Reduce (Kdy se nehodí)
+Přestože je Map-Reduce extrémně robustní pro masivní dávkové zpracování (Batch Processing), má zásadní architektonická omezení, kvůli kterým ho v mnoha moderních úlohách nahradil např. Apache Spark:
+
+* **Vysoká režie disků (Disk I/O Bottleneck):** Mezilehlé výsledky fáze Map se ukládají na lokální disky a výsledky fáze Reduce se zapisují do HDFS. Neustálé čtení a zápis z/na disk celý proces drasticky zpomaluje v porovnání s moderními In-Memory systémy (které drží data v RAM).
+* **Nevhodné pro iterační algoritmy:** Algoritmy, které potřebují data zpracovávat v mnoha krocích za sebou (např. strojové učení, K-Means clustering nebo právě **iterační výpočet PageRanku**), musí v Map-Reduce pro každou jednu iteraci spustit kompletně nový job od nuly. To znamená znovu načíst data z disku a znovu je zapsat.
+* **Vysoká latence (Batch-only):** Map-Reduce je navržen pro zpracování velkých dávek najednou. Spuštění jobu trvá sekundy až minuty (alokace zdrojů, inicializace tasků). Naprosto se proto nehodí pro real-time dotazy nebo interaktivní analýzu dat.
+* **Náročný Shuffle:** Fáze Shuffle vyžaduje přenos obrovského množství dat přes síť mezi všemi uzly (all-to-all komunikace). Pokud není správně implementován combiner, síťová karta se snadno stane hlavním úzkým hrdlem celého výpočtu.
 
 ---
 
