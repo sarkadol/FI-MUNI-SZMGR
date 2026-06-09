@@ -141,6 +141,8 @@ $$X \bowtie_{\mu} Y = \{ (x, y) \in X \times Y \mid d(x, y) \leq \mu \}$$
 
 Sekvenční procházení databáze (Sequential Scan / Brute Force) vyžaduje spočítat vzdálenost $d(q, x)$ pro každý objekt $x \in X$. Jelikož je výpočet metriky $d$ výpočetně nesmírně drahý (zejména u komplexních nebo high-dimensional popisovačů), je sekvenční skenování pro velké datové sady nepoužitelné ( $\mathcal{O}(N)$ ). Cílem indexování je organizovat data tak, aby bylo možné velkou část prostoru při vyhledávání bezpečně ignorovat.
 
+<img alt="img.png" src="img/podobnostni_hledani/img.png" width="400"/>
+
 ### Dělení dat (Data Partitioning)
 Metrické indexy rozdělují datový prostor na dílčí regiony (podprostory) reprezentované uzly stromové struktury. K tomuto dělení se využívají vybrané objekty zvané **pivoty (reference points)**. Na rozdíl od vektorových prostorů (kde lze dělit prostor fixními souřadnicovými osami) v čistě metrickém prostoru můžeme měřit pouze vzdálenosti mezi objekty. Existují dva základní principy dělení dat:
 
@@ -175,44 +177,45 @@ Tento přístup využívá například **GHT (Generalized Hyperplane Tree)** neb
 ---
 
 ## Filtrování dat (Pivoting) a prořezávání vyhledávacího prostoru
-**Pivoting** je technika eliminace kandidátů bez nutnosti počítat jejich reálnou vzdálenost k dotazu $q$. Je plně závislá na platnosti **trojúhelníkové nerovnosti**.
 
-Mějme dotaz $q$, vyhledávací poloměr $r$ a předpočítaného pivota $p$. Vzdálenosti mezi pivotem $p$ a všemi datovými objekty $x$ (tedy hodnoty $d(p, x)$ ) jsou exaktně spočteny během fáze budování indexu a uloženy v paměti/na disku. Při provádění dotazu spočítáme pouze jedinou vzdálenost: $d(q, p)$.
+**Pivoting** je technika eliminace kandidátů bez nutnosti počítat jejich reálnou vzdálenost k dotazu $q$. Tento přístup je plně závislý na platnosti **trojúhelníkové nerovnosti**.
 
-Z trojúhelníkové nerovnosti přímo vyplývá vztah:
-$$|d(p, x) - d(q, p)| \leq d(q, x)$$
+Mějme dotaz $q$, vyhledávací poloměr $r$ a zvoleného pivota $p$. Vzdálenosti mezi pivotem $p$ a všemi datovými objekty $o$, tedy hodnoty $d(p, o)$, jsou exaktně spočteny během fáze budování indexu a uloženy v paměti nebo na disku. Při provádění dotazu se spočítá pouze jediná vzdálenost, a to $d(q, p)$. Z trojúhelníkové nerovnosti pak přímo vyplývá vztah pro spodní odhad vzdálenosti:
+$$|d(p, o) - d(q, p)| \leq d(q, o)$$
 
-Chceme-li ověřit, zda objekt $x$ může být součástí výsledku rozsahového dotazu (tedy zda potenciálně platí $d(q, x) \leq r$ ), aplikujeme **prořezávací podmínku (Pruning Condition)**:
+Chceme-li ověřit, zda objekt $o$ může být součástí výsledku rozsahového dotazu, aplikuje se **prořezávací podmínku (Pruning Condition)**:
+$$\text{Pokud } |d(p, o) - d(q, p)| > r, \text{ pak zaručeně platí } d(q, o) > r.$$
 
-$$\text{Pokud } |d(p, x) - d(q, p)| > r, \text{ pak zaručeně platí } d(q, x) > r.$$
+Pokud je tato podmínka splněna, objekt $o$ (případně celý podstrom objektů ohraničený příslušnou metrickou koulí kolem pivota) se okamžitě **vyřadí (prořeže)** z dalšího zpracování a výpočet skutečné vzdálenosti $d(q, o)$ se zcela přeskočí. V závislosti na tom, jaké informace o vzdálenostech jsou předem spočítané a jaké elementy v nerovnostech kombinujeme, se rozlišují konkrétní **prořezávací pravidla (Pruning Rules)**:
 
-* **Důsledek:** Pokud je tato podmínka splněna, objekt $x$ (případně celý podstrom objektů, který je ohraničen příslušnou metrickou koulí kolem pivota) můžeme okamžitě **vyřadit (prořezat)** z dalšího zpracování. Výpočet vzdálenosti $d(q, x)$ se zcela přeskočí.
+### Pivot Filtering (Algoritmus vyhodnocení dotazu)
+Jedná se o celkový vyhledávací mechanismus nad pivotovými strukturami (např. v algoritmu LAESA). Tento proces probíhá sekvenčně ve dvou fázích a aktivně využívá konkrétní matematická pravidla popsaná níže:
+1. **Fáze filtrování (Filtering State):** Postupně se vyhodnocuje jeden pivot za druhým a počítá se vzdálenost $d(q, p)$. Okamžitě se aplikují prořezávací pravidla nad tabulkou předpočítaných vzdáleností, čímž se množina potenciálních kandidátů drasticky zužuje. V této fázi se pracuje pouze s výpočetně levnými skalárními operacemi, jako jsou rozdíly reálných čísel.
+2. **Fáze ověřování (Refinement State):** Pro zbývající objekty, které prošly filtrem a nebyly prořezány, se musí spočítat reálná, výpočetně drahá metrická vzdálenost $d(q, o)$. Teprve objekty, které projdou tímto exaktním testem, tvoří finální výsledek vyhledávání.
 
-V závislosti na tom, jaké informace o vzdálenostech máme předem spočítané a jaké objekty v nerovnostech kombinujeme, rozlišujeme konkrétní **prořezávací pravidla (Pruning Rules)**:
 
-### A) Object-Pivot Distance Constraint (Vztah objekt-pivot)
-Základní pravidlo využívající předpočítanou vzdálenost mezi datovým objektem $x$ a fixním pivotem $p$. 
-* **Princip:** Využívá přímo výše uvedenou absolutní hodnotu rozdílu. Pokud je spodní odhad vzdálenosti $|d(x, p) - d(q, p)|$ větší než poloměr dotazu $r$, objekt $x$ je bezpečně eliminován.
-* **Využití:** Klíčové pro algoritmy typu AESA / LAESA a lineární tabulkové indexy (Pivot Tables), kde má každý objekt v databázi uložené vzdálenosti k pevné sadě globálních pivotů.
+### A) Object-Pivot Distance Constraint
+Toto základní pravidlo využívá předpočítanou vzdálenost mezi datovým objektem $o$ a fixním pivotem $p$. Pracuje se přímo s absolutní hodnotou rozdílu vzdáleností, přičemž objekt se bezpečně eliminujeme v případě, kdy platí $|d(o, p) - d(q, p)| > r$. Pravidlo nachází klíčové využití v algoritmech typu AESA / LAESA a v lineárních tabulkových indexech (Pivot Tables), kde má každý objekt v databázi uložené vzdálenosti k pevné sadě globálních pivotů.
 
-### B) Range-Pivot Distance Constraint (Vztah region-pivot / obalové koule)
-Aplikuje se v hierarchických strukturách (např. **M-Tree**), kde uzly nereprezentují jednotlivé objekty, ale celé podprostory – metrické koule (Ball Regions). Každý podprostor je definován svým pivotem $p$ a poloměrem pokrytí $r_p$ (což je maximální vzdálenost od $p$ k jakémukoliv objektu uvnitř tohoto podstromu, tedy $\forall x \in \text{podstrom}(p): d(x, p) \leq r_p$).
-* **Podmínka prořezání:** Celý podstrom pod uzlem $p$ lze prořezat, pokud platí:
-  $$d(q, p) - r_p > r$$
-* **Důsledek:** Pokud je dotaz $q$ se svým poloměrem $r$ tak daleko od pivota $p$, že ani při započítání maximálního poloměru regionu $r_p$ do něj nemůže dosáhnout, prořeže se **celý podstrom najednou** (ušetří se tisíce výpočtů vzdáleností).
+<img alt="img_2.png" src="img/podobnostni_hledani/img_2.png" width="400"/>
 
-### C) Pivot-Pivot Distance Constraint (Vztah mezi pivoty)
-Využívá předpočítané vzdálenosti mezi samotnými pivoty navzájem ($d(p_1, p_2)$). To je užitečné v hierarchických strukturách, kde jsou pivoty organizováni nad sebou nebo vedle sebe.
-* **Princip:** Pokud známe vzdálenost mezi lokálním pivotem $p_1$ a nadřazeným pivotem $p_2$, dokážeme pomocí trojúhelníkové nerovnosti a odhadu polohy dotazu vůči $p_2$ eliminovat celý region okolo $p_1$, aniž bychom vůbec museli spočítat vzdálenost $d(q, p_1)$.
+### B) Range-Pivot Distance Constraint
+Tento přístup se aplikuje v hierarchických strukturách, jako je například **M-Tree**, kde uzly reprezentují celé podprostory vymezené metrickou koulí (Ball Regions). V indexu se neukládá přesná vzdálenost pro každý objekt zvlášť, ale objekty se seskupují do regionů vymezených minimálním poloměrem $r_l$ a maximálním poloměrem $r_h$ od daného pivota $p$. Každý podprostor je definován svým pivotem a poloměrem pokrytí $r_p$, což představuje maximální vzdálenost od pivota k jakémukoliv objektu uvnitř tohoto podstromu. Celý podstrom pod uzlem $p$ lze prořezat najednou, pokud platí:
+$$d(q, p) - r_p > r \quad \text{nebo} \quad r_l - d(q, p) > r$$
+Pokud je dotaz $q$ se svým poloměrem $r$ natolik vzdálen od pivota $p$, že nemůže zasáhnout hranice vymezeného regionu, ušetří se prořezáním celého podstromu tisíce výpočtů vzdáleností.
 
-### D) Double-Pivot Distance Constraint (Vztah dvou pivotů k objektu)
-Pokročilé pravidlo, které zpřesňuje spodní odhad vzdálenosti zkombinováním informací od **dvou různých pivotů** ($p_1$ a $p_2$) vůči jednomu objektu $x$.
-* **Princip:** Využívá fakt, že poloha objektu je v prostoru sevřena průsečíky více metrických skořepin. Spodní odhad vzdálenosti $d(q, x)$ se konstruuje kombinací $|d(q, p_1) - d(x, p_1)|$ a $|d(q, p_2) - d(x, p_2)|$. Pokud libovolný z těchto odhadů (nebo jejich geometrická kombinace) selže v překročení limitu $r$, objekt vypadává. Používá se pro maximalizaci prořezávacího efektu za cenu uložení více dat.
+<img alt="img_3.png" src="img/podobnostni_hledani/img_3.png" width="400"/>
 
-### E) Pivot Filtering (Algoritmus vyhodnocení dotazu)
-Souhrnný proces exekuce dotazu nad pivotovými strukturami (např. LAESA). Probíhá ve dvou fázích:
-1. **Fáze filtrování (Filtering State):** Postupně se bere jeden pivot za druhým a počítá se $d(q, p)$. Okamžitě se aplikují pravidla (Object-Pivot) nad tabulkou předpočítaných vzdáleností. Množina potenciálních kandidátů se drasticky zužuje. V této fázi se pracuje pouze s levnými skalárními operacemi (rozdíly reálných čísel).
-2. **Fáze ověřování (Refinement State):** Pro objekty, které prošly filtrem a nebyly prořezány (tzv. kandidáti), se musí spočítat reálná, drahá metrická vzdálenost $d(q, x)$. Teprve ty, které projdou tímto exaktním testem, tvoří finální výsledek.
+### C) Pivot-Pivot Distance Constraint
+Tento princip uplatňuje předpočítané vzdálenosti mezi samotnými pivoty navzájem, typicky vyjádřené vztahem mezi nadřazeným pivotem $p_1$ a podřízeným pivotem $p_2$. Znalost vzdálenosti $d(p_1, p_2)$ umožňuje pomocí trojúhelníkové nerovnosti a odhadu polohy dotazu vůči nadřazenému uzlu eliminovat celý region okolo podřízeného pivota $p_2$, aniž by se musela reálně počítat vzdálenost dotazu $d(q, p_2)$.
+
+<img alt="img_4.png" src="img/podobnostni_hledani/img_4.png" width="400"/>
+
+### D) Double-Pivot Distance Constraint
+Tato pokročilá technika zpřesňuje spodní odhad vzdálenosti zkombinováním informací od dvou různých pivotů ($p_1$ a $p_2$) vůči jednomu objektu $o$. Metoda je typická pro prostory dělené nadrovinou (např. struktury GHT), kde se datové objekty přiřazují k tomu pivotu, ke kterému mají geometricky blíže. Pokud se při vyhodnocování dotazu zjistí, že dotaz $q$ leží výrazně blíže k jednomu z pivotů, lze pomocí spodního odhadu vyřadit všechny objekty nacházející se v poloprostoru druhého pivota. Spodní odhad vzdálenosti $d(q, o)$ se konstruuje jako:
+$$\max\left\{ \frac{d(q, p_1) - d(q, p_2)}{2}, 0 \right\}$$
+K prořezání celého poloprostoru dochází v okamžiku, kdy je tato hodnota větší než poloměr vyhledávání $r$. Používá se pro maximalizaci prořezávacího efektu za cenu uložení většího objemu dat o vzdálenostech.
+
 
 <img alt="img.png" src="img/podobnostni_hledani/pivoty.png" width="500"/>
 
