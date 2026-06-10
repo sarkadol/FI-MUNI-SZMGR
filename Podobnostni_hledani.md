@@ -26,15 +26,15 @@ Pro exaktní popis prvků a cílů vyhledávacího procesu definujeme následuj�
     * $q$: Dotazový objekt (query object), kde $q \in M$.
 * **Cíl vyhledávání:** Nalézt podmnožinu objektů z databáze $X$, které vykazují minimální vzdálenost (maximální podobnost) k dotazovému objektu $q$.
 
-Při vyhodnocení dotazů rozlišujeme dva základní přístupy podle toho, zda je prioritou stoprocentní přesnost výsledků, nebo rychlost výpočtu:
-* **Exaktní vyhledávání (Exact / Precise Search):** Garantuje 100% přesnost výsledků (Recall = 1).
-    * Vrátí exaktně všechny objekty, které splňují matematickou definici daného dotazu.
-    * Index slouží pouze k urychlení výpočtu, výsledek je shodný se sekvenčním skenováním.
+*Při vyhodnocení dotazů rozlišujeme dva základní přístupy podle toho, zda je prioritou stoprocentní přesnost výsledků, nebo rychlost výpočtu:*
+* ***Exaktní vyhledávání (Exact / Precise Search):** Garantuje 100% přesnost výsledků (Recall = 1).*
+    * *Vrátí exaktně všechny objekty, které splňují matematickou definici daného dotazu.*
+    * *Index slouží pouze k urychlení výpočtu, výsledek je shodný se sekvenčním skenováním.*
 
-* **Aproximované vyhledávání (Approximate Search - ANN):**
-    * Obětuje část přesnosti výměnou za výrazné zrychlení vyhledávání a snížení I/O nákladů.
-    * Používá se v situacích, kdy pro uživatele není kritické najít absolutně nejbližší sousedy, ale stačí objekty „dostatečně blízké“.
-    * *Důvody zavedení:* Extrémní rozsah datových sad a negativní dopady prokletí dimenzionality na exaktní indexy.
+* ***Aproximované vyhledávání (Approximate Search - ANN):***
+    * *Obětuje část přesnosti výměnou za výrazné zrychlení vyhledávání a snížení I/O nákladů.*
+    * *Používá se v situacích, kdy pro uživatele není kritické najít absolutně nejbližší sousedy, ale stačí objekty „dostatečně blízké“.*
+    * *Důvody zavedení: Extrémní rozsah datových sad a negativní dopady prokletí dimenzionality na exaktní indexy.*
 
 
 ## Metrický prostor
@@ -213,7 +213,10 @@ Tento princip uplatňuje předpočítané vzdálenosti mezi samotnými pivoty na
 
 ### D) Double-Pivot Distance Constraint
 Tato pokročilá technika zpřesňuje spodní odhad vzdálenosti zkombinováním informací od dvou různých pivotů ($p_1$ a $p_2$) vůči jednomu objektu $o$. Metoda je typická pro prostory dělené nadrovinou (např. struktury GHT), kde se datové objekty přiřazují k tomu pivotu, ke kterému mají geometricky blíže. Pokud se při vyhodnocování dotazu zjistí, že dotaz $q$ leží výrazně blíže k jednomu z pivotů, lze pomocí spodního odhadu vyřadit všechny objekty nacházející se v poloprostoru druhého pivota. Spodní odhad vzdálenosti $d(q, o)$ se konstruuje jako:
-$$\max\left\{ \frac{d(q, p_1) - d(q, p_2)}{2}, 0 \right\}$$
+
+$$\max\left\\{ \frac{d(q, p_1) - d(q, p_2)}{2}, 0 \right\\}$$
+
+
 K prořezání celého poloprostoru dochází v okamžiku, kdy je tato hodnota větší než poloměr vyhledávání $r$. Používá se pro maximalizaci prořezávacího efektu za cenu uložení většího objemu dat o vzdálenostech.
 
 
