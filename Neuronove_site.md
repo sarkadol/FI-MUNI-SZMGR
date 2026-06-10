@@ -200,41 +200,19 @@ https://youtu.be/IHZwWFHWa-w?si=SnQzatDbKhrtbOst
 Při zpětné propagaci se gradient počítá pomocí opakovaného násobení
 derivací aktivačních funkcí a vah jednotlivých vrstev.
 
-**Mizející gradient (Vanishing Gradient)**
-
-Pokud jsou derivace většinou menší než 1
-(např. u sigmoidy nebo tanh), dochází při opakovaném násobení k tomu,
-že gradient exponenciálně klesá k nule:
-
+**Mizející gradient (vanishing)**  
+Pokud jsou derivace < 1 (např. sigmoida, tanh), gradient exponenciálně klesá:
 $$
 0.5 \cdot 0.5 \cdot 0.5 \cdot ... \rightarrow 0
 $$
+Důsledky: téměř nulové aktualizace prvních vrstev, pomalé učení, špatné zachycení dlouhých závislostí (hluboké sítě, RNN).
 
-Důsledky:
-- První vrstvy dostávají téměř nulový gradient.
-- Váhy se prakticky neaktualizují.
-- Síť se obtížně učí dlouhodobé závislosti.
-- Typické u hlubokých sítí a klasických RNN.
-
-**Explodující gradient (Exploding Gradient)**
-
-Pokud jsou derivace nebo váhy větší než 1, gradient se může při
-zpětném průchodu exponenciálně zvětšovat:
-
+**Explodující gradient (exploding)**  
+Pokud jsou derivace/váhy > 1, gradient exponenciálně roste:
 $$
 2 \cdot 2 \cdot 2 \cdot ... \rightarrow \infty
 $$
-
-Důsledky:
-- Obrovské změny vah.
-- Nestabilní učení.
-- Divergence optimalizace.
-- Numerické přetečení (NaN hodnoty).
-
-
-Hlavní příčinou je opakované násobení
-(derivací aktivačních funkcí a vah) během backpropagation přes mnoho
-vrstev nebo časových kroků.
+Důsledky: nestabilita, divergence, NaN hodnoty, velké skoky vah.
 
 Řešení:
 - ReLU a její varianty.
@@ -260,6 +238,8 @@ Zpětná propagace je efektivní algoritmus pro výpočet parciálních derivac�
 
 <img alt="img.png" src="img/neuronove_site/chain rule.png" width="600"/>
 
+
+3Blue1Brown: Backpropagation calculus
 https://youtu.be/tIeHLnjs5U8?si=4IoMuedi2SJ0W7j5
 
 ## Praktické otázky učení neuronových sítí
@@ -274,13 +254,14 @@ ale při dostatku dat obvykle dosahují lepších výsledků.
 Kvalita a formát vstupních dat přímo ovlivňují tvar chybové funkce a rychlost konvergence gradientního sestupu. Cílem přípravy je zajistit, aby síť nepřikládala některým vstupům neúměrně velký význam jen kvůli jejich číselnému rozsahu.
 
 * **Normalizace a Standardizace:** Vstupy by měly mít podobné číselné rozsahy. Často se používá **Z-score normalizace** (odečtení průměru a vydělení směrodatnou odchylkou), která zajistí průměr 0 a rozptyl 1.
-* **Proč to děláme:** Pokud mají vstupy různé rozsahy, chybová funkce je v některých směrech velmi protáhlá. Gradientní sestup pak "osciluje" a postupuje k minimu velmi pomalu.
+Pokud mají vstupy různé rozsahy, chybová funkce je v některých směrech velmi protáhlá. Gradientní sestup pak "osciluje" a postupuje k minimu velmi pomalu.
 * **Rozdělení dat:** Data se dělí na tři množiny:
     1. **Trénovací (Training):** Pro aktualizaci vah.
     2. **Validační (Validation):** Pro ladění hyperparametrů a sledování overfittingu.
     3. **Testovací (Test):** Pro finální, nestranný odhad kvality modelu.
 * *Příklad: Při analýze realitního trhu má rozloha bytu hodnoty v řádu stovek, zatímco počet koupelen v řádu jednotek. Bez normalizace by síť reagovala téměř výhradně na rozlohu a ignorovala počet koupelen.*
 
+Podobně jako u přípravy dat je důležité správné „vyvážení“ zdrojů učení — Chinchilla law ukazuje, že pro daný compute budget je efektivnější trénovat menší model na více datech než velký model na málo datech, což zdůrazňuje, že množství a kvalita dat mohou být stejně důležité jako samotná velikost modelu.
 ## Inicializace vah
 
 Před začátkem trénování je nutné nastavit počáteční hodnoty vah.
@@ -308,23 +289,19 @@ Myšlenkou je zachovat přibližně stejný rozptyl signálu mezi vrstvami,
 aby nedocházelo k jeho zesilování ani zeslabování.
 
 Pro normální rozdělení:
-$
-w \sim \mathcal{N}
+$w \sim \mathcal{N}
 \left(
 0,
 \frac{2}{n_{in}+n_{out}}
-\right)
-$
+\right)$
 
 Pro rovnoměrné rozdělení:
-$
-w \sim
+$w \sim
 U
 \left(
 -\sqrt{\frac{6}{n_{in}+n_{out}}},
 \sqrt{\frac{6}{n_{in}+n_{out}}}
-\right)
-$
+\right)$
 
 kde:
 - $n_{in}$ je počet vstupních neuronů,
@@ -338,24 +315,20 @@ se během průchodu sítí ztrácí. He inicializace proto používá větší
 rozptyl než Xavier.
 
 Pro normální rozdělení:
-$
-w \sim
+$w \sim
 \mathcal{N}
 \left(
 0,
 \frac{2}{n_{in}}
-\right)
-$
+\right)$
 
 Pro rovnoměrné rozdělení:
-$
-w \sim
+$w \sim
 U
 \left(
 -\sqrt{\frac{6}{n_{in}}},
 \sqrt{\frac{6}{n_{in}}}
-\right)
-$
+\right)$
 
 Díky tomu lépe zachovává velikost aktivací a gradientů v hlubokých
 sítích používajících ReLU.
@@ -368,23 +341,111 @@ sítích používajících ReLU.
 | Leaky ReLU | He |
 | GELU | He |
 
-## Volba a adaptace hyperparametrů
-Hyperparametry jsou proměnné, které nenastavuje učící algoritmus sám, ale musí je zvolit programátor. Jejich správná volba je často otázkou iterativního testování.
 
-* **Learning Rate ($\eta$):** Nejdůležitější parametr. 
-    - Příliš velký $\eta$ způsobuje, že algoritmus minimum "přestřeluje" a diverguje.
-    - Příliš malý $\eta$ vede k extrémně pomalému učení nebo uvíznutí v mělkých lokálních minimech.
-* **Batch Size:** Počet vzorků zpracovaných před aktualizací vah. Menší batch size (např. 32) vnáší do učení šum, který pomáhá uniknout z lokálních minim (stochastický charakter).
-* **Adaptace (Optimizer):** Moderní algoritmy upravují learning rate automaticky během učení pro každý parametr zvlášť:
-    - **Momentum:** Přidává setrvačnost z předchozích kroků, pomáhá překonat sedlové body.
-    - **RMSProp / AdaGrad:** Snižují learning rate pro váhy, které mají velké gradienty.
-    - **Adam:** Kombinuje momentum a adaptivní learning rate. Aktuálně nejpopulárnější volba.
-* **Early Stopping:** Ukončení učení v momentě, kdy chyba na validační množině začne stoupat, zatímco na trénovací klesá (prevence overfittingu).
-* *Příklad: Pokud vidíme, že se chyba sítě s každou epochou prudce mění nahoru a dolů (cik-cak), je to signál, že musíme snížit learning rate nebo použít optimizer s lepším tlumením.*
+Kromě Xavier a He existují i další méně běžné metody,
+ale v praxi: většina moderních modelů používá Xavier / He, tyto jsou specifické pro konkrétní architektury nebo aktivace.
+
+- **LeCun init** – pro SELU: $w \sim \mathcal{N}\left(0,\frac{1}{n_{in}}\right$
+- **Orthogonal init** – váhy tvoří ortogonální matice, stabilní pro hluboké sítě a RNN.
+- **Identity / Dirac init** – začíná jako (bloková) identita, používá se hlavně v ResNet pro stabilní start.
+- **Uniform / Normal (defaultně neškálované)** – jednoduchá náhodná inicializace bez řízení variance, dnes spíš jen okrajově.
+
+
+## Volba a adaptace hyperparametrů
+
+Hyperparametry jsou hodnoty, které se neučí během trénování, ale musí je nastavit uživatel. Ovlivňují rychlost učení, stabilitu trénování i schopnost modelu generalizovat. Ladí se iterativně na základě experimentů.
+
+Hyperparametry lze rozdělit na:
+- optimalizační (jak se model učí)
+- trénovací (jak probíhá proces učení)
+- architektonické (jak je model postaven)
+- regularizační (jak se omezuje overfitting)
+- datové (jak jsou data prezentována modelu)
+
+V praxi mají největší vliv learning rate, batch size, optimizer, regularizace a architektura modelu
+
+
+### Optimalizace (learning dynamics)
+
+- **Learning rate ($\eta$)** – určuje velikost kroku při aktualizaci vah  
+  Příliš velké $\eta$ způsobuje divergence (přestřelování minima), příliš malé vede k pomalému učení nebo stagnaci.
+
+- **Optimizers (adaptace kroku)** – určují, jak se aktualizují váhy během učení  
+  - **Momentum** – přidává setrvačnost do gradientu, zrychluje konvergenci a tlumí oscilace  
+  - **RMSProp / AdaGrad** – adaptují learning rate pro jednotlivé parametry podle velikosti gradientů, stabilizují učení  
+  - **Adam / AdamW** – kombinuje momentum a adaptivní learning rate, dnes nejpoužívanější optimizer, dobře funguje v praxi bez složitého ladění
+
+- **Learning rate schedule** – určuje, jak se learning rate mění v čase  
+  Ovlivňuje stabilitu a finální kvalitu řešení (např. postupné snižování pro jemné doladění minima)
+
 
 <img alt="img.png" src="img/neuronove_site/lr.png" width="300"/>
 
 <img alt="img_1.png" src="img/neuronove_site/under overfitting.png" width="700"/>
+
+
+### Trénovací režim
+
+- **Batch size** – počet vzorků na jednu aktualizaci vah  
+  Ovlivňuje stabilitu gradientu a generalizaci: malý batch přidává šum (lepší generalizace), velký batch je stabilnější, ale hůře generalizuje a je náročnější na paměť
+
+- **Počet epoch** – kolikrát se projdou všechna data  
+  Ovlivňuje míru naučení; příliš málo → underfitting, příliš mnoho → overfitting
+
+- **Early stopping** – ukončení tréninku při zhoršení validační chyby  
+  Chrání před overfittingem a zbytečným přeučením modelu
+
+### Architektura modelu
+
+- **Počet vrstev (depth)** – určuje hloubku modelu  
+  Ovlivňuje schopnost modelu zachytit složité vzory, ale i riziko vanishing gradient a náročnost trénování
+
+- **Šířka vrstev (neurony/filtry)** – určuje kapacitu jednotlivých vrstev  
+  Ovlivňuje paměť modelu a schopnost reprezentovat složitost dat
+
+- **Aktivační funkce** – určuje nelinearitu modelu  
+  Ovlivňuje stabilitu gradientů a rychlost učení (např. ReLU vs sigmoid)
+
+- **Velikost kernelu (CNN)** – velikost konvolučního filtru  
+  Ovlivňuje rozsah lokálního kontextu, který model vidí
+
+- **Embedding dimension (NLP)** – velikost vektorové reprezentace slov/tokenů  
+  Ovlivňuje informační kapacitu reprezentace
+
+- **Typ vrstvy (Conv, RNN, Transformer)** – volba architektury  
+  Ovlivňuje způsob zpracování dat (prostorová, sekvenční, attention)
+
+### Regularizace
+
+- **Dropout rate** – pravděpodobnost vypnutí neuronů během tréninku  
+  Ovlivňuje robustnost modelu a snižuje overfitting
+
+- **Weight decay (L2 regularizace)** – penalizuje velké váhy  
+  Ovlivňuje hladkost modelu a zlepšuje generalizaci
+
+- **Label smoothing** – změkčuje cílové distribuce tříd  
+  Ovlivňuje jistotu modelu a snižuje přeučení na tvrdé labely
+
+- **Data augmentation strength** – míra úprav trénovacích dat  
+  Ovlivňuje robustnost modelu vůči variacím vstupů
+
+- **Stochastic depth** – náhodné vynechávání vrstev  
+  Ovlivňuje stabilitu hlubokých sítí a funguje jako regularizace
+
+### Data pipeline
+
+- **Shuffle dat** – náhodné promíchání vzorků  
+  Ovlivňuje stabilitu a zabraňuje naučení pořadí dat
+
+- **Batch sampling strategie** – způsob výběru batchů  
+  Ovlivňuje rozložení dat během tréninku a stabilitu gradientu
+
+- **Délka sekvence** – počet kroků u sekvenčních dat  
+  Ovlivňuje paměťovou náročnost a schopnost zachytit dlouhé závislosti
+
+- **Stride (sliding window)** – krok posunu okna nad daty  
+  Ovlivňuje množství trénovacích vzorků a redundanci dat
+
 
 ## Regularizace
 
