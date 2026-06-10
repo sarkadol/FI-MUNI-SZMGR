@@ -6,42 +6,174 @@
 > Regularizace. Konvoluční sítě. Rekurentní sítě.
  
 
-Neuronové sítě jsou výpočetní modely inspirované strukturou biologického mozku. Skládají se z propojených uzlů (neuronů), které zpracovávají signály pomocí vah a aktivačních funkcí. Zatímco jednoduchý perceptron dokáže řešit pouze lineárně separabilní problémy, vícevrstvé sítě otevírají dveře ke komplexnímu strojovému učení.
+Neuronové sítě jsou výpočetní modely inspirované strukturou biologického
+mozku. Skládají se z propojených neuronů, které zpracovávají informace
+pomocí vah, biasů a aktivačních funkcí. Jejich hlavní výhodou je
+schopnost automaticky se učit reprezentace dat přímo z příkladů bez
+nutnosti ručně navrhovat příznaky (features).
+
+První neuronové sítě vznikly již v 50. letech 20. století
+(McCulloch-Pittsův neuron, perceptron), jejich masivní rozvoj však
+nastal až po roce 2010 díky velkým datovým sadám, výkonným GPU a
+pokroku v algoritmech učení. Dnes tvoří základ moderní umělé
+inteligence.
+
+Na rozdíl od mnoha klasických metod strojového učení (např. logistická
+regrese, rozhodovací stromy nebo SVM) dokážou neuronové sítě samy
+extrahovat složité hierarchické reprezentace dat. Díky tomu dosahují
+špičkových výsledků zejména při zpracování obrazů, zvuku, textu a dalších
+nestrukturovaných dat.
+
+Mezi nejvýznamnější typy neuronových sítí patří:
+- **MLP (Multilayer Perceptron)** – základní dopředné sítě pro obecné
+  úlohy klasifikace a regrese.
+- **CNN (Convolutional Neural Networks)** – specializované na zpracování
+  obrazů a počítačové vidění.
+- **RNN, LSTM, GRU** – sítě určené pro sekvenční data a časové řady.
+- **Transformery** – současný standard pro zpracování jazyka a základ
+  velkých jazykových modelů (LLM) jako GPT.
 
 ## Vícevrstvé sítě (MLP)
 Vícevrstvý perceptron (Multilayer Perceptron – MLP) je dopředná neuronová síť (feed-forward), která obsahuje kromě vstupní a výstupní vrstvy také jednu nebo více **skrytých vrstev**. Právě skryté vrstvy umožňují síti vytvářet vnitřní reprezentace dat a chápat hierarchické vztahy.
-- **Architektura:** Každý neuron v jedné vrstvě je typicky spojen se všemi neurony v následující vrstvě (fully connected). Každý spoj má svou **váhu** ($w$) a každý neuron má svůj **práh/bias** ($b$).
-- **Nelineární aktivační funkce:** Klíčem k síle vícevrstvých sítí je použití nelineárních funkcí (např. Sigmoida, ReLU, tanh). Bez nich by se celá síť, bez ohledu na počet vrstev, chovala pouze jako lineární transformace.
-- **Tok dat:** Výpočet probíhá ve směru od vstupu k výstupu, kde výstupem neuronu je aplikovaná aktivační funkce na vážený součet vstupů.
-- *Příklad: MLP síť může mít 784 vstupních neuronů pro obrázek 28x28 pixelů, dvě skryté vrstvy po 100 neuronech a výstupní vrstvu s 10 neurony pro klasifikaci číslic 0–9.*
-- **Klíčové aktivační funkce:**
-    - **ReLU:** $\max(0, x)$ – nejpoužívanější, řeší problém mizejícího gradientu u hlubokých sítí.
-    - **Sigmoida/Tanh:** Klasické funkce, náchylné k saturaci (nulový gradient při velkých/malých vstupech).
-    - **Softmax:** Používá se v **výstupní vrstvě** pro klasifikaci do více tříd (převádí výstupy na pravděpodobnosti, jejichž součet je 1).
-
-
-<img alt="img.png" src="img/neuronove_site/neuron.png" width="400"/>
 
 <img alt="img.png" src="img/neuronove_site/mlp.png" width="400"/>
 
+Každý neuron v jedné vrstvě je typicky spojen se všemi neurony v následující vrstvě (fully connected). Každý spoj má svou **váhu** ($w$) a každý neuron má svůj **práh/bias** ($b$).
+Výstup neuronu se počítá jako
+
+$$
+y=\sigma\left(\sum_i w_i x_i+b\right),
+$$
+
+kde $x_i$ jsou vstupy, $w_i$ jejich váhy, $b$ bias a $\sigma$ aktivační
+funkce.
+
+Výpočet probíhá ve směru od vstupu k výstupu, kde výstupem neuronu je aplikovaná aktivační funkce na vážený součet vstupů.
+
+<img alt="img.png" src="img/neuronove_site/neuron.png" width="400"/>
+
+
+### Aktivační funkce
+
+Aktivační funkce zavádějí do neuronové sítě **nelinearitu**. Bez nich by
+se i síť s mnoha vrstvami zredukovala na jedinou lineární transformaci,
+a její výrazová schopnost by nebyla větší než u obyčejné lineární
+regrese. Díky nelineárním aktivacím se síť může učit složité vztahy,
+rozhodovací hranice a aproximovat nelineární funkce.
+
+Aktivační funkce musí být především **nelineární** a
+**diferencovatelná** (alespoň téměř všude), aby bylo možné síť učit
+pomocí backpropagation. Dále je žádoucí **nenulový gradient** ve většině
+definičního oboru, aby se gradient během zpětné propagace neztrácel a
+neurony se mohly efektivně učit. Výhodou je také **výpočetní
+jednoduchost**, protože se aktivační funkce vyhodnocuje pro velké
+množství neuronů při každém průchodu sítí, a její rychlý výpočet tak
+významně ovlivňuje dobu trénování i inference.
+
+Neuron nejprve spočítá vážený součet vstupů
+
+$$
+z = \sum_i w_i x_i + b
+$$
+
+a následně na něj aplikuje aktivační funkci
+
+$$
+y = \sigma(z).
+$$
+
+Výsledná aktivace se předává do dalších vrstev.
+
 <img alt="img.png" src="img/neuronove_site/activations.png" width="400"/>
 
+- **ReLU** ($\max(0,x)$) – nejpoužívanější aktivace; rychlá, zmírňuje
+  mizející gradient a urychluje učení hlubokých sítí. Nevýhoda:
+  mrtvé neurony (Dying ReLU).
+
+- **Sigmoida** ($\frac{1}{1+e^{-x}}$) – výstup v intervalu $(0,1)$,
+  vhodná pro binární klasifikaci. Trpí saturací a mizejícím gradientem,
+  výstupy nejsou centrovány kolem nuly.
+
+- **tanh** – výstup v intervalu $(-1,1)$, podobná sigmoidě, ale
+  centrovaná kolem nuly. Také trpí saturací a mizejícím gradientem.
+
+- **Softmax** – převádí výstupy na pravděpodobnostní rozdělení
+  (součet = 1), používá se ve výstupní vrstvě pro vícetřídní
+  klasifikaci.
+
 <img alt="img.png" src="img/neuronove_site/softmax.png" width="300"/>
+
+Další aktivační funkce:
+
+- **Leaky ReLU:** $\max(\alpha x, x)$ – řeší problém mrtvých neuronů
+  tím, že ponechává malý gradient i pro záporné vstupy.
+- **PReLU:** podobná Leaky ReLU, ale parametr $\alpha$ se učí během
+  trénování.
+- **ELU:** pro záporné vstupy používá exponenciální část, zlepšuje tok
+  gradientu.
+- **GELU:** moderní hladká aktivace používaná v transformerech
+  (BERT, GPT, T5).
+- **SiLU (Swish):** $x \cdot \sigma(x)$, často používaná v moderních
+  CNN a detekčních modelech (např. YOLO).
+- **Mish:** novější hladká aktivace, někdy dosahuje lepších výsledků
+  než ReLU, ale je výpočetně náročnější.
+
 
 ## Výrazové schopnosti
 Výrazová schopnost sítě určuje, jak složité funkce je daná architektura schopna reprezentovat. Zatímco jednoduchý perceptron neumí vyřešit ani logickou operaci XOR (protože není lineárně separabilní), vícevrstvé sítě tento limit překonávají.
 - **Řešení XOR:** MLP s alespoň jednou skrytou vrstvou dokáže transformovat vstupní prostor tak, že body operace XOR (vstupy [0,0], [1,1] vs. [0,1], [1,0]) se stanou lineárně oddělitelnými.
-- **Univerzální aproximační věta:** Jedná se o zásadní teoretický výsledek, který říká, že dopředná síť s **jedinou skrytou vrstvou** (obsahující dostatečný počet neuronů) a nelineární aktivační funkcí dokáže s libovolnou přesností aproximovat jakoukoli spojitou funkci na kompaktní množině.
-- **Hloubka vs. šířka:** Ačkoliv teoreticky stačí jedna vrstva, v praxi jsou hluboké sítě (více vrstev) mnohem efektivnější. Dokáží se naučit hierarchické rysy, kdy první vrstvy hledají hrany, další tvary a poslední celé objekty.
-- *Příklad: Aproximace sinusoidy – zatímco lineární model vytvoří pouze přímku, MLP síť s pár neurony ve skryté vrstvě dokáže věrně kopírovat zakřivení této vlnovky.*
 
 <img alt="img.png" src="img/neuronove_site/xor.png" width="400"/>
 
 <img alt="img.png" src="img/neuronove_site/vyrazove schopnosti.png" width="400"/>
 
+**Univerzální aproximační věta (Universal Approximation Theorem)** říká,
+že dopředná neuronová síť s **jednou skrytou vrstvou**, dostatečně velkým
+počtem neuronů a vhodnou **nelineární aktivační funkcí** (sigmoida, tanh,
+ReLU aj.) dokáže aproximovat libovolnou **spojitou funkci**
+$f : K \rightarrow \mathbb{R}$ na kompaktní množině $K \subseteq \mathbb{R}^n$
+s libovolně malou chybou.
+
+Formálně:
+
+Pro každé $\varepsilon > 0$ existuje síť
+
+$$
+g(x)=\sum_{i=1}^{N} a_i \sigma(w_i^T x+b_i),
+$$
+
+taková, že
+
+$$
+|f(x)-g(x)| < \varepsilon
+$$
+
+pro všechna $x \in K$.
+
+Důležité:
+- Věta říká pouze **existenci** takové sítě, ne jak ji najít.
+- Neříká nic o počtu neuronů potřebných k dosažení dané přesnosti.
+- Neříká, že síť půjde efektivně natrénovat.
+- V praxi bývají **hluboké sítě** efektivnější než jedna extrémně široká
+  vrstva, protože dokážou reprezentovat složité funkce s menším počtem
+  parametrů.
+
 ## Učení neuronových sítí
 
 Učení neuronové sítě je proces optimalizace, jehož cílem je najít takové nastavení vah $w$ a biasů $b$, které minimalizuje chybovou funkci (Loss Function) $E$ na trénovací množině dat. Tento proces je typicky realizován pomocí iterativních algoritmů založených na výpočtu gradientu.
+
+- **Epocha** – jeden průchod celou trénovací množinou.
+- **Batch** – množina vzorků použitá pro jednu aktualizaci vah.
+- **Mini-batch** – menší část datasetu (např. 32 nebo 128 vzorků),
+  používaná v praxi nejčastěji.
+- **Iterace** – jedna aktualizace vah na základě jednoho batchi.
+
+Počet iterací v jedné epoše:
+
+$$
+\text{iterace}=
+\frac{\text{počet vzorků}}{\text{batch size}}
+$$
 
 ## Gradientní sestup (Gradient Descent)
 Gradientní sestup je základní optimalizační algoritmus používaný k hledání lokálního minima chybové funkce. Algoritmus využívá faktu, že gradient funkce $\nabla E(w)$ určuje směr nejstrmějšího růstu funkce, a proto pohyb proti směru gradientu vede k jejímu poklesu.
@@ -59,7 +191,59 @@ Gradientní sestup je základní optimalizační algoritmus používaný k hled�
 <img alt="img.png" src="img/neuronove_site/gd.png" width="500"/>
 <img alt="img.png" src="img/neuronove_site/gd2.png" width="200"/>
 
+3Blue1Brown: Gradient Descent
 https://youtu.be/IHZwWFHWa-w?si=SnQzatDbKhrtbOst
+
+
+### Problém mizejícího a explodujícího gradientu
+
+Při zpětné propagaci se gradient počítá pomocí opakovaného násobení
+derivací aktivačních funkcí a vah jednotlivých vrstev.
+
+**Mizející gradient (Vanishing Gradient)**
+
+Pokud jsou derivace většinou menší než 1
+(např. u sigmoidy nebo tanh), dochází při opakovaném násobení k tomu,
+že gradient exponenciálně klesá k nule:
+
+$$
+0.5 \cdot 0.5 \cdot 0.5 \cdot ... \rightarrow 0
+$$
+
+Důsledky:
+- První vrstvy dostávají téměř nulový gradient.
+- Váhy se prakticky neaktualizují.
+- Síť se obtížně učí dlouhodobé závislosti.
+- Typické u hlubokých sítí a klasických RNN.
+
+**Explodující gradient (Exploding Gradient)**
+
+Pokud jsou derivace nebo váhy větší než 1, gradient se může při
+zpětném průchodu exponenciálně zvětšovat:
+
+$$
+2 \cdot 2 \cdot 2 \cdot ... \rightarrow \infty
+$$
+
+Důsledky:
+- Obrovské změny vah.
+- Nestabilní učení.
+- Divergence optimalizace.
+- Numerické přetečení (NaN hodnoty).
+
+
+Hlavní příčinou je opakované násobení
+(derivací aktivačních funkcí a vah) během backpropagation přes mnoho
+vrstev nebo časových kroků.
+
+Řešení:
+- ReLU a její varianty.
+- Xavier/He inicializace.
+- Batch Normalization.
+- Gradient Clipping (pro exploding gradient).
+- LSTM a GRU u rekurentních sítí.
+- Residual Connections (ResNet).
+
 
 ## Zpětná propagace (Backpropagation)
 Zpětná propagace je efektivní algoritmus pro výpočet parciálních derivací chybové funkce vzhledem ke všem vahám v síti ($\frac{\partial E}{\partial w_{ij}}$). Bez tohoto algoritmu by byl výpočet gradientu u hlubokých sítí s miliony parametrů prakticky nemožný.
@@ -83,6 +267,10 @@ https://youtu.be/tIeHLnjs5U8?si=4IoMuedi2SJ0W7j5
 Úspěch učení neuronové sítě nezávisí pouze na algoritmu backpropagation, ale také na správném nastavení experimentu. Nevhodná příprava dat nebo špatná inicializace mohou vést k uvíznutí v sedlových bodech nebo k problému mizejícího gradientu.
 
 ## Příprava dat
+Neuronové sítě jsou obecně náročnější na množství dat než většina
+klasických metod strojového učení (např. rozhodovací stromy nebo SVM),
+ale při dostatku dat obvykle dosahují lepších výsledků.
+
 Kvalita a formát vstupních dat přímo ovlivňují tvar chybové funkce a rychlost konvergence gradientního sestupu. Cílem přípravy je zajistit, aby síť nepřikládala některým vstupům neúměrně velký význam jen kvůli jejich číselnému rozsahu.
 
 * **Normalizace a Standardizace:** Vstupy by měly mít podobné číselné rozsahy. Často se používá **Z-score normalizace** (odečtení průměru a vydělení směrodatnou odchylkou), která zajistí průměr 0 a rozptyl 1.
@@ -94,12 +282,91 @@ Kvalita a formát vstupních dat přímo ovlivňují tvar chybové funkce a rych
 * *Příklad: Při analýze realitního trhu má rozloha bytu hodnoty v řádu stovek, zatímco počet koupelen v řádu jednotek. Bez normalizace by síť reagovala téměř výhradně na rozlohu a ignorovala počet koupelen.*
 
 ## Inicializace vah
-Nastavení počátečních hodnot vah před spuštěním učení je kritické. Pokud jsou váhy inicializovány špatně, signál se může při průchodu vrstvami ztratit (mizející gradient) nebo nekontrolovaně narůst (explodující gradient).
 
-* **Symetrie:** Váhy nesmí být inicializovány na stejnou hodnotu (např. samé nuly). V takovém případě by se všechny neurony v dané vrstvě učily identicky a síť by se chovala jako jediný neuron. Tomuto se říká "breaking the symmetry".
-* **Xavier (Glorot) inicializace:** Váhy jsou vybírány z distribuce s nulovým průměrem a rozptylem, který závisí na počtu vstupních a výstupních neuronů vrstvy. Je ideální pro sigmoidální a tanh funkce.
-* **He inicializace:** Podobná jako Xavier, ale rozptyl je upraven pro funkci **ReLU**, která polovinu signálu nuluje.
-* *Příklad: Pokud inicializujeme váhy příliš velkými čísly u sítě se sigmoidou, neurony se okamžitě "nasytí" (vstoupí do oblastí, kde je derivace sigmoidy téměř nulová) a učení se zastaví dříve, než začalo.*
+Před začátkem trénování je nutné nastavit počáteční hodnoty vah.
+Inicializace má významný vliv na rychlost i stabilitu učení. Pokud jsou
+váhy příliš malé, signál a gradient se při průchodu sítí postupně
+ztrácejí (**vanishing gradient**). Pokud jsou naopak příliš velké,
+aktivace a gradienty mohou nekontrolovaně růst (**exploding gradient**).
+
+Cílem moderních inicializačních metod je zachovat přibližně stejný
+rozptyl aktivací a gradientů napříč vrstvami.
+
+**Symetrie**: Váhy nesmí být inicializovány na stejnou hodnotu (např. samé nuly).
+Všechny neurony by pak produkovaly stejné výstupy, dostávaly stejné
+gradienty a učily se identicky.
+
+Proto se váhy inicializují náhodně:
+$w_i \sim \mathcal{N}(0,\sigma^2)$
+nebo
+$w_i \sim U(-a,a)$, kde $\mathcal{N}$ označuje normální a $U$ rovnoměrné rozdělení.
+
+### Xavier (Glorot) inicializace
+
+Navržena pro aktivační funkce typu **sigmoida** a **tanh**.
+Myšlenkou je zachovat přibližně stejný rozptyl signálu mezi vrstvami,
+aby nedocházelo k jeho zesilování ani zeslabování.
+
+Pro normální rozdělení:
+$
+w \sim \mathcal{N}
+\left(
+0,
+\frac{2}{n_{in}+n_{out}}
+\right)
+$
+
+Pro rovnoměrné rozdělení:
+$
+w \sim
+U
+\left(
+-\sqrt{\frac{6}{n_{in}+n_{out}}},
+\sqrt{\frac{6}{n_{in}+n_{out}}}
+\right)
+$
+
+kde:
+- $n_{in}$ je počet vstupních neuronů,
+- $n_{out}$ je počet výstupních neuronů.
+
+### He inicializace
+
+Určena především pro **ReLU** a její varianty.
+Protože ReLU pro záporné vstupy vrací nulu, přibližně polovina signálu
+se během průchodu sítí ztrácí. He inicializace proto používá větší
+rozptyl než Xavier.
+
+Pro normální rozdělení:
+$
+w \sim
+\mathcal{N}
+\left(
+0,
+\frac{2}{n_{in}}
+\right)
+$
+
+Pro rovnoměrné rozdělení:
+$
+w \sim
+U
+\left(
+-\sqrt{\frac{6}{n_{in}}},
+\sqrt{\frac{6}{n_{in}}}
+\right)
+$
+
+Díky tomu lépe zachovává velikost aktivací a gradientů v hlubokých
+sítích používajících ReLU.
+
+| Aktivační funkce | Doporučená inicializace |
+|------------------|-------------------------|
+| Sigmoida | Xavier |
+| tanh | Xavier |
+| ReLU | He |
+| Leaky ReLU | He |
+| GELU | He |
 
 ## Volba a adaptace hyperparametrů
 Hyperparametry jsou proměnné, které nenastavuje učící algoritmus sám, ale musí je zvolit programátor. Jejich správná volba je často otázkou iterativního testování.
@@ -130,7 +397,7 @@ Jedná se o nejrozšířenější formu regularizace, která modifikuje chybovou
 * **Parametr $\lambda$:** Určuje sílu regularizace. Příliš velké $\lambda$ vede k podvečení (underfitting), příliš malé k přeučení.
 * *Příklad: U lineární regrese L2 regularizace (hřebenová regrese) zajistí, že model nebude vytvářet extrémně strmé křivky jen proto, aby proložil šum v datech.*
 
-![img.png](img/neuronove_site/regularization.png)
+<img alt="img.png" src="img/neuronove_site/regularization.png" width="400"/>
 
 ### Dropout
 Dropout je moderní a velmi efektivní technika, která během každého kroku trénování náhodně "vypíná" (nastavuje na nulu) určitou část neuronů (typicky 20–50 %) v dané vrstvě.
@@ -171,6 +438,15 @@ Základním stavebním kamenem je konvoluční vrstva, která namísto plného p
   kde $w$ je filtr o velikosti např. $3 \times 3$ a $x$ je vstupní obraz.
 * *Příklad: Detekce hran – filtr s hodnotami [[-1, 0, 1], [-1, 0, 1], [-1, 0, 1]] zvýrazní v obraze svislé přechody mezi světlou a tmavou oblastí.*
 
+Typická konvoluční síť se skládá z bloků [Konvoluce + Aktivace (ReLU) + Pooling], za kterými následuje jedna nebo více plně propojených (Fully Connected) vrstev.
+
+* **Hierarchie rysů:** Spodní vrstvy (blíže vstupu) se učí jednoduché koncepty jako hrany nebo textury. Vyšší vrstvy kombinují tyto informace do komplexnějších objektů (oči, kola, obličeje).
+* **Plně propojené vrstvy:** Na konci sítě se feature mapy "zploští" (flatten) do jednoho vektoru a projdou klasickým MLP, který rozhodne o finální třídě.
+* *Příklad: Architektura LeNet-5 byla jednou z prvních úspěšných CNN pro rozpoznávání rukou psaných číslic, využívající střídání konvolucí a sub-samplingu (poolingu).*
+
+<img alt="img.png" src="img/neuronove_site/cnn.png" width="500"/>
+
+
 ### Parametry konvoluce
 Výsledná velikost a chování konvoluční vrstvy jsou určeny třemi klíčovými hyperparametry:
 * **Stride (Krok):** Určuje, o kolik pixelů se filtr posouvá při skenování obrazu. Stride 1 znamená posun o jeden pixel, stride 2 obraz efektivně zmenšuje na polovinu.
@@ -190,14 +466,6 @@ Poolingové vrstvy se obvykle vkládají mezi konvoluční vrstvy. Jejich úkole
 
 <img alt="img.png" src="img/neuronove_site/pooling.png" width="400"/>
 
-### Celková architektura a hierarchie
-Typická konvoluční síť se skládá z bloků [Konvoluce + Aktivace (ReLU) + Pooling], za kterými následuje jedna nebo více plně propojených (Fully Connected) vrstev.
-
-* **Hierarchie rysů:** Spodní vrstvy (blíže vstupu) se učí jednoduché koncepty jako hrany nebo textury. Vyšší vrstvy kombinují tyto informace do komplexnějších objektů (oči, kola, obličeje).
-* **Plně propojené vrstvy:** Na konci sítě se feature mapy "zploští" (flatten) do jednoho vektoru a projdou klasickým MLP, který rozhodne o finální třídě.
-* *Příklad: Architektura LeNet-5 byla jednou z prvních úspěšných CNN pro rozpoznávání rukou psaných číslic, využívající střídání konvolucí a sub-samplingu (poolingu).*
-
-<img alt="img.png" src="img/neuronove_site/cnn.png" width="500"/>
 
 ### Využití konvolučních sítí (CNN) dnes
 CNN jsou dnes standardem pro jakoukoliv úlohu spojenou s počítačovým viděním. Jejich schopnost extrahovat hierarchické rysy z obrazu bez nutnosti ručního inženýrství příznaků je využívána v mnoha kritických odvětvích.
@@ -245,6 +513,8 @@ K vyřešení problémů s mizejícím gradientem a krátkou pamětí byly navr�
     - **Output Gate:** Určuje, co z paměti se propustí na výstup.
 * **GRU (Gated Recurrent Unit):** Zjednodušená varianta LSTM, která kombinuje zapomínací a vstupní hradlo do jednoho "update" hradla. Má méně parametrů a je výpočetně efektivnější.
 * *Příklad: LSTM dokáže v dlouhém odstavci textu "pamatovat", že na začátku byl hrdina mužského pohlaví, a správně používat zájmeno "on" i o pět vět později.*
+
+<img alt="img.png" src="img/neuronove_site/lstm.png" width="600"/>
 
 ## Využití rekurentních sítí (RNN) dnes
 Ačkoliv v oblasti zpracování jazyka (NLP) přebírají prvenství Transformery, RNN a zejména LSTM zůstávají klíčové v úlohách s omezenými zdroji nebo tam, kde je kritické zpracování v reálném čase.
