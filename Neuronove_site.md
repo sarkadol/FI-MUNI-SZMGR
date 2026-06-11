@@ -86,7 +86,7 @@ Výsledná aktivace se předává do dalších vrstev.
 
 <img alt="img.png" src="img/neuronove_site/activations.png" width="400"/>
 
-- **ReLU** ($\max(0,x)$) – nejpoužívanější aktivace; rychlá, zmírňuje
+- **ReLU** ( $\max(0,x)$ ) – nejpoužívanější aktivace; rychlá, zmírňuje
   mizející gradient a urychluje učení hlubokých sítí. Nevýhoda:
   mrtvé neurony (Dying ReLU).
 
@@ -162,18 +162,23 @@ Důležité:
 
 Učení neuronové sítě je proces optimalizace, jehož cílem je najít takové nastavení vah $w$ a biasů $b$, které minimalizuje chybovou funkci (Loss Function) $E$ na trénovací množině dat. Tento proces je typicky realizován pomocí iterativních algoritmů založených na výpočtu gradientu.
 
-- **Epocha** – jeden průchod celou trénovací množinou.
-- **Batch** – množina vzorků použitá pro jednu aktualizaci vah.
-- **Mini-batch** – menší část datasetu (např. 32 nebo 128 vzorků),
-  používaná v praxi nejčastěji.
-- **Iterace** – jedna aktualizace vah na základě jednoho batchi.
+### Chybové funkce (Loss Functions)
+Kvantifikují rozdíl mezi predikcí sítě ($\hat{y}$) a skutečností ($y$). Trénováním se tato penalizace minimalizuje. Musí být **diferencovatelná** pro výpočet gradientu.
 
-Počet iterací v jedné epoše:
+**MLE (Metoda maximální věrohodnosti)** je zastřešující teoretický princip z matematické statistiky. Je to nástroj, který nám říká, jak chybové funkce správně odvodit. 
+Minimalizace loss funkcí odpovídá maximalizaci věrohodnosti dat (Gaussovo rozdělení chyb $\rightarrow$ MSE, Bernoulliho $\rightarrow$ binární křížová entropie, Multinomické $\rightarrow$ kategoriální křížová entropie).
 
-$$
-\text{iterace}=
-\frac{\text{počet vzorků}}{\text{batch size}}
-$$
+**1. Úlohy regrese (spojitý výstup)**
+
+* **MSE (Mean Squared Error):** $E = \frac{1}{n} \sum (y_i - \hat{y}_i)^2$ – penalizuje velké chyby (odlehlé hodnoty).
+* **MAE (Mean Absolute Error):** $E = \frac{1}{n} \sum |y_i - \hat{y}_i|$ – robustnější vůči odlehlým hodnotám.
+
+**2. Úlohy klasifikace (kategorie)**
+
+* **Binární křížová entropie:** $E = -\frac{1}{n} \sum [y_i \log(\hat{y}_i) + (1 - y_i) \log(1 - \hat{y}_i)]$ – pro 2 třídy, výstup: **Sigmoida**.
+* **Kategoriální křížová entropie:** $E = -\sum y_i \log(\hat{y}_i)$ – pro $N$ tříd (One-Hot vektory), výstup: **Softmax**.
+* **Sparse Categorical Cross-Entropy:** Stejná jako kategoriální, ale labely jsou celá čísla ($0, 1, 2...$). Šetří paměť.
+* **Dice Loss:** $E = 1 - \frac{2 |X \cap Y|}{|X| + |Y|}$ – pro sémantickou segmentaci. Klíčová při **extrémní nevyváženosti tříd** (např. malý objekt na velkém pozadí), kde křížová entropie selhává.
 
 ## Gradientní sestup (Gradient Descent)
 Gradientní sestup je základní optimalizační algoritmus používaný k hledání lokálního minima chybové funkce. Algoritmus využívá faktu, že gradient funkce $\nabla E(w)$ určuje směr nejstrmějšího růstu funkce, a proto pohyb proti směru gradientu vede k jejímu poklesu.
@@ -194,6 +199,18 @@ Gradientní sestup je základní optimalizační algoritmus používaný k hled�
 3Blue1Brown: Gradient Descent
 https://youtu.be/IHZwWFHWa-w?si=SnQzatDbKhrtbOst
 
+- **Epocha** – jeden průchod celou trénovací množinou.
+- **Batch** – množina vzorků použitá pro jednu aktualizaci vah.
+- **Mini-batch** – menší část datasetu (např. 32 nebo 128 vzorků),
+  používaná v praxi nejčastěji.
+- **Iterace** – jedna aktualizace vah na základě jednoho batchi.
+
+Počet iterací v jedné epoše:
+
+$$
+\text{iterace}=
+\frac{\text{počet vzorků}}{\text{batch size}}
+$$
 
 ### Problém mizejícího a explodujícího gradientu
 
@@ -202,16 +219,12 @@ derivací aktivačních funkcí a vah jednotlivých vrstev.
 
 **Mizející gradient (vanishing)**  
 Pokud jsou derivace < 1 (např. sigmoida, tanh), gradient exponenciálně klesá:
-$$
-0.5 \cdot 0.5 \cdot 0.5 \cdot ... \rightarrow 0
-$$
+$0.5 \cdot 0.5 \cdot 0.5 \cdot ... \rightarrow 0$
 Důsledky: téměř nulové aktualizace prvních vrstev, pomalé učení, špatné zachycení dlouhých závislostí (hluboké sítě, RNN).
 
 **Explodující gradient (exploding)**  
 Pokud jsou derivace/váhy > 1, gradient exponenciálně roste:
-$$
-2 \cdot 2 \cdot 2 \cdot ... \rightarrow \infty
-$$
+$2 \cdot 2 \cdot 2 \cdot ... \rightarrow \infty$
 Důsledky: nestabilita, divergence, NaN hodnoty, velké skoky vah.
 
 Řešení:
@@ -261,7 +274,6 @@ Pokud mají vstupy různé rozsahy, chybová funkce je v některých směrech ve
     3. **Testovací (Test):** Pro finální, nestranný odhad kvality modelu.
 * *Příklad: Při analýze realitního trhu má rozloha bytu hodnoty v řádu stovek, zatímco počet koupelen v řádu jednotek. Bez normalizace by síť reagovala téměř výhradně na rozlohu a ignorovala počet koupelen.*
 
-Podobně jako u přípravy dat je důležité správné „vyvážení“ zdrojů učení — Chinchilla law ukazuje, že pro daný compute budget je efektivnější trénovat menší model na více datech než velký model na málo datech, což zdůrazňuje, že množství a kvalita dat mohou být stejně důležité jako samotná velikost modelu.
 ## Inicializace vah
 
 Před začátkem trénování je nutné nastavit počáteční hodnoty vah.
@@ -345,7 +357,7 @@ sítích používajících ReLU.
 Kromě Xavier a He existují i další méně běžné metody,
 ale v praxi: většina moderních modelů používá Xavier / He, tyto jsou specifické pro konkrétní architektury nebo aktivace.
 
-- **LeCun init** – pro SELU: $w \sim \mathcal{N}\left(0,\frac{1}{n_{in}}\right$
+- **LeCun init** – pro SELU: $w \sim \mathcal{N}(0, \frac{1}{n_{in}})$
 - **Orthogonal init** – váhy tvoří ortogonální matice, stabilní pro hluboké sítě a RNN.
 - **Identity / Dirac init** – začíná jako (bloková) identita, používá se hlavně v ResNet pro stabilní start.
 - **Uniform / Normal (defaultně neškálované)** – jednoduchá náhodná inicializace bez řízení variance, dnes spíš jen okrajově.
