@@ -553,14 +553,14 @@ Pro obecné, vícenásobně propojené sítě je tento problém NP-těžký, př
 **2. Aproximační odvozování (Approximate Inference):** Pro rozsáhlé sítě je exaktní výpočet nezvládnutelný, využívají se proto stochastické 
 Monte Carlo algoritmy, které generují velké množství náhodných vzorků a výsledek odhadují z jejich statistické četnosti.
 * *Přímé vzorkování (Direct sampling):* Generuje vzorky od kořenů k listům v topologickém uspořádání grafu podle pravděpodobností v CPT. 
-Neumí nativně zakomponovat pevnou evidenci. *Je výhodné, když nemáme žádnou pevnou evidenci ($e = \emptyset$) a chceme zjistit nepodmíněnou (apriorní) distribuci, simulovat celkové chování systému nebo vygenerovat syntetická data reprezentující typickou populaci.*
+Neumí nativně zakomponovat pevnou evidenci. *Je výhodné, když nemáme žádnou pevnou evidenci* ($e = \emptyset$) *a chceme zjistit nepodmíněnou (apriorní) distribuci, simulovat celkové chování systému nebo vygenerovat syntetická data reprezentující typickou populaci.*
 * *Zamítavé vzorkování (Rejection sampling):* Generuje kompletní vzorky pomocí přímého vzorkování, ale jakmile je vygenerovaný vzorek v rozporu 
 s pozorovanou evidencí $e$, okamžitě ho zamítne (zahodí). Pokud je evidence vzácná, algoritmus zlikviduje většinu vzorků a efektivita prudce klesá.
 *Využívá se v situacích, kdy je síť malá, nebo když je evidence vysoce pravděpodobná a běžná, takže k zahazování vzorků nedochází tak často. Jeho výhodou je, že generuje zcela nezkreslené, čisté vzorky bez nutnosti složitého přepočítávání vah.*
 * *Váhová věrohodnost (Likelihood weighting):* Algoritmus, který předchází plýtvání vzorky. Proměnné obsažené v evidenci $e$ zafixuje napevno 
 a náhodně vzorkuje pouze volné proměnné. Každému vzorku přiřadí váhu $w$, jež odpovídá součinu podmíněných pravděpodobností všech fixovaných 
 proměnných v momentě průchodu. Výsledná distribuce se následně normalizuje přes sumu těchto vah.
-*Použije se typicky u rozsáhlých diagnostických úloh se vzácnou evidencí (např. odhad pravděpodobnosti poruchy reaktoru, pokud už svítí varovná kontrolka). Algoritmus neodmítne ani jeden vzorek, ale ty, které neodpovídají realitě přirozeně (např. simulují bezchybný motor, ačkoliv kontrolka svítí), dostanou mizivou váhu $w \approx 0$ a výsledek nezkreslí.*
+*Použije se typicky u rozsáhlých diagnostických úloh se vzácnou evidencí (např. odhad pravděpodobnosti poruchy reaktoru, pokud už svítí varovná kontrolka). Algoritmus neodmítne ani jeden vzorek, ale ty, které neodpovídají realitě přirozeně (např. simulují bezchybný motor, ačkoliv kontrolka svítí), dostanou mizivou váhu* $w \approx 0$ *a výsledek nezkreslí.*
 
 <img alt="img.png" src="img/metody_umele_inteligence/directsampl-likelweigh.png" width="800"/>
 
@@ -768,7 +768,7 @@ což znamená, že přírůstek bohatství přináší klesající marginální 
 * **Rozhodovací sítě (Decision Networks / Influence Diagrams):** Mechanismus pro výpočet optimálních rozhodnutí, který rozšiřuje klasické 
 Bayesovské sítě o rozhodovací uzly (obdélníky – body volby akce agenta) a užitkové uzly (kosočtverce – vyjadřují užitkovou funkci).
 * **Vícekriteriální teorie užitku (Multi-attribute utility theory):** Používá se v situacích, kdy jsou výsledné stavy charakterizovány dvěma nebo více různými atributy (např. cena vs. bezpečnost). Pokud nechceme (nebo nemůžeme) všechny tyto atributy hned sloučit do jednoho celkového čísla užitku, využíváme koncept **dominance** pro odfiltrování nevhodných možností:
-  * **Striktní dominance v deterministickém prostředí (Deterministic attributes):** Možnost $A$ je striktně dominována možností $B$, pokud má $B$ lepší nebo rovné hodnoty ve všech sledovaných atributech zároveň. *(Na obrázku: Bod B se nachází ve žluté oblasti, která kompletně dominuje bod A v obou osách $X_1$ i $X_2$. Body C a D jsou s A nedosrovnatelné).*
+  * **Striktní dominance v deterministickém prostředí (Deterministic attributes):** Možnost $A$ je striktně dominována možností $B$, pokud má $B$ lepší nebo rovné hodnoty ve všech sledovaných atributech zároveň. *(Na obrázku: Bod B se nachází ve žluté oblasti, která kompletně dominuje bod A v obou osách* $X_1$ *i* $X_2$. *Body C a D jsou s A nedosrovnatelné).*
   * **Striktní dominance v neurčitém prostředí (Uncertain attributes):** Používá se, pokud jsou výsledky popsány pravděpodobnostním rozložením (oblastmi). Možnost $A$ je striktně dominována možností $B$, pokud všechny možné výsledné stavy z oblasti $B$ striktně dominují všem možným stavům z oblasti $A$. V neurčitém prostředí nastává tato situace méně často, ale představuje silný filtr pro okamžité vyřazení prokazatelně nejhorších strategií bez nutnosti složitých výpočtů. *(Na obrázku: Oblast B kompletně dominuje oblast A, protože je ve všech bodech posunuta vpravo a nahoru).*
   * **Stochastická dominance (Stochastic dominance):** Nastává v situaci, kdy se pravděpodobnostní distribuce možností $A$ a $B$ v grafu překrývají (nelze použít striktní dominanci), ale z pohledu kumulativní distribuční funkce (CDF) leží distribuce $B$ prokazatelně výhodněji než $A$ (zkratka: pro jakoukoli hodnotu parametru má $B$ vyšší nebo rovnou šanci na dobrý výsledek než $A$). Umožňuje ořezávat možnosti na základě čistého porovnání tvarů pravděpodobnostních křivek.
   
@@ -791,7 +791,7 @@ Pokud agent provádí sekvenci kroků, výsledkem není jeden stav, ale sekvence
     *(Vztah vyplývá ze součtu nekonečné geometrické řady).*
 
 * **Optimální strategie ($\pi^*$):**
-  Rozlišujeme **krátkodobou odměnu** za stav $R(s)$ a **dlouhodobý celkový užitek** stavu $U(s) = U^{\pi^*}(s)$. Optimální strategie $\pi^*(s)$ pak v každém stavu vybírá akci, která maximalizuje očekávaný užitek stavu následujícího:
+  Rozlišujeme **krátkodobou odměnu** za stav $R(s)$ a **dlouhodobý celkový užitek** stavu $U(s) = U^{\pi^\*}(s)$. Optimální strategie $\pi^\*(s)$ pak v každém stavu vybírá akci, která maximalizuje očekávaný užitek stavu následujícího:
   $$\pi^*(s) = \arg\max_{a} \sum_{s'} P(s' \mid s, a) U(s')$$
 
 ---
@@ -835,7 +835,7 @@ nezávisle na počátečních hodnotách. Iterace končí, jakmile je maximáln�
 Odvozená strategie $\pi_i$ v praxi konverguje k optimální verzi mnohem dříve, než plně zkonvergují samotné numerické hodnoty užitků $U_i$.
 
 *Příklady využití z praxe:*
-* ***Optimalizace skladových zásob při stochastické poptávce:** Sklady potřebují znát přesnou dlouhodobou finanční hodnotu (užitek) stavu „mám aktuálně na skladě $X$ kusů zboží“. Iterace hodnot pomáhá přesně spočítat očekávané náklady na skladování a ztráty z nedostatku zboží v situaci, kdy se nákupní chování zákazníků mění podle pravděpodobnostního modelu. Přesná hodnota užitku každého stavu je zde kritická pro správné účetní a logistické plánování.*
+* ***Optimalizace skladových zásob při stochastické poptávce:** Sklady potřebují znát přesnou dlouhodobou finanční hodnotu (užitek) stavu „mám aktuálně na skladě* $X$ *kusů zboží“. Iterace hodnot pomáhá přesně spočítat očekávané náklady na skladování a ztráty z nedostatku zboží v situaci, kdy se nákupní chování zákazníků mění podle pravděpodobnostního modelu. Přesná hodnota užitku každého stavu je zde kritická pro správné účetní a logistické plánování.*
 * ***Navigace mobilního robota v měnícím se prostředí:** Pokud se robot (např. autonomní vysavač nebo doručovací rover) pohybuje po diskretizované mřížce, kde hrozí uklouznutí kol nebo neočekávané zablokování cesty, iterace hodnot průběžně přepočítává absolutní bezpečnostní ohodnocení každého čtverce prostoru. Výsledná mapa užitků dává robotovi přesné vodítko, jak moc riskantní je dané místo v porovnání s alternativami.*
 
 Protože optimální chování konverguje mnohem dříve než přesné číselné hodnoty užitků, je v praxi často výhodnější se namísto zdlouhavého zpřesňování čísel zaměřit přímo na stabilizaci pravidel v navazující **Iteraci strategie**.
