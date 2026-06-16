@@ -171,7 +171,7 @@ Speciální databázový index, který přítomnost či nepřítomnost hodnoty r
 Bitmapové vektory jsou často velmi řídké (obsahují dlouhé sekvence samých nul) nebo naopak husté (sekvence samých jedniček). Pro minimalizaci diskového prostoru a zrychlení přenosu do RAM se komprimují pomocí metody RLE.
 
 * **Princip:** Namísto ukládání každého bitu samostatně se zaznamená pouze délka nepřerušeného opakování (run) stejných hodnot.
-* **Příklad bytové komprese (24 bitů):** * Mějme sekvenci bitů: `0000 0000 0000 0110 0010 0000`
+* **Příklad bytové komprese (24 bitů):** Mějme sekvenci bitů: `0000 0000 0000 0110 0010 0000`
     * Algoritmus spočítá po sobě jdoucí úseky zakončené jedničkou:
         * 13× nula, 1× jedna (převod na dekadické číslo $13\text{d} \rightarrow 1101\text{b}$)
         * 0× nula, 1× jedna (převod na dekadické číslo $0\text{d} \rightarrow 0\text{b}$)
@@ -182,9 +182,9 @@ Bitmapové vektory jsou často velmi řídké (obsahují dlouhé sekvence samýc
 
 *Aby parser dokázal výsledný proud bitů (`11101101001011`) vůbec přečíst a správně rozdělit zpět na jednotlivá čísla (13, 0, 3), musí každé číslo dostat informaci o tom, kolik bitů zabírá.* 
 *To se dělá zápisem délky v unární soustavě (počet jedniček zakončený nulou) těsně před samotnou hodnotu:*
-* *Číslo `1101` má délku 4 bity $\rightarrow$ unárně jako **11110** (čtyři jedničky a nula).*
-* *Číslo `0` má délku 1 bit $\rightarrow$ zakóduje se jako **0** (nula jedniček a nula).*
-* *Číslo `11` má délku 2 bity $\rightarrow$ zakóduje se jako **110** (dvě jedničky a nula).*
+* *Číslo `1101` má délku 4 bity* $\rightarrow$ *unárně jako **11110** (čtyři jedničky a nula).*
+* *Číslo `0` má délku 1 bit* $\rightarrow$ *zakóduje se jako **0** (nula jedniček a nula).*
+* *Číslo `11` má délku 2 bity* $\rightarrow$ *zakóduje se jako **110** (dvě jedničky a nula).*
 
 Výsledný řetězec pak vznikne spojením těchto dvojic `[délka][hodnota]`:
 `[1110][1101]` + `[0][0]` + `[11][11]` $\rightarrow$ `11101101001011`
@@ -615,7 +615,7 @@ LSN (= Log Sequence Number)
    Systém vezme log od nejstaršího záznamu dopředu a slepě replikuje historii (opakuje všechny změny):
    * Podle záznamu LSN 101 zapíše do $A$ hodnotu $100$.
    * Podle záznamu LSN 102 zapíše do $B$ hodnotu $200$.
-   * *Na konci této fáze je databáze v přesném stavu, v jakém se nacházela v momentě pádu (tedy $A=100, B=200$).*
+   * *Na konci této fáze je databáze v přesném stavu, v jakém se nacházela v momentě pádu (tedy* $A=100, B=200$*).*
 
 3. **UNDO fáze (Dozadu):**
    Systém čistí změny po aktivní transakci $T_2$. Prochází log směrem pozpátku:
