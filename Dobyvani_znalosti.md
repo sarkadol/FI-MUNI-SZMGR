@@ -214,6 +214,7 @@ Surová data málokdy umožňují přímé srovnání kvůli rozdílným měří
 DTW je algoritmus pro měření podobnosti dvou časových řad, které mohou mít různou délku nebo mohou být vůči sobě v čase posunuté či lokálně roztažené.
 - **Omezení Eukleidovské vzdálenosti:** Standardní vzdálenost porovnává body v čase $t$ proti sobě ($x_t$ vs. $y_t$). Pokud je jedna řada jen mírně posunutá, eukleidovská vzdálenost bude obrovská, i když jsou tvary identické.
 - **Princip DTW:** Algoritmus hledá optimální cestu (alignment) v matici vzdáleností mezi všemi páry bodů obou řad. Tato cesta minimalizuje celkovou kumulativní vzdálenost.
+- **Časová složitost**: $O(n \cdot m)$, kde n a m jsou délky obou časových řad.
 - **Podmínky cesty:**
   - **Okrajové podmínky:** Cesta musí začínat v $(1,1)$ a končit v $(n,m)$.
   - **Monotonicita:** Body se v čase nesmí vracet zpět.
