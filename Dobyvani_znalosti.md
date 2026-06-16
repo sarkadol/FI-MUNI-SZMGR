@@ -130,9 +130,6 @@ Jedná se o nejrozšířenější rozdělovací (partitní) algoritmus, který s
 Tento přístup vytváří hierarchii shluků, kterou lze vizualizovat pomocí stromové struktury zvané dendrogram. Nejčastěji se používá aglomerativní (zdola nahoru) přístup.
 
 - **Princip:** Na začátku je každý bod samostatným shlukem. V každém kroku se spojí dva "nejbližší" shluky na základě definovaného kritéria (linkage). Proces končí, když jsou všechny body v jednom velkém shluku.
-- **Kritéria spojování (Linkage):** - **Single link:** Vzdálenost dvou nejbližších bodů (náchylné k řetězení).
-  - **Complete link:** Vzdálenost dvou nejvzdálenějších bodů (vytváří kompaktní shluky).
-  - **Average link:** Průměrná vzdálenost mezi všemi páry bodů.
 - **Výhoda:** Není nutné předem znát počet shluků; ten lze určit dodatečným "uříznutím" dendrogramu v určité výšce.
 - *Příklad: Sestavení evolučního stromu organismů na základě genetické podobnosti.*
 
