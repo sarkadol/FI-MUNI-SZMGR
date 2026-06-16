@@ -88,7 +88,7 @@ Rozděluje proto data do dvou základních typů tabulek s odlišnou rolí a cho
 
 * **Tabulka faktů (Fact Table):** Centrální tabulka obsahující numerická měření, metriky nebo fakta popisující konkrétní byznys události (např. prodané množství, tržba). Obsahuje cizí klíče směřující do tabulek dimenzí.
     * *Granularita (Grain):* Určuje úroveň detailu zachycenou v jednom řádku tabulky faktů (např. jednotlivá položka transakce vs. denní suma).
-    * *Aditivita:* Fakta mohou být plně aditivní (lze je sčítat přes všechny dimenze), semi-aditivní (lze sčítat jen přes některé dimenze, např. stav skladu nelze sčítat přes časovou dimenzi) nebo neaditivní (poměrové ukazatele).
+    * *Aditivita:* Fakta mohou být plně **aditivní**, která lze je sčítat přes všechny dimenze - *`Tržby`, `Počet_prodaných_kusů` (roční tržby = součet tržeb za všechny měsíce a pobočky),* **semi-aditivní** (lze sčítat jen přes některé dimenze, *např. stav skladu nelze sčítat přes časovou dimenzi*) nebo **neaditivní** (poměrové ukazatele - *`Marže_v_%`, `Jednotková_cena` (marže 20 % v pondělí + 30 % v úterý není 50 % celkem; celková marže se musí spočítat až z agregovaných sum jako `Zisk / Tržby`).*
 
 
 * **Tabulka dimenzí (Dimension Table):** Obklopuje tabulku faktů. Obsahuje textové a popisné atributy, které definují kontext faktů (kdo, co, kde, kdy, proč).
