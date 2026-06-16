@@ -216,7 +216,7 @@ Používá se pro data, jejichž objem se v čase mění. Na rozdíl od statick�
 
 ---
 
-## Vyhodnocování dotazu, algoritmy, statistiky a odhady nákladů
+## Vyhodnocování dotazu
 
 Zpracování SQL dotazu probíhá ve 3 hlavních krocích:
 1. **Analýza a překlad (Parsing):** Kontrola syntaxe a sémantiky proti katalogu. Vzniká logický plán (výraz relační algebry).
@@ -249,7 +249,8 @@ Některé operátory z logiky věci nemohou poslat první řádek dál, dokud ne
 
 <img alt="img.png" src="img/db/pipelining.png" width="300"/>
 
-### Algoritmy
+---
+## Algoritmy
 
 #### A) Externí třídění (External Merge Sort)
 Používá se, pokud se tříděná data nevejdou do paměti RAM ($M$ bloků).
@@ -275,7 +276,8 @@ Při spojování dvou tabulek (v relační algebře nazývaných **relace**) def
 
 <img alt="img.png" src="img/db/generated-joins-diagram.png" width="500"/>
 
-### Statistiky a odhady nákladů
+---
+## Statistiky a odhady nákladů
 
 CBO vyjadřuje cenu prováděcího plánu v arbitrárních jednotkách (odhad počtu diskových I/O operací a CPU cyklů). Statistiky se udržují v systémovém katalogu a aktualizují se periodicky na základě vzorkování dat přes příkaz `ANALYZE`.
 
