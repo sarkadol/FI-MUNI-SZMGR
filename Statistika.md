@@ -49,7 +49,7 @@ $$S_{XY} = \frac{1}{n-1} \sum_{i=1}^{n} (X_i - \bar{X})(Y_i - \bar{Y})$$
 Kovariance je závislá na jednotkách. Proto se standardizuje podělením směrodatnými odchylkami obou proměnných. Tím získáme bezrozměrné číslo v mezích $r_{XY} \in \langle -1, 1 \rangle$.
 $$r_{XY} = \frac{S_{XY}}{S_X \cdot S_Y} = \frac{\sum_{i=1}^{n} (X_i - \bar{X})(Y_i - \bar{Y})}{\sqrt{\sum_{i=1}^{n} (X_i - \bar{X})^2 \sum_{i=1}^{n} (Y_i - \bar{Y})^2}}$$
 
-*Poznámka ke korelační matici: Stejně tak uspořádáváme korelace do **korelační matice** (značí se* $R$ *). Na její hlavní diagonále jsou vždy jedničky (protože korelace každé proměnné se sebou samou je* $r_{XX} = 1$ * ) a mimo diagonálu jsou hodnoty vzájemných lineárních vztahů.*
+*Poznámka ke korelační matici: Stejně tak uspořádáváme korelace do **korelační matice** (značí se* $R$ *). Na její hlavní diagonále jsou vždy jedničky (protože korelace každé proměnné se sebou samou je* $r_{XX} = 1$ *) a mimo diagonálu jsou hodnoty vzájemných lineárních vztahů.*
 
 <img alt="img.png" src="img/statistika/pravdep-stat-kor-kov-uni-bivariete.png" width="800"/>
 
@@ -112,7 +112,7 @@ Obrázek graficky znázorňuje, jak **rozsah výběru ($n$) ovlivňuje sílu tes
 
 * **Levý graf ($n = 30$):** Variabilita (šířka křivek) je větší, což způsobuje výrazný překryv rozdělení pod nulovou ($H_0$) a alternativní ($H_1$) hypotézou. Abychom udrželi chybu I. typu na $5\ \%$ (modrá plocha napravo od kritické hodnoty $0,30$), kritická hodnota musí být posunuta poměrně daleko doprava. V důsledku toho je síla testu (červená plocha napravo od kritické hodnoty) pouze **$86,3\ \%$**. Riziko chyby II. typu ($\beta$) je zbylých $13,7\ \%$.
 * **Pravý graf ($n = 100$):** S větším množstvím dat se podle Centrální limitní věty standardní chyba zmenšuje – křivky jsou výrazně užší a "špičatější". Překryv obou rozdělení je minimální. Kritická hodnota se posouvá doleva na $0,16$, přičemž modrá plocha ($\alpha$) stále drží svých $5\ \%$. Červená plocha pod křivkou $H_1$ však nyní pokrývá téměř **$100\ \%$** plochy. 
-* **Závěr:** Zvýšením rozsahu výběru z $30$ na $100$ jsme zpřesnili odhady, snížili šum a dosáhli stoprocentní jistoty, že reálně existující efekt detekujeme.
+* **Závěr:** Zvýšením rozsahu výběru z $30$ na $100$ jsme zpřesnili odhady, snížili šum a dosáhli téměř stoprocentní jistoty, že reálně existující efekt detekujeme.
 
 ---
 
