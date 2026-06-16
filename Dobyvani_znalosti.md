@@ -27,9 +27,22 @@ Další příklady oblastí
 
 ### Metriky: Support, Confidence a Interest
 Abychom určili, která pravidla jsou významná, definujeme klíčové statistické metriky.
-- **Support (Podpora):** Pravděpodobnost, že se daná množina položek $I$ vyskytuje v koši. Obvykle nastavujeme práh $s$, pod kterým množiny nepovažujeme za frekventované.
-- **Confidence (Spolehlivost):** Pro pravidlo $I \rightarrow j$ udává podmíněnou pravděpodobnost $P(j | I)$. Počítá se jako poměr výskytů $I \cup \{j\}$ ku výskytům samotného $I$.
-- **Interest (Zajímavost):** Rozdíl mezi spolehlivostí pravidla a celkovou pravděpodobností výskytu položky $j$, tedy $Conf(I \rightarrow j) - P(j)$. Vysoký kladný zájem značí silnou pozitivní vazbu, zatímco nula značí nezávislost.
+
+* **Support (Podpora):** Pravděpodobnost, že se daná množina položek $I$ vyskytuje v koši. Nastavujeme práh $s$, pod kterým množiny vyřazujeme.
+
+$$\text{Support}(I \rightarrow j) = P(I \cup \{j\})$$
+
+* **Confidence (Spolehlivost):** Vyjadřuje podmíněnou pravděpodobnost $P(j \mid I)$, tedy jak často se v koši objeví konsekvent $j$, pokud už obsahuje antecedent $I$.
+
+$$\text{Confidence}(I \rightarrow j) = \frac{\text{Support}(I \cup \{j\})}{\text{Support}(I)}$$
+
+* **Interest (Zajímavost):** Rozdíl mezi spolehlivostí pravidla a celkovou pravděpodobností výskytu položky $j$.
+
+$$\text{Interest}(I \rightarrow j) = \text{Confidence}(I \rightarrow j) - P(j)$$
+
+  * $\text{Interest} > 0$: Kladná vazba (položky se kupují spolu).
+  * $\text{Interest} = 0$: Nezávislost prvků.
+  * $\text{Interest} < 0$: Záporná vazba (přítomnost $I$ potlačuje prodej $j$).
 - *Příklad: Pokud 80 % lidí, kteří koupí pleny, koupí i pivo, ale pivo kupuje celkově 90 % všech zákazníků, má pravidlo zápornou zajímavost a je zavádějící.*
 
 ## Algoritmus A-Priori
@@ -221,6 +234,7 @@ DTW je algoritmus pro měření podobnosti dvou časových řad, které mohou m�
   - **Spojitost:** Cesta se smí pohybovat pouze o jeden krok (diagonálně, vodorovně nebo svisle).
 - *Příklad: Rozpoznávání řeči, kde různí mluvčí vyslovují stejné slovo různou rychlostí – DTW dokáže tyto časové rozdíly "srovnat" a rozpoznat shodu.*
 
+
 <img alt="img.png" src="img/dobyv/dtw.png" width="600"/>
 
 <img alt="img.png" src="img/dobyv/dtw3.png" width="400"/>
@@ -232,13 +246,26 @@ Klouzavý průměr (Moving Average) je základní technika předzpracování slo
 - **Princip:** Každý bod řady je nahrazen průměrem hodnot v "okně" o velikosti $k$ kolem daného bodu. 
 - **Vliv velikosti okna:** Čím větší je okno $k$, tím je výsledná řada hladší, ale zároveň dochází k většímu zpoždění (lag) a ztrátě detailů o prudkých změnách.
 - **Využití:** Kromě předzpracování tvoří MA základní komponentu statistických modelů jako ARIMA pro předpovídání budoucího vývoje.
-
-<img alt="img.png" src="img/dobyv/ma.png" width="400"/>
-
-- **Jednoduchý klouzavý průměr (SMA):** Nová hodnota v čase $t$ je průměrem hodnot v okně o délce $k$.
-  $$MA_t = \frac{1}{k} \sum_{i=0}^{k-1} x_{t-i}$$
 - **Vlastnosti:**
   - Odstraňuje vysokofrekvenční šum.
   - Čím větší je okno $k$, tím je řada hladší, ale dochází k většímu časovému zpoždění (lag).
   - Může dojít ke ztrátě informací o náhlých, ale důležitých špičkách.
 - *Příklad: Sledování trendu epidemie pomocí 7denního klouzavého průměru, který vyruší "víkendový propad" v hlášení počtu nakažených.*
+
+
+<img alt="img.png" src="img/dobyv/ma.png" width="400"/>
+
+
+
+* **Jednoduchý klouzavý průměr (SMA - Simple Moving Average):** Nová hodnota v čase $t$ je aritmetickým průměrem hodnot v okně o délce $k$ směrem do historie. Trpí na zpoždění (lag) signálu a dává stejnou váhu starým i novým datům v rámci okna.
+
+$$\text{SMA}_t = \frac{1}{k} \sum_{i=0}^{k-1} x_{t-i}$$
+
+* **Centrovaný klouzavý průměr (CMA - Centered Moving Average):** Bere okno symetricky kolem aktuálního bodu $t$ (využívá body z minulosti i budoucnosti, např. $t-1, t, t+1$). Ideální pro analýzu historických dat, protože **negeneruje časové zpoždění**. Je však nepoužitelný pro real-time predikce (neznáme budoucí hodnoty řady).
+* **Exponenciální klouzavý průměr (EMA - Exponential Moving Average):** Dává nejnovějším pozorováním nejvyšší váhu, která směrem do historie exponenciálně klesá. Reaguje na náhlé změny rychleji než SMA a má menší zpoždění. Navíc je výpočetně efektivní – pro výpočet stačí znát pouze aktuální hodnotu $x_t$ a předchozí stav $\text{EMA}_{t-1}$ (nemusí se držet v paměti celé okno $k$ hodnot).
+
+$$\text{EMA}_t = \alpha \cdot x_t + (1 - \alpha) \cdot \text{EMA}_{t-1}$$
+
+
+  
+
