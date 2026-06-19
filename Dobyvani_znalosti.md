@@ -45,6 +45,14 @@ $$\text{Interest}(I \rightarrow j) = \text{Confidence}(I \rightarrow j) - P(j)$$
   * $\text{Interest} < 0$: Záporná vazba (přítomnost $I$ potlačuje prodej $j$).
 - *Příklad: Pokud 80 % lidí, kteří koupí pleny, koupí i pivo, ale pivo kupuje celkově 90 % všech zákazníků, má pravidlo zápornou zajímavost a je zavádějící.*
 
+* **Lift (Zdvih):** Udává poměr mezi spolehlivostí pravidla a celkovou pravděpodobností výskytu položky $j$. Vyjadřuje, kolikrát častěji se položky kupují společně v porovnání s hypotetickou situací, kdy by byly nezávislé.
+
+$$\text{Lift}(I \rightarrow j) = \frac{\text{Confidence}(I \rightarrow j)}{P(j)} = \frac{\text{Support}(I \cup \{j\})}{\text{Support}(I) \times P(j)}$$
+
+  * $\text{Lift} > 1$: Kladná vazba (přítomnost $I$ zvyšuje šanci na nákup $j$).
+  * $\text{Lift} = 1$: Nezávislost prvků.
+  * $\text{Lift} < 1$: Záporná vazba (přítomnost $I$ snižuje šanci na nákup $j$).
+
 ## Algoritmus A-Priori
 Algoritmus A-Priori řeší problém "exploze" počtu možných dvojic a trojic položek tím, že využívá **princip monotonicity**: Pokud je množina položek frekventovaná, musí být frekventované i všechny její podmnožiny.
 - **Pass 1:** Procházíme koše a počítáme výskyty jednotlivých položek (singletons). Ty, které nedosáhnou prahu podpory, vyřadíme.
